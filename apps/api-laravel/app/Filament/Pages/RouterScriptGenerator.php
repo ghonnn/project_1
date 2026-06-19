@@ -6,6 +6,7 @@ use App\Filament\Support\AdminOptions;
 use App\Models\AuditLog;
 use App\Models\RadiusServer;
 use App\Models\Router;
+use App\Models\RouterScriptTemplate;
 use Filament\Forms;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -60,13 +61,17 @@ class RouterScriptGenerator extends Page implements HasForms
                             ->options(fn () => AdminOptions::tenants())
                             ->searchable()
                             ->required()
-                            ->live(),
+                            ->live()
+                            ->afterStateUpdated(function (Forms\Set $set): void {
+                                $set('router_id', null);
+                                $set('radius_server_id', null);
+                            }),
                         Forms\Components\Select::make('router_id')
-                            ->options(fn () => AdminOptions::routers())
+                            ->options(fn (Forms\Get $get) => AdminOptions::routers($get('tenant_id')))
                             ->searchable()
                             ->required(),
                         Forms\Components\Select::make('radius_server_id')
-                            ->options(fn () => AdminOptions::radiusServers())
+                            ->options(fn (Forms\Get $get) => AdminOptions::radiusServers($get('tenant_id')))
                             ->searchable()
                             ->required(),
                         Forms\Components\Select::make('os_version')
@@ -96,7 +101,19 @@ class RouterScriptGenerator extends Page implements HasForms
             ->where('tenant_id', $tenantId)
             ->findOrFail($data['radius_server_id']);
 
-        $this->script = $this->buildScript($router, $server, $data);
+        $template = RouterScriptTemplate::query()
+            ->where('vendor', 'mikrotik')
+            ->where('os_version', $data['os_version'])
+            ->where('script_type', $data['script_type'])
+            ->where('is_active', true)
+            ->where(fn ($query) => $query->where('tenant_id', $tenantId)->orWhereNull('tenant_id'))
+            ->orderByRaw('tenant_id is null')
+            ->first();
+
+        $variables = $this->variables($router, $server, $data);
+        $this->script = $template
+            ? $template->render($variables)
+            : str_replace(array_map(fn ($key) => '{{'.$key.'}}', array_keys($variables)), array_values($variables), RouterScriptTemplate::defaultTemplate($data['script_type']));
 
         AuditLog::create([
             'tenant_id' => $tenantId,
@@ -105,6 +122,7 @@ class RouterScriptGenerator extends Page implements HasForms
             'entity_type' => 'routers',
             'entity_id' => $router->id,
             'new_values' => [
+                'template_id' => $template?->id,
                 'radius_server_id' => $server->id,
                 'os_version' => $data['os_version'],
                 'script_type' => $data['script_type'],
@@ -122,32 +140,22 @@ class RouterScriptGenerator extends Page implements HasForms
 
     /**
      * @param array<string, mixed> $data
+     * @return array<string, string>
      */
-    private function buildScript(Router $router, RadiusServer $server, array $data): string
+    private function variables(Router $router, RadiusServer $server, array $data): array
     {
-        $service = strtolower((string) $data['script_type']) === 'hotspot' ? 'hotspot' : 'ppp';
-        $profile = $data['service_profile'] ?? null;
-
-        $lines = [
-            '# NEXBIL MikroTik '.$data['script_type'].' '.$data['os_version'].' RADIUS script',
-            '# Router: '.$router->router_name.' / '.$router->hostname,
-            '/radius add service='.$service.' address='.$server->host.' secret="'.$server->shared_secret.'" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' timeout=300ms',
+        return [
+            'script_type' => (string) $data['script_type'],
+            'os_version' => (string) $data['os_version'],
+            'radius_service' => strtolower((string) $data['script_type']) === 'hotspot' ? 'hotspot' : 'ppp',
+            'radius_server_ip' => (string) $server->host,
+            'radius_secret' => (string) $server->shared_secret,
+            'auth_port' => (string) $server->auth_port,
+            'acct_port' => (string) $server->acct_port,
+            'router_name' => (string) $router->router_name,
+            'router_hostname' => (string) $router->hostname,
+            'interim_update' => '5m',
+            'service_profile' => (string) ($data['service_profile'] ?? ''),
         ];
-
-        if ($service === 'ppp') {
-            $lines[] = '/ppp aaa set use-radius=yes accounting=yes interim-update=5m';
-            if ($profile) {
-                $lines[] = '/ppp profile add name="'.$profile.'" use-encryption=yes only-one=yes';
-            }
-        } else {
-            $lines[] = '/ip hotspot profile set [ find default=yes ] use-radius=yes';
-            if ($profile) {
-                $lines[] = '/ip hotspot user profile add name="'.$profile.'" shared-users=1';
-            }
-        }
-
-        $lines[] = '/system identity set name="'.$router->hostname.'"';
-
-        return implode("\n", $lines);
     }
 }
