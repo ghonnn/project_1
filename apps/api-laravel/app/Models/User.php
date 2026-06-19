@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Models\Traits\HasUuid;
 use Database\Factories\UserFactory;
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -13,7 +15,7 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Hidden(['password', 'remember_token'])]
-class User extends Authenticatable
+class User extends Authenticatable implements FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasUuid, Notifiable;
@@ -43,6 +45,11 @@ class User extends Authenticatable
     public function isPlatformOwner(): bool
     {
         return $this->roles()->where('code', 'platform_owner')->exists();
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return $this->status === 'active' && $this->isPlatformOwner();
     }
 
     /**

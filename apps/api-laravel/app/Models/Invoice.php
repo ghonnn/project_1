@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\NexModel;
 use App\Models\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Invoice extends NexModel
@@ -18,5 +19,10 @@ class Invoice extends NexModel
     public function items(): HasMany
     {
         return $this->hasMany(InvoiceItem::class);
+    }
+
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
     }
 }
