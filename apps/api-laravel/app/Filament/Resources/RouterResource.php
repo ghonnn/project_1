@@ -33,7 +33,16 @@ class RouterResource extends Resource
                 Forms\Components\TextInput::make('model')->maxLength(255),
                 Forms\Components\TextInput::make('serial_number')->maxLength(255),
                 Forms\Components\Select::make('router_role')
-                    ->options(['core' => 'Core', 'distribution' => 'Distribution', 'edge' => 'Edge', 'customer_edge' => 'Customer Edge'])
+                    ->options([
+                        'core_router' => 'Core Router',
+                        'aggregation_router' => 'Aggregation Router',
+                        'edge_router' => 'Edge Router',
+                        'pppoe_router' => 'PPPoE Router',
+                        'bng' => 'BNG',
+                        'wireless_gateway' => 'Wireless Gateway',
+                        'pop_router' => 'POP Router',
+                        'bts_router' => 'BTS Router',
+                    ])
                     ->required(),
                 Forms\Components\TextInput::make('site_name')->maxLength(255),
                 Forms\Components\TextInput::make('management_ip')->required()->maxLength(255),
