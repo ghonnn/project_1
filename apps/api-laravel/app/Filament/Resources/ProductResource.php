@@ -9,6 +9,7 @@ use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -154,6 +155,9 @@ class ProductResource extends Resource
             ->label($label)
             ->prefix('Rp')
             ->inputMode('numeric')
+            ->mask(RawJs::make(<<<'JS'
+                $input.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+            JS))
             ->formatStateUsing(fn ($state) => self::formatRupiah($state))
             ->dehydrateStateUsing(fn ($state) => self::parseRupiah($state));
     }
