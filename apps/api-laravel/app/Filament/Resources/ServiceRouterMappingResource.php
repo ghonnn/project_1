@@ -18,7 +18,7 @@ class ServiceRouterMappingResource extends Resource
 {
     protected static ?string $model = ServiceRouterMapping::class;
 
-    protected static ?string $navigationGroup = 'OSS';
+    protected static ?string $navigationGroup = 'Network';
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
 

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -27,19 +28,29 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('NEXBIL Admin')
+            ->brandName('NEX')
             ->login()
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Violet,
+                'danger' => Color::Rose,
+                'gray' => Color::Slate,
+                'info' => Color::Sky,
+                'success' => Color::Emerald,
+                'warning' => Color::Amber,
             ])
+            ->defaultThemeMode(ThemeMode::Dark)
+            ->sidebarCollapsibleOnDesktop()
+            ->spa()
             ->navigationGroups([
-                NavigationGroup::make('Platform'),
-                NavigationGroup::make('CRM'),
-                NavigationGroup::make('Catalog'),
-                NavigationGroup::make('OSS'),
-                NavigationGroup::make('RADIUS'),
-                NavigationGroup::make('Billing'),
-                NavigationGroup::make('Logs'),
+                NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
+                NavigationGroup::make('Customer')->icon('heroicon-o-users'),
+                NavigationGroup::make('Catalog')->icon('heroicon-o-tag'),
+                NavigationGroup::make('Service')->icon('heroicon-o-bolt'),
+                NavigationGroup::make('Network')->icon('heroicon-o-server-stack'),
+                NavigationGroup::make('Radius')->icon('heroicon-o-key'),
+                NavigationGroup::make('Billing')->icon('heroicon-o-document-text'),
+                NavigationGroup::make('Payment')->icon('heroicon-o-banknotes'),
+                NavigationGroup::make('Security & Audit')->icon('heroicon-o-shield-check')->collapsed(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')

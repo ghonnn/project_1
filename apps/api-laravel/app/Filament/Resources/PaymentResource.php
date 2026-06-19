@@ -18,11 +18,11 @@ class PaymentResource extends Resource
 {
     protected static ?string $model = Payment::class;
 
-    protected static ?string $navigationGroup = 'Billing';
+    protected static ?string $navigationGroup = 'Payment';
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
     {
@@ -52,8 +52,14 @@ class PaymentResource extends Resource
                 Tables\Columns\TextColumn::make('tenant.name')->label('Tenant')->searchable(),
                 Tables\Columns\TextColumn::make('invoice.invoice_number')->label('Invoice')->searchable(),
                 Tables\Columns\TextColumn::make('amount')->money('IDR')->sortable(),
-                Tables\Columns\TextColumn::make('method')->badge(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('method')->badge()->color('gray'),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'paid' => 'success',
+                    'initiated' => 'info',
+                    'refunded' => 'warning',
+                    'failed' => 'danger',
+                    default => 'gray',
+                }),
                 Tables\Columns\TextColumn::make('paid_at')->dateTime()->sortable(),
             ])
             ->filters([

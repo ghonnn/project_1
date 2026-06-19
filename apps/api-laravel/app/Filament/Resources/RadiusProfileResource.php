@@ -18,7 +18,7 @@ class RadiusProfileResource extends Resource
 {
     protected static ?string $model = RadiusProfile::class;
 
-    protected static ?string $navigationGroup = 'RADIUS';
+    protected static ?string $navigationGroup = 'Radius';
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
 

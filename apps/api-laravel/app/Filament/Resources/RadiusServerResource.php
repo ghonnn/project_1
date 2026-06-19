@@ -18,7 +18,7 @@ class RadiusServerResource extends Resource
 {
     protected static ?string $model = RadiusServer::class;
 
-    protected static ?string $navigationGroup = 'RADIUS';
+    protected static ?string $navigationGroup = 'Radius';
 
     protected static ?string $navigationIcon = 'heroicon-o-signal';
 
@@ -56,8 +56,16 @@ class RadiusServerResource extends Resource
                 Tables\Columns\TextColumn::make('host')->searchable(),
                 Tables\Columns\TextColumn::make('auth_port'),
                 Tables\Columns\TextColumn::make('acct_port'),
-                Tables\Columns\TextColumn::make('status')->badge(),
-                Tables\Columns\TextColumn::make('last_test_status')->badge(),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    default => 'gray',
+                }),
+                Tables\Columns\TextColumn::make('last_test_status')->badge()->color(fn (?string $state): string => match ($state) {
+                    'success' => 'success',
+                    'warning' => 'warning',
+                    'failed' => 'danger',
+                    default => 'gray',
+                }),
             ])
             ->filters([
                 //

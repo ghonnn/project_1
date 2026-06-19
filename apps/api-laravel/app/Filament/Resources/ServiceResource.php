@@ -18,7 +18,7 @@ class ServiceResource extends Resource
 {
     protected static ?string $model = Service::class;
 
-    protected static ?string $navigationGroup = 'OSS';
+    protected static ?string $navigationGroup = 'Service';
 
     protected static ?string $navigationIcon = 'heroicon-o-bolt';
 
@@ -53,7 +53,13 @@ class ServiceResource extends Resource
                 Tables\Columns\TextColumn::make('customer.name')->label('Customer')->searchable(),
                 Tables\Columns\TextColumn::make('cid')->label('CID')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('product.name')->label('Product')->searchable(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    'requested' => 'info',
+                    'suspended' => 'warning',
+                    'terminated' => 'danger',
+                    default => 'gray',
+                }),
                 Tables\Columns\TextColumn::make('activated_at')->dateTime()->sortable(),
             ])
             ->filters([

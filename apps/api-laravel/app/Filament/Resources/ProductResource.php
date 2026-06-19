@@ -54,8 +54,11 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('sku')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('price')->money('IDR')->sortable(),
-                Tables\Columns\TextColumn::make('billing_cycle')->badge(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('billing_cycle')->badge()->color('info'),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    default => 'gray',
+                }),
             ])
             ->filters([
                 //

@@ -18,7 +18,7 @@ class CustomerResource extends Resource
 {
     protected static ?string $model = Customer::class;
 
-    protected static ?string $navigationGroup = 'CRM';
+    protected static ?string $navigationGroup = 'Customer';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
@@ -52,8 +52,16 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
                 Tables\Columns\TextColumn::make('phone')->searchable(),
-                Tables\Columns\TextColumn::make('type')->badge(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('type')->badge()->color(fn (string $state): string => match ($state) {
+                    'business' => 'primary',
+                    default => 'gray',
+                }),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    'suspended' => 'warning',
+                    'terminated' => 'danger',
+                    default => 'gray',
+                }),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([

@@ -18,7 +18,7 @@ class RadiusUserResource extends Resource
 {
     protected static ?string $model = RadiusUser::class;
 
-    protected static ?string $navigationGroup = 'RADIUS';
+    protected static ?string $navigationGroup = 'Radius';
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
 
@@ -52,7 +52,12 @@ class RadiusUserResource extends Resource
                 Tables\Columns\TextColumn::make('tenant.name')->label('Tenant')->searchable(),
                 Tables\Columns\TextColumn::make('username')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('service.cid')->label('Service')->searchable(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    'pending' => 'warning',
+                    'suspended' => 'danger',
+                    default => 'gray',
+                }),
                 Tables\Columns\TextColumn::make('updated_at')->dateTime()->sortable(),
             ])
             ->filters([

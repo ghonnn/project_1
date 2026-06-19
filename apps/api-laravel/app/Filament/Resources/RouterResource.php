@@ -18,7 +18,7 @@ class RouterResource extends Resource
 {
     protected static ?string $model = Router::class;
 
-    protected static ?string $navigationGroup = 'OSS';
+    protected static ?string $navigationGroup = 'Network';
 
     protected static ?string $navigationIcon = 'heroicon-o-server-stack';
 
@@ -70,8 +70,13 @@ class RouterResource extends Resource
                 Tables\Columns\TextColumn::make('hostname')->searchable(),
                 Tables\Columns\TextColumn::make('management_ip')->searchable(),
                 Tables\Columns\TextColumn::make('public_ip')->searchable(),
-                Tables\Columns\TextColumn::make('router_role')->badge(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('router_role')->badge()->color('primary'),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    'maintenance' => 'warning',
+                    'inactive' => 'danger',
+                    default => 'gray',
+                }),
             ])
             ->filters([
                 //

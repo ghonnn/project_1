@@ -18,7 +18,7 @@ class RouterInterfaceResource extends Resource
 {
     protected static ?string $model = RouterInterface::class;
 
-    protected static ?string $navigationGroup = 'OSS';
+    protected static ?string $navigationGroup = 'Network';
 
     protected static ?string $navigationIcon = 'heroicon-o-circle-stack';
 
@@ -54,7 +54,12 @@ class RouterInterfaceResource extends Resource
                 Tables\Columns\TextColumn::make('interface_name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('ip_address')->searchable(),
                 Tables\Columns\TextColumn::make('vlan_id')->sortable(),
-                Tables\Columns\TextColumn::make('status')->badge(),
+                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                    'active' => 'success',
+                    'provisioning' => 'info',
+                    'down' => 'danger',
+                    default => 'gray',
+                }),
             ])
             ->filters([
                 //
