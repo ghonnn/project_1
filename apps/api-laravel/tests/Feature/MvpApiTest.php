@@ -6,10 +6,12 @@ use App\Models\Customer;
 use App\Models\Product;
 use App\Models\RadiusProfile;
 use App\Models\RadiusServer;
+use App\Models\RadiusSyncLog;
 use App\Models\RadiusUser;
 use App\Models\Router;
 use App\Models\Service;
 use App\Models\ServiceCategory;
+use App\Models\ServicePlanChange;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -190,6 +192,58 @@ class MvpApiTest extends TestCase
             'reason' => 'paid',
         ], $this->auth())->assertOk();
         $this->assertSame('active', $radiusUser->fresh()->status);
+    }
+
+    public function test_plan_change_updates_service_and_syncs_radius_profile(): void
+    {
+        $tenant = $this->tenant();
+        $service = $this->createService('BROADBAND');
+        $oldProfile = RadiusProfile::where('tenant_id', $tenant->id)->firstOrFail();
+        $newProduct = Product::create([
+            'tenant_id' => $tenant->id,
+            'service_category_id' => $service->service_category_id,
+            'name' => 'Upgrade 200M',
+            'sku' => 'UPGRADE-200M',
+            'mikrotik_group' => 'RLRADIUS',
+            'mikrotik_rate_limit' => '200M/200M',
+            'shared_users' => 1,
+            'active_days' => 30,
+            'hpp' => 200000,
+            'commission' => 0,
+            'ppn_enabled' => true,
+            'price' => 222000,
+            'billing_cycle' => 'monthly',
+            'status' => 'active',
+        ]);
+
+        $radiusUser = RadiusUser::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $service->customer_id,
+            'service_id' => $service->id,
+            'profile_id' => $oldProfile->id,
+            'username' => 'plan-change-test',
+            'secret' => 'secret',
+            'status' => 'active',
+        ]);
+
+        ServicePlanChange::create([
+            'tenant_id' => $tenant->id,
+            'service_id' => $service->id,
+            'old_product_id' => $service->product_id,
+            'new_product_id' => $newProduct->id,
+            'change_date' => now()->toDateString(),
+            'change_type' => 'upgrade',
+        ]);
+
+        $newProfile = RadiusProfile::where('tenant_id', $tenant->id)->where('name', 'Upgrade 200M')->firstOrFail();
+
+        $this->assertSame($newProduct->id, $service->fresh()->product_id);
+        $this->assertSame($newProfile->id, $radiusUser->fresh()->profile_id);
+        $this->assertDatabaseHas(RadiusSyncLog::class, [
+            'tenant_id' => $tenant->id,
+            'radius_user_id' => $radiusUser->id,
+            'action' => 'sync',
+        ]);
     }
 
     public function test_invoice_only_for_active_service(): void

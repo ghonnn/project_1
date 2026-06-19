@@ -67,9 +67,13 @@ class AdminOptions
     /**
      * @return array<string, string>
      */
-    public static function products(): array
+    public static function products(?string $tenantId = null): array
     {
-        return Product::query()->orderBy('name')->pluck('name', 'id')->all();
+        return Product::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
     }
 
     /**
