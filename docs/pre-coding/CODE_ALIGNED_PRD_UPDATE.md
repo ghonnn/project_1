@@ -1,367 +1,382 @@
-# NEX OSS/BSS ISP Cloud Platform - Code-Aligned PRD Update
+# NEX OSS/BSS ISP Cloud Platform - Focused MVP Sprint PRD
 
-Status: practical update after reviewing current GitHub implementation  
+Status: focused sprint update for backend MVP end-to-end testing  
 Date: 2026-06-20  
-Scope: align the current Laravel API MVP and Filament Admin Panel with PRD v3.4 Router-Centric and the attached flowchart.
+Role context: Senior Laravel Backend Engineer + Frontend Expert  
+Scope: Phase 1, Phase 2, Phase 3 only.
 
-## 1. Executive Decision
+## 1. Sprint Objective
 
-The current codebase is already pointed in the right direction: it is a Laravel OSS/BSS MVP with a router-centric data model, tenant-aware API routes, Filament admin resources, RADIUS primitives, invoice/payment primitives, service-router mapping, and a RouterOS script generator.
+Laravel sudah bisa diakses via browser/API. Sprint ini tidak menambah semua modul PRD v3.4 sekaligus. Fokus sprint adalah membuat backend MVP siap diuji end-to-end untuk alur inti ISP:
 
-The next update should **not** broaden the product into all PRD modules at once. The best practical path is to close the gaps that block a usable ISP operational MVP:
+```text
+Tenant + Customer + Service + Router
+-> Radius + NAS + Router Mapping
+-> Billing + Payment + Suspend/Unsuspend
+```
 
-1. Finish tenant-safe operational CRUD.
-2. Finish service activation guardrails.
-3. Turn router/RADIUS/billing flows into a clean end-to-end workflow.
-4. Add missing PRD entities only when they are needed by the workflow.
-5. Keep POP and BTS as `router_role` values only.
+Target akhirnya: satu tenant bisa membuat customer, membuat service internet, mapping service ke router/interface, membuat Radius user/NAS, mengaktifkan service, membuat invoice, mencatat payment, suspend, dan unsuspend dengan alur yang konsisten.
 
-## 2. Locked Product Rule
+## 2. Product Rule yang Dikunci
 
 ```text
 Customer -> Service -> Router -> Router Interface -> Radius NAS -> FreeRadius
 ```
 
-Rules:
+Aturan wajib:
 
-- Customer must never map directly to POP or BTS.
-- POP and BTS remain only `routers.router_role` values: `pop_router` and `bts_router`.
-- Internet/network service activation requires router mapping when `service_categories.requires_router_mapping = true`.
-- RADIUS user requires router linkage when `service_categories.requires_radius = true`.
-- Billing should only invoice active services.
-- Suspend/unsuspend operates at service level first, then syncs Radius user status.
+- POP dan BTS tidak menjadi modul atau tabel terpisah.
+- POP dan BTS hanya nilai `router_role`: `pop_router` dan `bts_router`.
+- Service network wajib punya router mapping jika `requires_router_mapping = true`.
+- Service yang membutuhkan AAA wajib punya Radius user jika `requires_radius = true`.
+- Radius NAS wajib selalu terhubung ke Router.
+- Invoice hanya boleh dibuat untuk service aktif.
+- Suspend/unsuspend dilakukan pada service, lalu status Radius user mengikuti.
 
-## 3. Current Implementation Snapshot
+## 3. Gap yang Dirapihkan untuk Sprint Ini
 
-### Implemented and usable now
+Gap awal yang ditemukan:
 
-| Area | Current state | Practical note |
-|---|---|---|
-| Laravel API MVP | API routes under `/api/v1` with auth and tenant prefix | Keep as backend contract for admin and future portal/mobile. |
-| Tenant structure | `tenants`, `users`, roles/permissions base tables | Needs stronger tenant admin access and permission matrix. |
-| Customer/service/catalog | `customers`, `service_categories`, `products`, `services` | Service category flags are already present and should drive validation. |
-| Router topology | `routers`, `router_interfaces`, `router_links`, `service_router_mapping`, `customer_router_mapping` | Correct foundation for router-centric PRD. |
-| RADIUS | `radius_servers`, `radius_profiles`, `radius_users`, `radius_sync_logs` | NAS table exists, but API/UI flow needs completion. |
-| Billing MVP | `invoices`, `invoice_items`, `payments` | Current implementation allows active-service invoicing and manual reconciliation. |
-| Suspend/unsuspend | Service action updates service and Radius user status | Good MVP. Add policy automation later. |
-| Router script generator | API and Filament page exist | Convert hardcoded script generation into `router_script_templates`. |
-| Audit logs | Critical operations log activity | Expand to all write operations and sync events. |
+1. NAS Device Management UI/API belum lengkap.
+2. Router Impact Analysis endpoint belum ada.
+3. Router Script Generator masih hardcoded, belum memakai `router_script_templates`.
+4. `router_capacity_history` belum ada.
+5. Contract lifecycle belum masuk Laravel MVP.
+6. Ticket SLA dan Work Order lifecycle masih tipis.
+7. Tenant isolation perlu test coverage.
+8. Billing automation masih manual.
 
-### Important gap vs PRD v3.4
+Untuk sprint ini, gap tersebut dirapihkan menjadi tiga kelompok:
 
-| Gap | Current condition | Recommended update |
-|---|---|---|
-| Contract/e-signature | PRD requires contract before recurring billing; app schema does not yet implement contract table in Laravel MVP | Add `contracts` and `contract_documents` before advanced billing. For MVP, allow manual contract reference in service metadata. |
-| NAS Management | `nas_devices` table exists; route/resource flow is incomplete | Add API + Filament `NasDeviceResource` and enforce router linkage. |
-| Router script template | PRD asks template engine; current generator builds script inline | Add `router_script_templates` and render script from template variables. |
-| Router capacity history | PRD requires capacity dashboard; Laravel MVP migration does not include capacity history | Add `router_capacity_history` migration and lightweight dashboard query. |
-| NOC impact analysis | Flow exists in docs, but no endpoint yet | Add `/routers/{id}/impact` endpoint before complex monitoring integration. |
-| Work order/ticket detail | Base tables exist, but lifecycle fields are thin | Add priority, category, SLA timestamps, assignee, verification fields. |
-| Billing automation | Manual invoice/payment works; recurring/prorate not yet full | Keep manual first, then add billing cycle job after service lifecycle is stable. |
-| Tenant isolation hardening | Tenant middleware exists by route shape; needs test coverage and policy guards | Add feature tests for cross-tenant read/write denial. |
+### 3.1 Masuk Sprint Phase 1-3
 
-## 4. Updated MVP Scope
+| Gap | Fase | Keputusan Sprint |
+|---|---:|---|
+| NAS Device Management UI/API belum lengkap | Phase 2 | Wajib dikerjakan sekarang. NAS adalah jembatan Router ke FreeRadius. |
+| Service Router Mapping UI belum lengkap | Phase 2 | Wajib dikerjakan sekarang. Tanpa ini service internet tidak bisa siap aktivasi secara rapi. |
+| Router Script Generator masih hardcoded | Phase 2 | Dikerjakan sebagai template MVP, cukup untuk ROS6/ROS7 PPPoE dan Hotspot. |
+| Tenant isolation perlu test coverage | Phase 1 | Wajib dikerjakan sekarang untuk menjaga SaaS multi-tenant sejak awal. |
+| Billing automation masih manual | Phase 3 | Rapihkan MVP manual dulu, lalu tambah payment-triggered unsuspend evaluation. |
 
-### In scope for next practical release
+### 3.2 Ditunda setelah Phase 3
 
-1. Tenant-safe Admin MVP.
-2. Customer, service category, product, service CRUD.
-3. Router, interface, link, service-router mapping CRUD.
-4. RADIUS server, profile, NAS device, Radius user CRUD.
-5. Service activate/suspend/unsuspend guardrails.
-6. RouterOS RADIUS script generator using templates.
-7. Manual invoice + payment reconciliation.
-8. Router impact endpoint and basic incident/ticket creation.
-9. Audit log on all create/update/status/sync actions.
-10. Updated documentation and flowchart as source of truth.
+| Gap | Alasan Ditunda |
+|---|---|
+| Router Impact Analysis endpoint belum ada | Masuk Phase 4/NOC. Tidak perlu menghambat billing/provisioning MVP. |
+| `router_capacity_history` belum ada | Masuk Phase 5/Monitoring & Capacity. Belum wajib untuk end-to-end billing/provisioning. |
+| Contract lifecycle belum masuk Laravel MVP | Masuk setelah billing MVP stabil. Untuk sprint ini cukup simpan contract reference di service metadata bila perlu. |
+| Ticket SLA dan Work Order lifecycle masih tipis | Masuk Phase 4/Field Operation. Tidak perlu menghambat Phase 1-3. |
 
-### Explicitly out of scope for next practical release
-
-- Full MikroTik API control.
-- Full OLT/ONU auto-provisioning.
-- Marketplace.
-- AI NOC automation.
-- Multi-country tax engine.
-- Complex customer mobile app.
-- Full workflow designer.
-
-## 5. Updated Domain Requirements
-
-### 5.1 Tenant and RBAC
-
-Requirements:
-
-- Every operational row must have `tenant_id`, except global platform configuration.
-- Platform Owner can see all tenants.
-- Tenant Admin can see only own tenant data.
-- Finance, NOC, Sales, Technician should be represented in role matrix even if enforcement starts simple.
-
-Acceptance criteria:
-
-- A user from Tenant A cannot fetch, create, update, map, invoice, or suspend records in Tenant B.
-- API tests must cover cross-tenant denial for customers, services, routers, radius users, invoices, and payments.
-
-### 5.2 Customer and Service Lifecycle
-
-Updated flow:
+## 4. Sprint Flow yang Harus Bisa Diuji
 
 ```text
-Lead/Customer Created
--> Product and Service Category selected
--> Service created as requested
--> Router mapping required check
--> Radius user required check
--> Service activation
--> Invoice eligibility
--> Suspend/unsuspend lifecycle
+1. Platform Owner login admin/API
+2. Buat Tenant
+3. Buat Customer dalam Tenant
+4. Buat Service Category dengan flags:
+   - requires_router_mapping = true
+   - requires_radius = true
+   - requires_ip_assignment = true/false
+   - requires_vlan = true/false
+5. Buat Product
+6. Buat Service untuk Customer
+7. Buat Router
+8. Buat Router Interface
+9. Buat NAS Device yang terhubung ke Router
+10. Mapping Service ke Router/Interface
+11. Buat Radius Profile
+12. Buat Radius User untuk Service + Router
+13. Activate Service
+14. Generate Invoice untuk Service aktif
+15. Record Payment
+16. Suspend Service
+17. Unsuspend Service setelah payment/evaluation
 ```
 
-Activation rules:
+## 5. Phase 1 - Tenant + Customer + Service + Router
 
-- If `requires_router_mapping = true`, service cannot become active without `service_router_mapping`.
-- If `requires_radius = true`, service cannot become active without `radius_users`.
-- If Radius user is created for a network service, `router_id` is required.
+### 5.1 Tujuan
 
-### 5.3 Router Management
+Merapihkan fondasi multi-tenant dan master data inti agar semua data operasional bisa diuji dengan aman.
 
-Required router roles:
+### 5.2 Scope Backend
 
-- `core_router`
-- `aggregation_router`
-- `edge_router`
-- `pppoe_router`
-- `bng`
-- `wireless_gateway`
-- `pop_router`
-- `bts_router`
+- Tenant CRUD sudah ada, rapihkan validasi dan visibility.
+- Customer CRUD tenant-safe.
+- Service Category CRUD dengan flags wajib.
+- Product CRUD linked ke Service Category.
+- Service CRUD linked ke Customer, Product, Service Category.
+- Router CRUD dengan controlled `router_role`.
+- Router Interface CRUD linked ke Router.
+- Tenant isolation middleware/test untuk entity utama.
 
-Required next improvements:
+### 5.3 Scope Frontend / Filament
 
-- Add controlled validation to Filament and API consistently.
-- Add interface uniqueness: `tenant_id + router_id + interface_name`.
-- Add router impact endpoint.
-- Add capacity snapshot table.
+- Tenant Resource.
+- Customer Resource.
+- Product Resource.
+- Service Resource.
+- Router Resource.
+- Router Interface Resource.
+- Field wajib dibuat jelas: tenant, customer, service category, router role, management IP, status.
 
-### 5.4 Radius and FreeRadius
+### 5.4 Acceptance Criteria Phase 1
 
-Required flow:
+- Tenant bisa dibuat dari admin/API.
+- Customer hanya muncul di tenant yang benar.
+- Service hanya bisa dibuat untuk customer di tenant yang sama.
+- Product hanya bisa menggunakan service category di tenant yang sama.
+- Router role hanya menerima value PRD: `core_router`, `aggregation_router`, `edge_router`, `pppoe_router`, `bng`, `wireless_gateway`, `pop_router`, `bts_router`.
+- Router Interface hanya bisa dibuat untuk router di tenant yang sama.
+- User Tenant A tidak bisa read/write data Tenant B.
+
+## 6. Phase 2 - Radius + NAS + Router Mapping
+
+### 6.1 Tujuan
+
+Membuat provisioning MVP benar-benar usable: service internet bisa ditelusuri ke router, interface, NAS, Radius profile, dan Radius user.
+
+### 6.2 Scope Backend
+
+- NAS Device API lengkap:
+  - list
+  - create
+  - show
+  - update
+- NAS Device wajib punya `router_id`.
+- NAS Device router harus tenant yang sama.
+- Service Router Mapping API dirapihkan:
+  - service_id
+  - router_id
+  - interface_id optional tapi harus satu router jika diisi
+  - vlan_id optional
+  - is_primary
+- Customer Router Mapping otomatis dibuat saat service-router mapping dibuat.
+- Radius Server CRUD.
+- Radius Profile CRUD.
+- Radius User CRUD.
+- Radius User network service wajib punya router.
+- Radius User service/customer/router harus tenant yang sama.
+- Router Script Generator memakai template MVP, bukan inline hardcoded logic.
+
+### 6.3 Scope Frontend / Filament
+
+- `NasDeviceResource`.
+- Service Router Mapping relation manager di Service Resource, atau resource terpisah jika lebih cepat.
+- Radius Server Resource.
+- Radius Profile Resource.
+- Radius User Resource.
+- Router Script Generator page tetap ada, tetapi sumber script dari template.
+- Router Script Template Resource minimal untuk admin/developer.
+
+### 6.4 Template Script MVP
+
+Minimal template yang harus tersedia:
+
+- MikroTik ROS6 PPPoE RADIUS.
+- MikroTik ROS7 PPPoE RADIUS.
+- MikroTik ROS6 Hotspot RADIUS.
+- MikroTik ROS7 Hotspot RADIUS.
+
+Variabel template:
 
 ```text
-Radius Server
--> NAS Device mapped to Router
--> Radius Profile
--> Radius User mapped to Customer + Service + Router
--> Sync/Test FreeRadius
--> Activate/Suspend/Unsuspend with service state
+{{radius_service}}
+{{radius_server_ip}}
+{{radius_secret}}
+{{auth_port}}
+{{acct_port}}
+{{router_hostname}}
+{{interim_update}}
 ```
 
-Practical change:
+### 6.5 Acceptance Criteria Phase 2
 
-- Do not use MikroTik API in early phase.
-- Use FreeRadius as source of authentication truth.
-- Store RADIUS/NAS secrets encrypted before production.
-- Add sync logs for create, activate, suspend, and failure cases.
+- NAS Device bisa dibuat via API dan Filament.
+- NAS Device tidak bisa dibuat tanpa Router.
+- NAS Device tidak bisa memakai Router dari tenant lain.
+- Service yang `requires_router_mapping = true` tidak bisa active sebelum mapping dibuat.
+- Service Router Mapping otomatis membuat Customer Router Mapping.
+- Radius User untuk service yang `requires_radius = true` wajib memiliki Router.
+- Radius User tidak bisa memakai customer/service/router lintas tenant.
+- Router Script Generator menghasilkan script dari `router_script_templates`.
+- Audit log tercatat untuk create/update router, mapping, Radius user, dan script generation.
 
-### 5.5 Router Script Generator
+## 7. Phase 3 - Billing + Payment + Suspend
 
-Current generator is useful but should be upgraded.
+### 7.1 Tujuan
 
-Required update:
+Merapihkan billing MVP agar alur invoice-payment-suspend-unsuspend bisa diuji end-to-end tanpa menunggu full recurring billing engine.
 
-- Add `router_script_templates` table.
-- Store template by `vendor`, `os_version`, `script_type`, `status`.
-- Render variables: router hostname, Radius host, auth/acct port, secret, service type, interim update.
-- Output copyable script and downloadable `.rsc`.
+### 7.2 Scope Backend
 
-Acceptance criteria:
+- Invoice create hanya untuk service `active`.
+- Invoice item wajib mengacu ke service dalam tenant yang sama.
+- Payment create mengubah paid amount invoice.
+- Invoice status:
+  - `issued`
+  - `partial_paid`
+  - `paid`
+  - `overdue`
+  - `cancelled`
+- Service suspend action:
+  - set service `suspended`
+  - set `suspended_at`
+  - suspend related Radius users
+  - write audit log
+- Service unsuspend action:
+  - set service `active`
+  - clear `suspended_at`
+  - activate related Radius users
+  - write audit log
+- Billing Unsuspend Evaluation:
+  - jika invoice terkait service sudah paid, service boleh di-unsuspend
+  - untuk MVP bisa endpoint manual/action admin dulu, belum perlu scheduler kompleks
 
-- ROS6 PPPoE script generated from template.
-- ROS7 PPPoE script generated from template.
-- Hotspot script generated from template.
-- No RADIUS secret written to audit log.
+### 7.3 Scope Frontend / Filament
 
-### 5.6 Billing MVP
+- Invoice Resource: create/list/detail.
+- Payment Resource: create/list.
+- Service Resource action: activate, suspend, unsuspend.
+- Status badges jelas untuk service, invoice, payment, Radius user.
 
-Current manual invoice/payment is acceptable for MVP, but recurring automation must wait until service lifecycle is clean.
+### 7.4 Acceptance Criteria Phase 3
 
-Updated billing rule:
+- Invoice gagal dibuat untuk service non-active.
+- Invoice gagal dibuat jika service bukan milik tenant yang sama.
+- Payment menambah `paid_amount` invoice.
+- Payment partial membuat invoice `partial_paid`.
+- Payment penuh membuat invoice `paid`.
+- Suspend service mengubah status service dan Radius user menjadi suspended.
+- Unsuspend service mengubah status service dan Radius user menjadi active.
+- Paid invoice bisa menjalankan unsuspend evaluation untuk service terkait.
+- Semua aksi billing dan status lifecycle masuk audit log.
+
+## 8. Backlog Sprint yang Sudah Difokuskan
+
+Urutan kerja final sprint:
 
 ```text
-Active Service -> Invoice Draft/Issued -> Payment Reconciled -> Invoice Paid/Partial -> Unsuspend Evaluation
+Phase 1
+Tenant Isolation Tests
+-> Customer/Service/Router validation cleanup
+-> Router Interface tenant validation
+
+Phase 2
+NAS Management API/UI
+-> Service Router Mapping UI
+-> Radius User tenant validation
+-> Router Script Templates
+
+Phase 3
+Invoice/Payment validation cleanup
+-> Service Suspend/Unsuspend hardening
+-> Billing Unsuspend Evaluation
 ```
 
-Acceptance criteria:
+## 9. Endpoint yang Perlu Diprioritaskan
 
-- Invoice cannot be created for non-active service.
-- Payment increments paid amount.
-- Paid amount equal or above total marks invoice `paid`.
-- Partial amount marks invoice `partial_paid`.
-- Later: payment paid should trigger unsuspend evaluation for related suspended services.
-
-### 5.7 Ticket, Work Order, and NOC Impact
-
-Add before advanced monitoring:
-
-- `GET /routers/{id}/impact`
-- affected service count
-- affected customer count
-- affected radius user count
-- estimated MRR/revenue impact from active services/invoice item history
-- active ticket count
-- optional create incident/ticket from impact result
-
-Updated flow:
+### Phase 1
 
 ```text
-Router Offline/SNMP Failed
--> Find Service Router Mapping
--> Find Customers
--> Find Radius Users
--> Calculate Revenue Impact
--> Create Incident/Ticket
--> Create Work Order if field action needed
+GET    /api/v1/tenants/{tenant_id}/customers
+POST   /api/v1/tenants/{tenant_id}/customers
+GET    /api/v1/tenants/{tenant_id}/services
+POST   /api/v1/tenants/{tenant_id}/services
+PATCH  /api/v1/tenants/{tenant_id}/services/{id}
+GET    /api/v1/tenants/{tenant_id}/routers
+POST   /api/v1/tenants/{tenant_id}/routers
+POST   /api/v1/tenants/{tenant_id}/router-interfaces
 ```
 
-## 6. Database Delta Required
-
-Add or adjust these in Laravel MVP:
-
-```text
-contracts
-contract_documents
-nas_devices API/resource completion
-router_capacity_history
-router_script_templates
-incidents or ticket incident fields
-work_order assignment and verification fields
-```
-
-Recommended migrations:
-
-1. `add_contracts_for_billing_gate.php`
-2. `add_router_capacity_history.php`
-3. `add_router_script_templates.php`
-4. `add_ticket_sla_and_incident_fields.php`
-5. `add_work_order_assignment_fields.php`
-6. `add_indexes_for_impact_queries.php`
-
-Impact indexes:
-
-```text
-service_router_mapping(tenant_id, router_id)
-service_router_mapping(tenant_id, service_id)
-customer_router_mapping(tenant_id, router_id)
-radius_users(tenant_id, router_id)
-radius_users(tenant_id, service_id)
-invoice_items(tenant_id, service_id)
-routers(tenant_id, router_role, status)
-```
-
-## 7. API Delta Required
-
-Add these endpoints before building heavy UI:
+### Phase 2
 
 ```text
 GET    /api/v1/tenants/{tenant_id}/nas-devices
 POST   /api/v1/tenants/{tenant_id}/nas-devices
 GET    /api/v1/tenants/{tenant_id}/nas-devices/{id}
 PUT    /api/v1/tenants/{tenant_id}/nas-devices/{id}
-
-GET    /api/v1/tenants/{tenant_id}/routers/{id}/impact
-POST   /api/v1/tenants/{tenant_id}/routers/{id}/impact/ticket
-
-GET    /api/v1/tenants/{tenant_id}/router-script-templates
-POST   /api/v1/tenants/{tenant_id}/router-script-templates
+POST   /api/v1/tenants/{tenant_id}/services/{service_id}/router-mapping
+GET    /api/v1/tenants/{tenant_id}/radius/servers
+POST   /api/v1/tenants/{tenant_id}/radius/servers
+GET    /api/v1/tenants/{tenant_id}/radius/profiles
+POST   /api/v1/tenants/{tenant_id}/radius/profiles
+GET    /api/v1/tenants/{tenant_id}/radius/users
+POST   /api/v1/tenants/{tenant_id}/radius/users
 POST   /api/v1/tenants/{tenant_id}/router-script-generator
-
-POST   /api/v1/tenants/{tenant_id}/invoices/{id}/evaluate-unsuspend
 ```
 
-## 8. Filament Admin Delta Required
-
-Add or finish these resources/pages:
-
-- `NasDeviceResource`
-- `ServiceRouterMappingResource` or relation manager under Service
-- `RouterImpactPage`
-- `RouterCapacityDashboard`
-- `RouterScriptTemplateResource`
-- improved `TicketResource`
-- improved `WorkOrderResource`
-- Tenant Admin role visibility restrictions
-
-## 9. Roadmap Updated from Code Reality
-
-| Phase | Practical name | Output |
-|---|---|---|
-| Phase 0 | Code/docs alignment | This PRD update and flowchart become source of truth. |
-| Phase 1 | Tenant-safe core | Tenant, RBAC, customer, product, service category, service tests. |
-| Phase 2 | Router/RADIUS operational MVP | Router, interface, mapping, NAS, Radius user, script template generator. |
-| Phase 3 | Billing MVP hardening | Invoice active service only, payment reconciliation, paid/partial status, audit. |
-| Phase 4 | Suspend/unsuspend automation | Dunning policy, Radius disable/enable, notification hooks. |
-| Phase 5 | NOC impact MVP | Router impact endpoint, incident/ticket, basic work order. |
-| Phase 6 | Capacity and monitoring | SNMP/LibreNMS/PRTG integration, capacity history, dashboard. |
-| Phase 7 | Work Order and field service | Assignment, evidence, GPS, BA digital. |
-| Phase 8 | SaaS/white label | License, usage metering, tenant branding. |
-| Phase 9 | OSS advanced | OLT/ONU, IPAM, VLAN advanced, GIS. |
-| Phase 10 | Marketplace and AI | Addons, anomaly, prediction. |
-
-## 10. Immediate Development Backlog
-
-### P0 - Must do next
-
-- Add NAS Device API and Filament resource.
-- Add router impact endpoint.
-- Add router script templates table and migrate generator to template rendering.
-- Add indexes for impact queries.
-- Add tests for service activation guardrails.
-- Add tests for cross-tenant isolation.
-
-### P1 - High value after P0
-
-- Add contract table and basic contract status gate.
-- Add billing unsuspend evaluation.
-- Add ticket SLA fields.
-- Add work order assignment fields.
-- Add capacity history snapshot table.
-
-### P2 - Later
-
-- Payment gateway callback.
-- WhatsApp notification.
-- Customer portal.
-- Monitoring connector integration.
-- GIS and inventory expansion.
-
-## 11. Updated Acceptance Criteria
-
-- Tenant A cannot access Tenant B data.
-- Service requiring router mapping cannot activate without router/interface mapping.
-- Service requiring Radius cannot activate without Radius user.
-- Radius user for network service must reference router.
-- NAS device must reference router.
-- Invoice can only be created for active services.
-- Payment reconciliation updates invoice status correctly.
-- Service suspend disables/suspends related Radius users.
-- Service unsuspend activates related Radius users.
-- Router impact endpoint returns affected services, customers, Radius users, and revenue estimate.
-- RouterOS script generator uses templates, not inline hardcoded script logic.
-- Audit logs exist for customer, router, service status, Radius sync, script generation, invoice, and payment operations.
-- POP/BTS are not created as separate modules or tables.
-
-## 12. Practical Recommendation
-
-Do not rebuild the repo. The current code already implements the correct skeleton. The best move is to **stabilize the implemented MVP and close the high-risk operational gaps** in this order:
+### Phase 3
 
 ```text
-NAS Management
--> Service Router Mapping UI
--> Router Script Templates
--> Router Impact Endpoint
--> Billing Unsuspend Evaluation
--> Tenant Isolation Tests
--> Ticket/WO Operational Fields
--> Capacity History
+GET    /api/v1/tenants/{tenant_id}/invoices
+POST   /api/v1/tenants/{tenant_id}/invoices
+POST   /api/v1/tenants/{tenant_id}/payments
+POST   /api/v1/tenants/{tenant_id}/invoices/{id}/evaluate-unsuspend
+PATCH  /api/v1/tenants/{tenant_id}/services/{id} action=suspend
+PATCH  /api/v1/tenants/{tenant_id}/services/{id} action=unsuspend
 ```
 
-This keeps the product aligned with PRD v3.4 while avoiding scope explosion.
+## 10. Yang Tidak Dikerjakan di Sprint Ini
+
+Agar sprint tetap selesai, item berikut ditunda:
+
+- Router Impact Analysis endpoint.
+- Router Capacity Dashboard.
+- `router_capacity_history` production pipeline.
+- Full Contract lifecycle.
+- Full Ticket SLA lifecycle.
+- Full Work Order lifecycle.
+- Payment gateway callback.
+- WhatsApp notification.
+- Customer portal/mobile app.
+- GIS, inventory, OLT/ONU advanced.
+
+## 11. Definition of Done Sprint
+
+Sprint dianggap selesai jika satu skenario ini bisa dijalankan tanpa edit database manual:
+
+```text
+Create Tenant
+-> Create Customer
+-> Create Service Category requires router + radius
+-> Create Product
+-> Create Service
+-> Create Router
+-> Create Router Interface
+-> Create NAS Device
+-> Create Service Router Mapping
+-> Create Radius Profile
+-> Create Radius User
+-> Activate Service
+-> Create Invoice
+-> Record Payment
+-> Suspend Service
+-> Unsuspend Service
+```
+
+Output teknis wajib:
+
+- API response konsisten.
+- Validasi tenant aman.
+- Filament admin bisa menjalankan flow utama.
+- Audit log muncul untuk aksi kritikal.
+- Tests minimal untuk tenant isolation, activation guard, invoice/payment, suspend/unsuspend.
+
+## 12. Rekomendasi Implementasi
+
+Jangan mulai dari Router Impact, Capacity, Contract, Ticket SLA, atau Work Order. Itu penting, tapi bukan blocker untuk end-to-end MVP Phase 1-3.
+
+Implementasi terbaik sekarang:
+
+```text
+1. Tenant-safe validation
+2. NAS Device API + Filament
+3. Service Router Mapping UI
+4. Router Script Template MVP
+5. Invoice/payment hardening
+6. Billing unsuspend evaluation
+7. Feature tests
+```
+
+Dengan urutan ini, MVP bisa diuji oleh tim NEX secara nyata sebelum masuk ke NOC, monitoring, ticket SLA, work order, contract, dan SaaS advanced.
