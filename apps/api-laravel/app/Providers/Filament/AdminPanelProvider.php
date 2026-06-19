@@ -12,12 +12,14 @@ use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\HtmlString;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -41,6 +43,22 @@ class AdminPanelProvider extends PanelProvider
             ->defaultThemeMode(ThemeMode::Dark)
             ->sidebarCollapsibleOnDesktop()
             ->spa()
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): HtmlString => new HtmlString(<<<'HTML'
+                    <style>
+                        html {
+                            font-size: 13px;
+                        }
+
+                        .fi-sidebar-group-label,
+                        .fi-sidebar-item-label {
+                            font-size: 9px !important;
+                            line-height: 1.25 !important;
+                        }
+                    </style>
+                HTML)
+            )
             ->navigationGroups([
                 NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
                 NavigationGroup::make('Pelanggan')->icon('heroicon-o-users'),
