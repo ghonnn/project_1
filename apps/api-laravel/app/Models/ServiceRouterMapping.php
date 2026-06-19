@@ -21,4 +21,31 @@ class ServiceRouterMapping extends NexModel
     {
         return $this->belongsTo(Service::class);
     }
+
+    public function router(): BelongsTo
+    {
+        return $this->belongsTo(Router::class);
+    }
+
+    public function interface(): BelongsTo
+    {
+        return $this->belongsTo(RouterInterface::class, 'interface_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function (ServiceRouterMapping $mapping): void {
+            $service = $mapping->service()->first();
+
+            if (! $service) {
+                return;
+            }
+
+            CustomerRouterMapping::firstOrCreate([
+                'tenant_id' => $mapping->tenant_id,
+                'customer_id' => $service->customer_id,
+                'router_id' => $mapping->router_id,
+            ]);
+        });
+    }
 }
