@@ -28,6 +28,11 @@ class RouterScriptGenerator extends Page implements HasForms
 
     protected static string $view = 'filament.pages.router-script-generator';
 
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     /**
      * @var array<string, mixed>
      */

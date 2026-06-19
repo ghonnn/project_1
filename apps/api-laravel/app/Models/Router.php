@@ -22,4 +22,9 @@ class Router extends NexModel
     {
         return $this->hasMany(RouterInterface::class);
     }
+
+    public function radiusUsers(): HasMany
+    {
+        return $this->hasMany(RadiusUser::class);
+    }
 }
