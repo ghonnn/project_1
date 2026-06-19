@@ -136,7 +136,6 @@ class ServiceResource extends Resource
                         Forms\Components\Placeholder::make('created_at')->label('Tanggal Input')->content(fn (?Service $record): string => $record?->created_at?->format('Y-m-d H:i:s') ?? '-'),
                         Forms\Components\Placeholder::make('updated_at')->label('Log Terakhir Diubah')->content(fn (?Service $record): string => $record?->updated_at?->format('Y-m-d H:i:s') ?? '-'),
                         Forms\Components\Textarea::make('notes')->label('Catatan')->rows(4),
-                        Forms\Components\KeyValue::make('metadata')->columnSpanFull(),
                     ]),
             ]);
     }

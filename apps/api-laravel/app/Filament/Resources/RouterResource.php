@@ -81,7 +81,69 @@ class RouterResource extends Resource
                     ->options(['not_configured' => 'Belum Dikonfigurasi', 'reachable' => 'Aktif', 'unreachable' => 'Tidak Terhubung'])
                     ->default('not_configured')
                     ->required(),
-                Forms\Components\KeyValue::make('snmp_profile')->label('Profile SNMP')->columnSpanFull(),
+                Forms\Components\Section::make('Script MikroTik')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\TextInput::make('snmp_profile.snmp_community')
+                            ->label('SNMP Community')
+                            ->default('NEXRADIUS'),
+                        Forms\Components\TextInput::make('snmp_profile.snmp_allowed_address')
+                            ->label('SNMP Allowed Address')
+                            ->placeholder('103.142.202.19'),
+                        Forms\Components\TextInput::make('snmp_profile.time_zone')
+                            ->label('Time Zone')
+                            ->default('Asia/Jakarta'),
+                        Forms\Components\TextInput::make('snmp_profile.dns_servers')
+                            ->label('DNS Server')
+                            ->default('8.8.8.8,1.1.1.1'),
+                        Forms\Components\TextInput::make('snmp_profile.ntp_servers')
+                            ->label('NTP Server')
+                            ->default('162.159.200.1,162.159.200.123'),
+                        Forms\Components\TextInput::make('snmp_profile.radius_src_address')
+                            ->label('Radius Src Address')
+                            ->placeholder('103.142.203.19'),
+                        Forms\Components\TextInput::make('snmp_profile.radius_incoming_port')
+                            ->label('Radius Incoming Port')
+                            ->numeric()
+                            ->default(3799),
+                        Forms\Components\TextInput::make('snmp_profile.pool_name')
+                            ->label('Nama IP Pool')
+                            ->default('NEXPOOL'),
+                        Forms\Components\TextInput::make('snmp_profile.pool_comment')
+                            ->label('Comment IP Pool')
+                            ->default('Network : 10.200.192.0/20'),
+                        Forms\Components\TextInput::make('snmp_profile.pool_ranges')
+                            ->label('Range IP Pool')
+                            ->placeholder('10.200.192.100-10.200.207.254'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_pool_name')
+                            ->label('Nama IP Pool Isolir')
+                            ->default('NEXISOLIR'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_pool_comment')
+                            ->label('Comment IP Pool Isolir')
+                            ->default('Network 10.200.208.0/23'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_pool_ranges')
+                            ->label('Range IP Pool Isolir')
+                            ->placeholder('10.200.208.10-10.200.209.254'),
+                        Forms\Components\TextInput::make('snmp_profile.ppp_profile_name')
+                            ->label('Nama PPP Profile')
+                            ->default('NEXRADIUS'),
+                        Forms\Components\TextInput::make('snmp_profile.ppp_local_address')
+                            ->label('PPP Local Address')
+                            ->placeholder('10.200.192.1'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_profile_name')
+                            ->label('Nama PPP Profile Isolir')
+                            ->default('NEXISOLIR'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_local_address')
+                            ->label('PPP Local Address Isolir')
+                            ->placeholder('10.200.208.1'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_redirect_host')
+                            ->label('Host Redirect Isolir')
+                            ->placeholder('103.253.27.164'),
+                        Forms\Components\TextInput::make('snmp_profile.isolir_redirect_port')
+                            ->label('Port Redirect Isolir')
+                            ->numeric()
+                            ->default(3125),
+                    ]),
             ]);
     }
 
@@ -154,14 +216,7 @@ class RouterResource extends Resource
                             ->where('status', 'active')
                             ->first();
 
-                        $script = implode("\n", [
-                            '# NEXBIL Router Basic Script',
-                            '# Router: '.$record->router_name,
-                            '/system identity set name="'.$record->hostname.'"',
-                            $server ? '/radius add service=ppp,hotspot address='.$server->host.' secret="'.$server->shared_secret.'" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' timeout=300ms' : '# Radius server belum tersedia',
-                            '/ppp aaa set use-radius=yes accounting=yes interim-update=5m',
-                            '/ip hotspot profile set [ find default=yes ] use-radius=yes',
-                        ]);
+                        $script = self::buildRouterScript($record, $server);
 
                         return response()->streamDownload(fn () => print($script), $record->hostname.'-script.rsc');
                     }),
@@ -226,5 +281,93 @@ class RouterResource extends Resource
         $body = $rows !== '' ? $rows : '<tr><td colspan="'.count($headers).'" style="padding:8px;color:#94a3b8">Belum ada data</td></tr>';
 
         return '<section><h3 style="font-weight:700;margin-bottom:8px">'.$title.'</h3><table style="width:100%;border-collapse:collapse"><thead><tr>'.$head.'</tr></thead><tbody>'.$body.'</tbody></table></section>';
+    }
+
+    private static function buildRouterScript(Router $router, ?RadiusServer $server): string
+    {
+        $config = $router->snmp_profile ?? [];
+
+        $snmpCommunity = self::config($config, 'snmp_community', 'NEXRADIUS');
+        $snmpAllowedAddress = self::config($config, 'snmp_allowed_address', $router->public_ip ?: $router->management_ip);
+        $timeZone = self::config($config, 'time_zone', 'Asia/Jakarta');
+        $dnsServers = self::config($config, 'dns_servers', '8.8.8.8,1.1.1.1');
+        $ntpServers = self::config($config, 'ntp_servers', '162.159.200.1,162.159.200.123');
+        $radiusSrcAddress = self::config($config, 'radius_src_address', $router->public_ip ?: $router->management_ip);
+        $incomingPort = self::config($config, 'radius_incoming_port', '3799');
+        $poolName = self::config($config, 'pool_name', 'NEXPOOL');
+        $poolComment = self::config($config, 'pool_comment', 'Network : 10.200.192.0/20');
+        $poolRanges = self::config($config, 'pool_ranges', '10.200.192.100-10.200.207.254');
+        $isolirPoolName = self::config($config, 'isolir_pool_name', 'NEXISOLIR');
+        $isolirPoolComment = self::config($config, 'isolir_pool_comment', 'Network 10.200.208.0/23');
+        $isolirPoolRanges = self::config($config, 'isolir_pool_ranges', '10.200.208.10-10.200.209.254');
+        $profileName = self::config($config, 'ppp_profile_name', 'NEXRADIUS');
+        $localAddress = self::config($config, 'ppp_local_address', '10.200.192.1');
+        $isolirProfileName = self::config($config, 'isolir_profile_name', 'NEXISOLIR');
+        $isolirLocalAddress = self::config($config, 'isolir_local_address', '10.200.208.1');
+        $redirectHost = self::config($config, 'isolir_redirect_host', '103.253.27.164');
+        $redirectPort = self::config($config, 'isolir_redirect_port', '3125');
+
+        $radiusLine = $server
+            ? '/radius add address='.$server->host.' comment="'.$snmpCommunity.'" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' secret="'.$server->shared_secret.'" service=ppp,login,hotspot src-address='.$radiusSrcAddress.' timeout=3s'
+            : '# Radius server belum tersedia';
+
+        return implode("\n", [
+            '# NEXBIL Router Script',
+            '# Router: '.$router->router_name.' / '.$router->hostname,
+            '/system identity set name="'.$router->hostname.'"',
+            '',
+            '/snmp community',
+            'set [ find default=yes ] disabled=yes write-access=no',
+            'rem [find name!=public]',
+            'add addresses='.$snmpAllowedAddress.' name='.$snmpCommunity.' write-access=yes',
+            '/snmp set enabled=yes trap-community='.$snmpCommunity.' trap-version=2',
+            '',
+            '/system clock set time-zone-autodetect=no time-zone-name='.$timeZone,
+            '/radius incoming set accept=yes port='.$incomingPort,
+            '/ip dns set allow-remote-requests=yes servers='.$dnsServers,
+            '/system ntp client servers rem [find]',
+            '/system ntp client set enabled=yes servers='.$ntpServers,
+            '',
+            '/radius',
+            'rem [find]',
+            $radiusLine,
+            '/radius set require-message-auth=no num=0',
+            '',
+            '/ip pool',
+            'add comment="'.$poolComment.'" name='.$poolName.' ranges='.$poolRanges,
+            'add comment="'.$isolirPoolComment.'" name='.$isolirPoolName.' ranges='.$isolirPoolRanges,
+            '',
+            '/ppp profile',
+            'add insert-queue-before=first local-address='.$localAddress.' name='.$profileName.' only-one=yes remote-address='.$poolName,
+            'add insert-queue-before=first local-address='.$isolirLocalAddress.' name='.$isolirProfileName.' comment="default by NEXBIL (jangan dirubah)" only-one=yes remote-address='.$isolirPoolName,
+            '',
+            '/ppp aaa set use-radius=yes accounting=yes interim-update=5m',
+            '',
+            '# NAT redirect isolir ke webproxy',
+            '/ip firewall nat rem [find src-address-list~"NEX"]',
+            '/ip firewall nat add action=redirect chain=dstnat comment="NEXISOLIR" dst-address=!'.$redirectHost.' dst-port=80,443,8080 protocol=tcp src-address-list='.$isolirPoolName.' to-ports='.$redirectPort,
+            '/ip firewall filter rem [find src-address-list~"NEX"]',
+            '/ip firewall filter add action=reject chain=forward comment=NEXISOLIR dst-address=!'.$redirectHost.' protocol=tcp reject-with=icmp-network-unreachable src-address-list='.$isolirPoolName,
+            '/ip firewall filter add action=reject chain=forward comment=NEXISOLIR dst-address=!'.$redirectHost.' dst-port=!53,5353 protocol=udp reject-with=icmp-network-unreachable src-address-list='.$isolirPoolName,
+            '',
+            '/ip hotspot profile set [find] use-radius=yes radius-accounting=yes radius-interim-update=5m',
+            '/ip hotspot user profile rem [find name='.$profileName.']',
+            '/ip hotspot user profile set [find default=yes] insert-queue-before=first parent-queue=*8',
+            '/ip hotspot user profile add insert-queue-before=first keepalive-timeout=10m mac-cookie-timeout=1w name='.$profileName.' shared-users=unlimited transparent-proxy=yes open-status-page=always status-autorefresh=10m',
+            '',
+            '/ip proxy set cache-administrator=webmaster@NEXradius.com enabled=yes max-cache-object-size=1KiB max-cache-size=none max-client-connections=50 max-fresh-time=5m max-server-connections=50 port='.$redirectPort,
+            '/ip proxy access rem [find]',
+            'add action=redirect action-data=http://'.$redirectHost.' src-address='.$isolirPoolRanges,
+        ]);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private static function config(array $config, string $key, string $default): string
+    {
+        $value = $config[$key] ?? null;
+
+        return blank($value) ? $default : (string) $value;
     }
 }
