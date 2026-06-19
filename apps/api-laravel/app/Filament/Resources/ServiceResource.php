@@ -7,6 +7,7 @@ use App\Filament\Resources\ServiceResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
 use App\Models\Product;
 use App\Models\Service;
+use App\Models\Router;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -144,15 +145,19 @@ class ServiceResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('tenant.name')->label('Tenant')->searchable(),
-                Tables\Columns\TextColumn::make('customer.name')->label('Customer')->searchable(),
-                Tables\Columns\TextColumn::make('cid')->label('CID')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('customer.phone')->label('Phone')->searchable(),
-                Tables\Columns\TextColumn::make('region')->label('Wilayah')->searchable(),
-                Tables\Columns\TextColumn::make('connection_type')->label('Kategori')->badge(),
-                Tables\Columns\TextColumn::make('routerMappings.router.router_name')->label('Router')->listWithLineBreaks()->bulleted(),
-                Tables\Columns\TextColumn::make('product.name')->label('Product')->searchable(),
-                Tables\Columns\TextColumn::make('profile_price')->label('Harga')->money('IDR')->sortable(),
+                Tables\Columns\TextColumn::make('connection_type')->label('INET')->badge(),
+                Tables\Columns\TextColumn::make('cid')->label('NOLAYANAN')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('customer.name')->label('PELANGGAN')->searchable(),
+                Tables\Columns\TextColumn::make('serviceCategory.name')->label('KTG')->toggleable(),
+                Tables\Columns\TextColumn::make('billing_profile_name')->label('PROFILE')->searchable(),
+                Tables\Columns\TextColumn::make('billing_type')->label('JNS TAGIHAN')->badge(),
+                Tables\Columns\TextColumn::make('billing_cycle')->label('SIKLUS')->searchable(),
+                Tables\Columns\TextColumn::make('billing_active_date')->label('TGL AKTIF')->date('d/m/Y')->sortable(),
+                Tables\Columns\TextColumn::make('billing_isolation_date')->label('TGL ISOLIR')->date('d/m/Y')->sortable(),
+                Tables\Columns\TextColumn::make('internet_username')->label('USERNAME')->searchable(),
+                Tables\Columns\TextColumn::make('internet_password')
+                    ->label('PASSWORD')
+                    ->formatStateUsing(fn (?string $state): string => $state ? str_repeat('*', min(strlen($state), 10)) : '-'),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',
                     'requested' => 'info',
@@ -163,7 +168,25 @@ class ServiceResource extends Resource
                 Tables\Columns\TextColumn::make('activated_at')->dateTime()->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('partner_name')
+                    ->label('Cari mitra')
+                    ->options(fn () => Service::query()->whereNotNull('partner_name')->distinct()->orderBy('partner_name')->pluck('partner_name', 'partner_name')->all()),
+                Tables\Filters\SelectFilter::make('region')
+                    ->label('Cari wilayah')
+                    ->options(fn () => Service::query()->whereNotNull('region')->distinct()->orderBy('region')->pluck('region', 'region')->all()),
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('All Data')
+                    ->options(['requested' => 'Requested', 'active' => 'Aktif', 'suspended' => 'Terisolir', 'terminated' => 'Stop']),
+                Tables\Filters\SelectFilter::make('router_id')
+                    ->label('All Router')
+                    ->options(fn () => Router::query()->orderBy('router_name')->pluck('router_name', 'id')->all())
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        $data['value'] ?? null,
+                        fn (Builder $query, string $routerId): Builder => $query->whereHas('routerMappings', fn (Builder $query): Builder => $query->where('router_id', $routerId))
+                    )),
+                Tables\Filters\SelectFilter::make('product_id')
+                    ->label('All Profile')
+                    ->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id')->all()),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
