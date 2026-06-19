@@ -32,6 +32,11 @@ Route::prefix('v1')->group(function (): void {
             Route::get('router-interfaces', [MvpController::class, 'routerInterfaces']);
             Route::post('router-interfaces', [MvpController::class, 'storeRouterInterface']);
 
+            Route::get('nas-devices', [MvpController::class, 'nasDevices']);
+            Route::post('nas-devices', [MvpController::class, 'storeNasDevice']);
+            Route::get('nas-devices/{id}', [MvpController::class, 'showNasDevice']);
+            Route::put('nas-devices/{id}', [MvpController::class, 'updateNasDevice']);
+
             Route::get('radius/servers', [MvpController::class, 'radiusServers']);
             Route::post('radius/servers', [MvpController::class, 'storeRadiusServer']);
             Route::get('radius/servers/{id}', [MvpController::class, 'showRadiusServer']);
@@ -50,6 +55,7 @@ Route::prefix('v1')->group(function (): void {
 
             Route::get('invoices', [MvpController::class, 'invoices']);
             Route::post('invoices', [MvpController::class, 'storeInvoice']);
+            Route::post('invoices/{id}/evaluate-unsuspend', [MvpController::class, 'evaluateInvoiceUnsuspend']);
             Route::post('payments', [MvpController::class, 'storePayment']);
         });
     });
