@@ -22,9 +22,12 @@ class PaymentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';
 
+    protected static ?int $navigationSort = 20;
+
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('invoice_id')->options(fn () => AdminOptions::invoices())->searchable()->required(),

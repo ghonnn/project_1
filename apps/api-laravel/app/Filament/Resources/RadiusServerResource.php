@@ -22,9 +22,14 @@ class RadiusServerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-signal';
 
+    protected static ?string $navigationLabel = 'Servers';
+
+    protected static ?int $navigationSort = 10;
+
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable(),
                 Forms\Components\TextInput::make('name')->required()->maxLength(255),

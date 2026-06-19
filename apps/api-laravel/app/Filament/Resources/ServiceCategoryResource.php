@@ -22,9 +22,14 @@ class ServiceCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
 
+    protected static ?string $navigationLabel = 'Categories';
+
+    protected static ?int $navigationSort = 10;
+
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\TextInput::make('code')->required()->maxLength(255),

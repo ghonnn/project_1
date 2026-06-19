@@ -17,13 +17,16 @@ class AuditLogResource extends Resource
 {
     protected static ?string $model = AuditLog::class;
 
-    protected static ?string $navigationGroup = 'Platform';
+    protected static ?string $navigationGroup = 'Logs';
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-check';
+
+    protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\TextInput::make('action')->disabled(),
                 Forms\Components\TextInput::make('entity_type')->disabled(),

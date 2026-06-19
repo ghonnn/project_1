@@ -22,9 +22,14 @@ class RadiusUserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
 
+    protected static ?string $navigationLabel = 'Users';
+
+    protected static ?int $navigationSort = 30;
+
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('customer_id')->options(fn () => AdminOptions::customers())->searchable()->required(),

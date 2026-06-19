@@ -22,9 +22,9 @@ class RouterScriptGenerator extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-command-line';
 
-    protected static ?string $navigationLabel = 'Router Script Generator';
+    protected static ?string $navigationLabel = 'Script Generator';
 
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 50;
 
     protected static string $view = 'filament.pages.router-script-generator';
 
@@ -49,7 +49,7 @@ class RouterScriptGenerator extends Page implements HasForms
         return $form
             ->schema([
                 Forms\Components\Section::make('Router and RADIUS')
-                    ->columns(2)
+                    ->columns(1)
                     ->schema([
                         Forms\Components\Select::make('tenant_id')
                             ->options(fn () => AdminOptions::tenants())

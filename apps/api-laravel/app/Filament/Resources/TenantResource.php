@@ -21,9 +21,12 @@ class TenantResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
+    protected static ?int $navigationSort = 10;
+
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\TextInput::make('name')->required()->maxLength(255),
                 Forms\Components\TextInput::make('slug')->required()->maxLength(255),

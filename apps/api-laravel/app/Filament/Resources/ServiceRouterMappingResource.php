@@ -22,16 +22,17 @@ class ServiceRouterMappingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static ?string $navigationLabel = 'Service Router Mappings';
+    protected static ?string $navigationLabel = 'Service Mapping';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Section::make('Mapping')
-                    ->columns(2)
+                    ->columns(1)
                     ->schema([
                         Forms\Components\Select::make('tenant_id')
                             ->options(fn () => AdminOptions::tenants())

@@ -22,9 +22,14 @@ class RadiusProfileResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
+    protected static ?string $navigationLabel = 'Profiles';
+
+    protected static ?int $navigationSort = 20;
+
     public static function form(Form $form): Form
     {
         return $form
+            ->columns(1)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\TextInput::make('name')->required()->maxLength(255),
