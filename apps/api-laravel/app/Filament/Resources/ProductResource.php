@@ -52,22 +52,36 @@ class ProductResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('shared_users')->label('Shared')->numeric()->default(1)->required(),
                 Forms\Components\TextInput::make('active_days')->label('Masa aktif (Hari)')->numeric()->default(30)->required(),
-                self::rupiahInput('hpp', 'HPP')->default(0),
+                self::rupiahInput('hpp', 'HPP')
+                    ->helperText('Harga sebelum PPN 11%.')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshPrice($set, $state, $get('ppn_enabled')))
+                    ->default(0),
                 self::rupiahInput('commission', 'Komisi')
                     ->default(0)
                     ->helperText('Komisi reseller yang akan dikeluarkan tiap pembayaran. Isi 0 jika hitungan komisi dalam bentuk persentase.'),
+                Forms\Components\Toggle::make('ppn_enabled')
+                    ->label('Kenakan PPN 11%')
+                    ->helperText('Jika aktif, harga otomatis menjadi HPP + 11%.')
+                    ->live()
+                    ->default(false)
+                    ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshPrice($set, $get('hpp'), $state)),
                 self::rupiahInput('price', 'Harga')
-                    ->helperText('Harga diluar PPN')
+                    ->helperText('Harga final pelanggan. Otomatis mengikuti HPP dan opsi PPN.')
+                    ->default(0)
+                    ->readOnly()
+                    ->dehydrated()
                     ->required(),
                 Forms\Components\Select::make('billing_cycle')
-                    ->options(['monthly' => 'Monthly', 'one_time' => 'One time'])
+                    ->label('Siklus Tagihan')
+                    ->options(['monthly' => 'Bulanan', 'one_time' => 'Sekali Bayar'])
                     ->default('monthly')
                     ->required(),
                 Forms\Components\Select::make('status')
-                    ->options(['active' => 'Active', 'inactive' => 'Inactive'])
+                    ->label('Status')
+                    ->options(['active' => 'Aktif', 'inactive' => 'Non Aktif'])
                     ->default('active')
                     ->required(),
-                Forms\Components\KeyValue::make('pricing')->columnSpanFull(),
             ]);
     }
 
@@ -82,6 +96,7 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('shared_users')->label('Shared')->alignCenter()->sortable(),
                 Tables\Columns\TextColumn::make('active_days')->label('Aktif')->suffix(' Hari')->sortable(),
                 Tables\Columns\TextColumn::make('hpp')->label('HPP')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
+                Tables\Columns\IconColumn::make('ppn_enabled')->label('PPN')->boolean()->sortable(),
                 Tables\Columns\TextColumn::make('commission')->label('Komisi')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
                 Tables\Columns\TextColumn::make('price')->label('Harga')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
                 Tables\Columns\TextColumn::make('services_count')->label('Pelanggan')->counts('services')->badge()->color('info'),
@@ -141,6 +156,18 @@ class ProductResource extends Resource
             ->inputMode('numeric')
             ->formatStateUsing(fn ($state) => self::formatRupiah($state))
             ->dehydrateStateUsing(fn ($state) => self::parseRupiah($state));
+    }
+
+    private static function refreshPrice(Forms\Set $set, mixed $hpp, mixed $ppnEnabled): void
+    {
+        $set('price', self::formatRupiah(self::calculatePrice($hpp, (bool) $ppnEnabled)));
+    }
+
+    private static function calculatePrice(mixed $hpp, bool $ppnEnabled): float
+    {
+        $basePrice = self::parseRupiah($hpp);
+
+        return $ppnEnabled ? round($basePrice * 1.11) : $basePrice;
     }
 
     private static function formatRupiah(mixed $state): string

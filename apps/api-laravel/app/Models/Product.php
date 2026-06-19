@@ -17,6 +17,7 @@ class Product extends NexModel
             'active_days' => 'integer',
             'commission' => 'decimal:2',
             'hpp' => 'decimal:2',
+            'ppn_enabled' => 'boolean',
             'price' => 'decimal:2',
             'pricing' => 'array',
             'shared_users' => 'integer',
@@ -35,6 +36,13 @@ class Product extends NexModel
 
     protected static function booted(): void
     {
+        static::saving(function (Product $product): void {
+            $hpp = (float) $product->hpp;
+
+            $product->price = $product->ppn_enabled ? round($hpp * 1.11) : $hpp;
+            $product->pricing = null;
+        });
+
         static::saved(function (Product $product): void {
             RadiusProfile::updateOrCreate(
                 [
@@ -49,6 +57,7 @@ class Product extends NexModel
                         'Active-Days' => $product->active_days,
                         'Profile-Price' => $product->price,
                         'Profile-HPP' => $product->hpp,
+                        'Profile-PPN-Enabled' => $product->ppn_enabled,
                         'Profile-Commission' => $product->commission,
                     ],
                 ]
