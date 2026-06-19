@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Customer;
+use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\RadiusProfile;
 use App\Models\RadiusServer;
@@ -12,8 +13,10 @@ use App\Models\Router;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\ServicePlanChange;
+use App\Models\ServiceRouterMapping;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\ServiceProvisioningService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -243,6 +246,44 @@ class MvpApiTest extends TestCase
             'tenant_id' => $tenant->id,
             'radius_user_id' => $radiusUser->id,
             'action' => 'sync',
+        ]);
+    }
+
+    public function test_service_provisioning_connects_radius_router_and_billing(): void
+    {
+        $tenant = $this->tenant();
+        $service = $this->createService('BROADBAND');
+        $router = Router::where('tenant_id', $tenant->id)->firstOrFail();
+
+        $result = app(ServiceProvisioningService::class)->provision($service, [
+            'router_id' => $router->id,
+            'username' => 'cust-provision',
+            'password' => 'secret123',
+            'create_invoice' => true,
+        ]);
+
+        $this->assertSame('active', $service->fresh()->status);
+        $this->assertDatabaseHas(ServiceRouterMapping::class, [
+            'tenant_id' => $tenant->id,
+            'service_id' => $service->id,
+            'router_id' => $router->id,
+        ]);
+        $this->assertDatabaseHas(RadiusUser::class, [
+            'tenant_id' => $tenant->id,
+            'service_id' => $service->id,
+            'router_id' => $router->id,
+            'username' => 'cust-provision',
+            'status' => 'active',
+        ]);
+        $this->assertDatabaseHas(RadiusSyncLog::class, [
+            'tenant_id' => $tenant->id,
+            'action' => 'sync',
+        ]);
+        $this->assertNotNull($result['invoice']);
+        $this->assertDatabaseHas(Invoice::class, [
+            'tenant_id' => $tenant->id,
+            'customer_id' => $service->customer_id,
+            'status' => 'issued',
         ]);
     }
 

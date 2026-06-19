@@ -8,9 +8,11 @@ use App\Filament\Support\AdminOptions;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Router;
+use App\Services\ServiceProvisioningService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Notifications\Notification;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -188,6 +190,50 @@ class ServiceResource extends Resource
                     ->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id')->all()),
             ])
             ->actions([
+                Tables\Actions\Action::make('provision')
+                    ->label('Hubungkan')
+                    ->icon('heroicon-o-link')
+                    ->color('success')
+                    ->modalHeading(fn (Service $record): string => 'Hubungkan Layanan '.$record->cid)
+                    ->form(fn (Service $record): array => [
+                        Forms\Components\Select::make('router_id')
+                            ->label('Router')
+                            ->options(fn () => AdminOptions::routers())
+                            ->searchable()
+                            ->required()
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Set $set) => $set('interface_id', null)),
+                        Forms\Components\Select::make('interface_id')
+                            ->label('Interface Router')
+                            ->options(fn (Forms\Get $get) => AdminOptions::routerInterfaces($get('router_id')))
+                            ->searchable()
+                            ->disabled(fn (Forms\Get $get): bool => blank($get('router_id'))),
+                        Forms\Components\TextInput::make('vlan_id')
+                            ->label('VLAN ID')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(4094),
+                        Forms\Components\TextInput::make('username')
+                            ->label('Username Internet')
+                            ->default(fn () => $record->internet_username ?: $record->cid)
+                            ->required(),
+                        Forms\Components\TextInput::make('password')
+                            ->label('Password Internet')
+                            ->default(fn () => $record->internet_password ?: strtoupper(substr(bin2hex(random_bytes(4)), 0, 8)))
+                            ->required(),
+                        Forms\Components\Toggle::make('create_invoice')
+                            ->label('Buat invoice awal')
+                            ->default(true),
+                    ])
+                    ->action(function (Service $record, array $data): void {
+                        $result = app(ServiceProvisioningService::class)->provision($record, $data);
+
+                        Notification::make()
+                            ->title('Pelanggan berhasil terhubung')
+                            ->body('Radius user tersinkron dan layanan aktif'.($result['invoice'] ? ', invoice awal dibuat.' : '.'))
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
