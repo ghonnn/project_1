@@ -13,6 +13,7 @@ use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Notifications\Notification;
+use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -90,7 +91,7 @@ class ServiceResource extends Resource
                                 $set('service_category_id', $product->service_category_id);
                                 $set('billing_profile_name', $product->name);
                                 $set('billing_cycle', $product->billing_cycle);
-                                $set('profile_price', $product->price);
+                                $set('profile_price', self::formatRupiah($product->price));
                             }),
                         Forms\Components\Select::make('service_category_id')->label('Kategori Layanan')->options(fn () => AdminOptions::serviceCategories())->searchable(),
                         Forms\Components\TextInput::make('server_name')->label('Server')->maxLength(255),
@@ -121,8 +122,10 @@ class ServiceResource extends Resource
                         Forms\Components\DatePicker::make('billing_isolation_date')->label('Tanggal Isolir'),
                         Forms\Components\Toggle::make('ppn_enabled')->label('PPN 11%'),
                         Forms\Components\TextInput::make('unit_code')->label('Kode Unit')->maxLength(255),
-                        Forms\Components\TextInput::make('profile_price')->label('Harga Profile')->numeric()->prefix('Rp'),
-                        Forms\Components\TextInput::make('partner_commission')->label('Komisi Partner')->numeric()->prefix('Rp'),
+                        self::rupiahInput('profile_price', 'Harga Profile')
+                            ->helperText('Otomatis mengikuti harga yang sudah diset di Profile Langganan.')
+                            ->readOnly(),
+                        self::rupiahInput('partner_commission', 'Komisi Partner'),
                     ]),
                 Forms\Components\Section::make('Lainnya')
                     ->columns(1)
@@ -257,5 +260,48 @@ class ServiceResource extends Resource
             'create' => Pages\CreateService::route('/create'),
             'edit' => Pages\EditService::route('/{record}/edit'),
         ];
+    }
+
+    private static function rupiahInput(string $name, string $label): Forms\Components\TextInput
+    {
+        return Forms\Components\TextInput::make($name)
+            ->label($label)
+            ->prefix('Rp')
+            ->inputMode('numeric')
+            ->mask(RawJs::make(<<<'JS'
+                $input.replace(/\D/g, '').replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+            JS))
+            ->formatStateUsing(fn ($state) => self::formatRupiah($state))
+            ->dehydrateStateUsing(fn ($state) => self::parseRupiah($state));
+    }
+
+    private static function formatRupiah(mixed $state): string
+    {
+        if ($state === null || $state === '') {
+            return '0';
+        }
+
+        return number_format((float) $state, 0, ',', '.');
+    }
+
+    private static function parseRupiah(mixed $state): float
+    {
+        $value = trim((string) $state);
+
+        if ($value === '') {
+            return 0;
+        }
+
+        $value = str_replace(['Rp', ' '], '', $value);
+
+        if (str_contains($value, ',')) {
+            return (float) str_replace(',', '.', str_replace('.', '', $value));
+        }
+
+        if (preg_match('/^\d+\.\d{2}$/', $value) === 1) {
+            return (float) $value;
+        }
+
+        return (float) str_replace('.', '', $value);
     }
 }
