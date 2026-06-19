@@ -1,0 +1,22 @@
+<?php
+
+namespace App\Models;
+
+use App\Models\Concerns\NexModel;
+use App\Models\Traits\BelongsToTenant;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Invoice extends NexModel
+{
+    use BelongsToTenant;
+
+    protected function casts(): array
+    {
+        return ['issue_date' => 'date', 'due_date' => 'date'];
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(InvoiceItem::class);
+    }
+}

@@ -1,0 +1,2165 @@
+openapi: 3.0.3
+info:
+  title: NEX OSS/BSS ISP Cloud Platform API
+  version: 3.4.0
+  description: >
+    Final pre-coding OpenAPI contract for NEX OSS/BSS v3.4 Router-Centric.
+    Network topology rule: Customer -> Service -> Router -> Router Interface -> Radius NAS -> FreeRadius.
+servers:
+  - url: https://api.nexbil.local/api/v1
+    description: Local/staging API base URL
+security:
+  - bearerAuth: []
+tags:
+  - name: Auth
+  - name: Tenants
+  - name: Customers
+  - name: Products
+  - name: Services
+  - name: Routers
+  - name: Router Interfaces
+  - name: Router Links
+  - name: Radius
+  - name: Billing
+  - name: Payments
+  - name: Tickets
+  - name: Work Orders
+  - name: Audit Logs
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Login and issue access token
+      operationId: authLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Auth token issued
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthToken'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Refresh access token
+      operationId: authRefresh
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: New access token issued
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthToken'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke current session
+      operationId: authLogout
+      responses:
+        '204':
+          description: Logged out
+  /tenants:
+    get:
+      tags: [Tenants]
+      summary: List tenants
+      operationId: listTenants
+      parameters:
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Tenant list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantCollection'
+    post:
+      tags: [Tenants]
+      summary: Create tenant
+      operationId: createTenant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCreateRequest'
+      responses:
+        '201':
+          description: Tenant created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Tenant'
+  /tenants/{tenant_id}:
+    get:
+      tags: [Tenants]
+      summary: Get tenant detail
+      operationId: getTenant
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Tenant detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Tenant'
+    patch:
+      tags: [Tenants]
+      summary: Update tenant
+      operationId: updateTenant
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUpdateRequest'
+      responses:
+        '200':
+          description: Tenant updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Tenant'
+  /tenants/{tenant_id}/customers:
+    get:
+      tags: [Customers]
+      summary: List customers
+      operationId: listCustomers
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Customer list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerCollection'
+    post:
+      tags: [Customers]
+      summary: Create customer
+      operationId: createCustomer
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerCreateRequest'
+      responses:
+        '201':
+          description: Customer created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+  /tenants/{tenant_id}/customers/{customer_id}:
+    get:
+      tags: [Customers]
+      summary: Get customer detail
+      operationId: getCustomer
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Customer detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+    patch:
+      tags: [Customers]
+      summary: Update customer
+      operationId: updateCustomer
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerUpdateRequest'
+      responses:
+        '200':
+          description: Customer updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Customer'
+    delete:
+      tags: [Customers]
+      summary: Deactivate customer
+      operationId: deleteCustomer
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '204':
+          description: Customer deactivated
+  /tenants/{tenant_id}/products:
+    get:
+      tags: [Products]
+      summary: List products
+      operationId: listProducts
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Product list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCollection'
+    post:
+      tags: [Products]
+      summary: Create product
+      operationId: createProduct
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+      responses:
+        '201':
+          description: Product created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Product'
+  /tenants/{tenant_id}/service-categories:
+    get:
+      tags: [Products]
+      summary: List service categories
+      operationId: listServiceCategories
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Service category list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ServiceCategory'
+  /tenants/{tenant_id}/services:
+    get:
+      tags: [Services]
+      summary: List services
+      operationId: listServices
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: customer_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ServiceStatus'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Service list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCollection'
+    post:
+      tags: [Services]
+      summary: Create service
+      operationId: createService
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCreateRequest'
+      responses:
+        '201':
+          description: Service created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Service'
+  /tenants/{tenant_id}/services/{service_id}:
+    get:
+      tags: [Services]
+      summary: Get service detail
+      operationId: getService
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ServiceId'
+      responses:
+        '200':
+          description: Service detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Service'
+    patch:
+      tags: [Services]
+      summary: Update service data
+      operationId: updateService
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ServiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceUpdateRequest'
+      responses:
+        '200':
+          description: Service updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Service'
+  /tenants/{tenant_id}/services/{service_id}/activate:
+    post:
+      tags: [Services]
+      summary: Activate service
+      operationId: activateService
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ServiceId'
+      responses:
+        '200':
+          description: Service activated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Service'
+        '409':
+          description: Router mapping or Radius requirement incomplete
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /tenants/{tenant_id}/services/{service_id}/suspend:
+    post:
+      tags: [Services]
+      summary: Suspend service and Radius user
+      operationId: suspendService
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ServiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                invoice_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Service suspended
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Service'
+  /tenants/{tenant_id}/services/{service_id}/unsuspend:
+    post:
+      tags: [Services]
+      summary: Unsuspend service and Radius user
+      operationId: unsuspendService
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ServiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                payment_id:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Service unsuspended
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Service'
+  /tenants/{tenant_id}/services/{service_id}/router-mapping:
+    post:
+      tags: [Services]
+      summary: Map service to router and interface
+      operationId: mapServiceRouter
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/ServiceId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRouterMappingRequest'
+      responses:
+        '201':
+          description: Service mapped to router
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ServiceRouterMapping'
+  /tenants/{tenant_id}/routers:
+    get:
+      tags: [Routers]
+      summary: List routers
+      operationId: listRouters
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: role
+          in: query
+          schema:
+            $ref: '#/components/schemas/RouterRole'
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/RouterStatusValue'
+        - name: snmp_status
+          in: query
+          schema:
+            $ref: '#/components/schemas/SnmpStatusValue'
+        - $ref: '#/components/parameters/Search'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Router list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RouterCollection'
+    post:
+      tags: [Routers]
+      summary: Create router
+      operationId: createRouter
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouterCreateRequest'
+      responses:
+        '201':
+          description: Router created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Router'
+  /tenants/{tenant_id}/routers/{router_id}:
+    get:
+      tags: [Routers]
+      summary: Get router detail
+      operationId: getRouter
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/RouterId'
+      responses:
+        '200':
+          description: Router detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Router'
+    put:
+      tags: [Routers]
+      summary: Replace/update router
+      operationId: updateRouter
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/RouterId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouterUpdateRequest'
+      responses:
+        '200':
+          description: Router updated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Router'
+  /tenants/{tenant_id}/routers/{router_id}/impact:
+    get:
+      tags: [Routers]
+      summary: Calculate router impact
+      operationId: getRouterImpact
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/RouterId'
+      responses:
+        '200':
+          description: Router impact
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RouterImpact'
+  /tenants/{tenant_id}/routers/{router_id}/capacity:
+    get:
+      tags: [Routers]
+      summary: Get router capacity
+      operationId: getRouterCapacity
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/RouterId'
+      responses:
+        '200':
+          description: Router capacity
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RouterCapacity'
+  /tenants/{tenant_id}/routers/{router_id}/snmp:
+    get:
+      tags: [Routers]
+      summary: Get router SNMP status
+      operationId: getRouterSnmp
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/RouterId'
+      responses:
+        '200':
+          description: SNMP status
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/SnmpStatus'
+  /tenants/{tenant_id}/router-interfaces:
+    get:
+      tags: [Router Interfaces]
+      summary: List router interfaces
+      operationId: listRouterInterfaces
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: router_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/RouterInterfaceStatus'
+      responses:
+        '200':
+          description: Router interface list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RouterInterface'
+    post:
+      tags: [Router Interfaces]
+      summary: Create router interface
+      operationId: createRouterInterface
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouterInterfaceCreateRequest'
+      responses:
+        '201':
+          description: Router interface created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RouterInterface'
+  /tenants/{tenant_id}/router-links:
+    get:
+      tags: [Router Links]
+      summary: List router links
+      operationId: listRouterLinks
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: router_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Router link list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RouterLink'
+    post:
+      tags: [Router Links]
+      summary: Create router link
+      operationId: createRouterLink
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouterLinkCreateRequest'
+      responses:
+        '201':
+          description: Router link created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RouterLink'
+  /tenants/{tenant_id}/radius/profiles:
+    get:
+      tags: [Radius]
+      summary: List Radius profiles
+      operationId: listRadiusProfiles
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Radius profile list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RadiusProfile'
+    post:
+      tags: [Radius]
+      summary: Create Radius profile
+      operationId: createRadiusProfile
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RadiusProfileCreateRequest'
+      responses:
+        '201':
+          description: Radius profile created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RadiusProfile'
+  /tenants/{tenant_id}/radius/users:
+    get:
+      tags: [Radius]
+      summary: List Radius users
+      operationId: listRadiusUsers
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: service_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: router_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Radius user list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/RadiusUser'
+    post:
+      tags: [Radius]
+      summary: Create Radius user
+      operationId: createRadiusUser
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RadiusUserCreateRequest'
+      responses:
+        '201':
+          description: Radius user created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RadiusUser'
+  /tenants/{tenant_id}/nas:
+    get:
+      tags: [Radius]
+      summary: List Radius NAS devices
+      operationId: listNasDevices
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: NAS device list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/NasDevice'
+    post:
+      tags: [Radius]
+      summary: Create Radius NAS device
+      operationId: createNasDevice
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NasDeviceCreateRequest'
+      responses:
+        '201':
+          description: NAS device created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/NasDevice'
+  /tenants/{tenant_id}/router-script-generator:
+    post:
+      tags: [Routers]
+      summary: Generate MikroTik RouterOS Radius script
+      operationId: generateRouterScript
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RouterScriptGenerateRequest'
+      responses:
+        '200':
+          description: Script generated
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/GeneratedScript'
+  /tenants/{tenant_id}/invoices:
+    get:
+      tags: [Billing]
+      summary: List invoices
+      operationId: listInvoices
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: customer_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/InvoiceStatus'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Invoice list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InvoiceCollection'
+    post:
+      tags: [Billing]
+      summary: Create invoice
+      operationId: createInvoice
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceCreateRequest'
+      responses:
+        '201':
+          description: Invoice created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Invoice'
+  /tenants/{tenant_id}/payments:
+    post:
+      tags: [Payments]
+      summary: Record payment
+      operationId: createPayment
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreateRequest'
+      responses:
+        '201':
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Payment'
+  /tenants/{tenant_id}/payments/{payment_id}/reconcile:
+    post:
+      tags: [Payments]
+      summary: Reconcile payment
+      operationId: reconcilePayment
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: payment_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment reconciled
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Payment'
+  /tenants/{tenant_id}/tickets:
+    get:
+      tags: [Tickets]
+      summary: List tickets
+      operationId: listTickets
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Ticket list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketCollection'
+    post:
+      tags: [Tickets]
+      summary: Create ticket
+      operationId: createTicket
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TicketCreateRequest'
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Ticket'
+  /tenants/{tenant_id}/work-orders:
+    post:
+      tags: [Work Orders]
+      summary: Create work order
+      operationId: createWorkOrder
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkOrderCreateRequest'
+      responses:
+        '201':
+          description: Work order created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WorkOrder'
+  /tenants/{tenant_id}/audit-logs:
+    get:
+      tags: [Audit Logs]
+      summary: List audit logs
+      operationId: listAuditLogs
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+        - name: actor_user_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: action
+          in: query
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Limit'
+        - $ref: '#/components/parameters/Page'
+      responses:
+        '200':
+          description: Audit log list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessEnvelope'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/AuditLog'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    TenantId:
+      name: tenant_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CustomerId:
+      name: customer_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ServiceId:
+      name: service_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RouterId:
+      name: router_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    Search:
+      name: q
+      in: query
+      schema:
+        type: string
+  responses:
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    Forbidden:
+      description: Forbidden
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+    ValidationError:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorEnvelope'
+  schemas:
+    SuccessEnvelope:
+      type: object
+      required: [success, data, meta]
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          nullable: true
+        meta:
+          type: object
+          properties:
+            request_id:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+    ErrorEnvelope:
+      type: object
+      required: [success, error, meta]
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: validation_failed
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+        meta:
+          type: object
+          properties:
+            request_id:
+              type: string
+            timestamp:
+              type: string
+              format: date-time
+    PaginationMeta:
+      type: object
+      required: [page, limit, total, total_pages]
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        total_pages:
+          type: integer
+    LoginRequest:
+      type: object
+      required: [username, password]
+      properties:
+        username:
+          type: string
+        password:
+          type: string
+          format: password
+    AuthToken:
+      type: object
+      required: [access_token, token_type, expires_in, refresh_token]
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: bearer
+        expires_in:
+          type: integer
+          example: 3600
+        refresh_token:
+          type: string
+    Tenant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        org_number:
+          type: string
+          nullable: true
+        plan:
+          type: string
+        status:
+          type: string
+          enum: [active, suspended, trial, terminated]
+        created_at:
+          type: string
+          format: date-time
+    TenantCreateRequest:
+      type: object
+      required: [name, plan]
+      properties:
+        name:
+          type: string
+        org_number:
+          type: string
+        plan:
+          type: string
+    TenantUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        org_number:
+          type: string
+        plan:
+          type: string
+        status:
+          type: string
+    TenantCollection:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Tenant'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        external_ref:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [individual, business]
+        name:
+          type: string
+        billing_contact:
+          type: object
+          additionalProperties: true
+        status:
+          type: string
+          enum: [prospect, lead, qualified, contracted, active, suspended, terminated]
+    CustomerCreateRequest:
+      type: object
+      required: [type, name]
+      properties:
+        external_ref:
+          type: string
+        type:
+          type: string
+          enum: [individual, business]
+        name:
+          type: string
+        billing_contact:
+          type: object
+    CustomerUpdateRequest:
+      type: object
+      properties:
+        external_ref:
+          type: string
+        type:
+          type: string
+        name:
+          type: string
+        billing_contact:
+          type: object
+        status:
+          type: string
+    CustomerCollection:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Customer'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    ServiceCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+        name:
+          type: string
+        requires_router_mapping:
+          type: boolean
+        requires_radius:
+          type: boolean
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        service_category_id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        name:
+          type: string
+        pricing:
+          type: object
+    ProductCreateRequest:
+      type: object
+      required: [service_category_id, sku, name, pricing]
+      properties:
+        service_category_id:
+          type: string
+          format: uuid
+        sku:
+          type: string
+        name:
+          type: string
+        pricing:
+          type: object
+    ProductCollection:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Product'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    ServiceStatus:
+      type: string
+      enum: [requested, provisioning, active, suspended, terminated, failed]
+    Service:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        service_category_id:
+          type: string
+          format: uuid
+        contract_id:
+          type: string
+          format: uuid
+          nullable: true
+        cid:
+          type: string
+        status:
+          $ref: '#/components/schemas/ServiceStatus'
+        metadata:
+          type: object
+    ServiceCreateRequest:
+      type: object
+      required: [customer_id, product_id, service_category_id]
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        service_category_id:
+          type: string
+          format: uuid
+        contract_id:
+          type: string
+          format: uuid
+        cid:
+          type: string
+        metadata:
+          type: object
+    ServiceUpdateRequest:
+      type: object
+      properties:
+        cid:
+          type: string
+        metadata:
+          type: object
+    ServiceCollection:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Service'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    RouterRole:
+      type: string
+      enum: [core_router, aggregation_router, edge_router, pppoe_router, bng, wireless_gateway, pop_router, bts_router]
+    RouterStatusValue:
+      type: string
+      enum: [draft, provisioning, active, warning, critical, maintenance, offline, retired]
+    SnmpStatusValue:
+      type: string
+      enum: [reachable, unreachable, auth_failed, not_configured]
+    Router:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        router_name:
+          type: string
+        hostname:
+          type: string
+        vendor:
+          type: string
+        model:
+          type: string
+        serial_number:
+          type: string
+        router_role:
+          $ref: '#/components/schemas/RouterRole'
+        site_name:
+          type: string
+        management_ip:
+          type: string
+        latitude:
+          type: number
+          nullable: true
+        longitude:
+          type: number
+          nullable: true
+        status:
+          $ref: '#/components/schemas/RouterStatusValue'
+        snmp_status:
+          $ref: '#/components/schemas/SnmpStatusValue'
+    RouterCreateRequest:
+      type: object
+      required: [router_name, hostname, router_role, management_ip]
+      properties:
+        router_name:
+          type: string
+        hostname:
+          type: string
+        vendor:
+          type: string
+        model:
+          type: string
+        serial_number:
+          type: string
+        router_role:
+          $ref: '#/components/schemas/RouterRole'
+        site_name:
+          type: string
+        management_ip:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        snmp_profile:
+          type: object
+    RouterUpdateRequest:
+      allOf:
+        - $ref: '#/components/schemas/RouterCreateRequest'
+        - type: object
+          properties:
+            status:
+              $ref: '#/components/schemas/RouterStatusValue'
+            snmp_status:
+              $ref: '#/components/schemas/SnmpStatusValue'
+    RouterCollection:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Router'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    RouterInterfaceStatus:
+      type: string
+      enum: [provisioning, up, down, disabled]
+    RouterInterface:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        router_id:
+          type: string
+          format: uuid
+        interface_name:
+          type: string
+        interface_type:
+          type: string
+        ip_address:
+          type: string
+          nullable: true
+        vlan_id:
+          type: integer
+          nullable: true
+        speed_mbps:
+          type: integer
+          nullable: true
+        status:
+          $ref: '#/components/schemas/RouterInterfaceStatus'
+    RouterInterfaceCreateRequest:
+      type: object
+      required: [router_id, interface_name]
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        interface_name:
+          type: string
+        interface_type:
+          type: string
+        ip_address:
+          type: string
+        vlan_id:
+          type: integer
+        speed_mbps:
+          type: integer
+    RouterLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        router_a_id:
+          type: string
+          format: uuid
+        router_b_id:
+          type: string
+          format: uuid
+        interface_a_id:
+          type: string
+          format: uuid
+          nullable: true
+        interface_b_id:
+          type: string
+          format: uuid
+          nullable: true
+        link_type:
+          type: string
+        capacity_mbps:
+          type: integer
+        status:
+          type: string
+    RouterLinkCreateRequest:
+      type: object
+      required: [router_a_id, router_b_id]
+      properties:
+        router_a_id:
+          type: string
+          format: uuid
+        router_b_id:
+          type: string
+          format: uuid
+        interface_a_id:
+          type: string
+          format: uuid
+        interface_b_id:
+          type: string
+          format: uuid
+        link_type:
+          type: string
+        capacity_mbps:
+          type: integer
+    ServiceRouterMappingRequest:
+      type: object
+      required: [router_id]
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        interface_id:
+          type: string
+          format: uuid
+        vlan_id:
+          type: integer
+        is_primary:
+          type: boolean
+          default: true
+    ServiceRouterMapping:
+      allOf:
+        - $ref: '#/components/schemas/ServiceRouterMappingRequest'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            service_id:
+              type: string
+              format: uuid
+    RouterCapacity:
+      type: object
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        cpu_percent:
+          type: number
+        memory_percent:
+          type: number
+        traffic_in_bps:
+          type: integer
+          format: int64
+        traffic_out_bps:
+          type: integer
+          format: int64
+        utilization_percent:
+          type: number
+        level:
+          type: string
+          enum: [normal, warning, critical]
+    RouterImpact:
+      type: object
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        affected_customers:
+          type: integer
+        affected_services:
+          type: integer
+        affected_radius_users:
+          type: integer
+        revenue_impact_monthly:
+          type: number
+        incident_severity:
+          type: string
+          enum: [P1, P2, P3, P4]
+    SnmpStatus:
+      type: object
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/SnmpStatusValue'
+        last_checked_at:
+          type: string
+          format: date-time
+          nullable: true
+        latency_ms:
+          type: integer
+          nullable: true
+    RadiusProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        attributes:
+          type: object
+    RadiusProfileCreateRequest:
+      type: object
+      required: [name, attributes]
+      properties:
+        name:
+          type: string
+        attributes:
+          type: object
+    RadiusUserStatus:
+      type: string
+      enum: [pending, active, suspended, terminated]
+    RadiusUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        router_id:
+          type: string
+          format: uuid
+        profile_id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        status:
+          $ref: '#/components/schemas/RadiusUserStatus'
+    RadiusUserCreateRequest:
+      type: object
+      required: [customer_id, service_id, profile_id, username, secret]
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        router_id:
+          type: string
+          format: uuid
+        profile_id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        secret:
+          type: string
+          format: password
+    NasDevice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        router_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        nas_ip_address:
+          type: string
+        vendor_type:
+          type: string
+        status:
+          type: string
+    NasDeviceCreateRequest:
+      type: object
+      required: [router_id, hostname, nas_ip_address, secret]
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        hostname:
+          type: string
+        nas_ip_address:
+          type: string
+        vendor_type:
+          type: string
+        secret:
+          type: string
+          format: password
+    RouterScriptGenerateRequest:
+      type: object
+      required: [router_id, os_version, script_type, radius_server_ip, radius_secret]
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        os_version:
+          type: string
+          enum: [ROS6, ROS7]
+        script_type:
+          type: string
+          enum: [PPPoE, Hotspot]
+        radius_server_ip:
+          type: string
+        radius_secret:
+          type: string
+        service_profile:
+          type: string
+    GeneratedScript:
+      type: object
+      properties:
+        router_id:
+          type: string
+          format: uuid
+        os_version:
+          type: string
+        script_type:
+          type: string
+        script:
+          type: string
+        warnings:
+          type: array
+          items:
+            type: string
+    InvoiceStatus:
+      type: string
+      enum: [draft, issued, overdue, partial_paid, paid, written_off, cancelled]
+    Invoice:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        invoice_number:
+          type: string
+        status:
+          $ref: '#/components/schemas/InvoiceStatus'
+        total_amount:
+          type: number
+        paid_amount:
+          type: number
+    InvoiceCreateRequest:
+      type: object
+      required: [customer_id, items]
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+        contract_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          items:
+            type: object
+            required: [service_id, description, quantity, unit_amount]
+            properties:
+              service_id:
+                type: string
+                format: uuid
+              description:
+                type: string
+              quantity:
+                type: number
+              unit_amount:
+                type: number
+    InvoiceCollection:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Invoice'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        invoice_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        method:
+          type: string
+        status:
+          type: string
+          enum: [initiated, authorized, captured, reconciled, failed, refunded, cancelled]
+    PaymentCreateRequest:
+      type: object
+      required: [invoice_id, amount, method]
+      properties:
+        invoice_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+        method:
+          type: string
+        external_ref:
+          type: string
+    Ticket:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+          nullable: true
+        service_id:
+          type: string
+          format: uuid
+          nullable: true
+        router_id:
+          type: string
+          format: uuid
+          nullable: true
+        priority:
+          type: string
+        status:
+          type: string
+        subject:
+          type: string
+    TicketCreateRequest:
+      type: object
+      required: [subject]
+      properties:
+        customer_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        router_id:
+          type: string
+          format: uuid
+        priority:
+          type: string
+        category:
+          type: string
+        subject:
+          type: string
+        description:
+          type: string
+    TicketCollection:
+      allOf:
+        - $ref: '#/components/schemas/SuccessEnvelope'
+        - type: object
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/Ticket'
+            pagination:
+              $ref: '#/components/schemas/PaginationMeta'
+    WorkOrder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        ticket_id:
+          type: string
+          format: uuid
+          nullable: true
+        service_id:
+          type: string
+          format: uuid
+          nullable: true
+        router_id:
+          type: string
+          format: uuid
+          nullable: true
+        status:
+          type: string
+    WorkOrderCreateRequest:
+      type: object
+      properties:
+        ticket_id:
+          type: string
+          format: uuid
+        service_id:
+          type: string
+          format: uuid
+        router_id:
+          type: string
+          format: uuid
+        assigned_to:
+          type: string
+          format: uuid
+        scheduled_for:
+          type: string
+          format: date-time
+        scope:
+          type: string
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenant_id:
+          type: string
+          format: uuid
+        actor_user_id:
+          type: string
+          format: uuid
+          nullable: true
+        action:
+          type: string
+        target_table:
+          type: string
+        target_id:
+          type: string
+          format: uuid
+          nullable: true
+        payload:
+          type: object
+        created_at:
+          type: string
+          format: date-time

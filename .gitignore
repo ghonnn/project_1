@@ -1,0 +1,29 @@
+# OS/editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs and temp files
+*.log
+*.tmp
+*.temp
+
+# Environment/secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies/build output for future app code
+node_modules/
+dist/
+build/
+.next/
+coverage/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Local tool state
+.vscode/
+.idea/
