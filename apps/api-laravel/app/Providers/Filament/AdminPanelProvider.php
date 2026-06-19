@@ -8,7 +8,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Navigation\NavigationGroup;
-use Filament\Pages;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -53,8 +52,18 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-sidebar-group-label,
                         .fi-sidebar-item-label {
-                            font-size: 9px !important;
-                            line-height: 1.25 !important;
+                            font-size: 14px !important;
+                            line-height: 1.15 !important;
+                        }
+
+                        .fi-sidebar-item-button {
+                            min-height: 30px !important;
+                            padding-block: 3px !important;
+                        }
+
+                        .fi-sidebar-group,
+                        .fi-sidebar-group-items {
+                            row-gap: 1px !important;
                         }
                     </style>
                 HTML)
@@ -63,7 +72,8 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
                 NavigationGroup::make('Pelanggan')->icon('heroicon-o-users'),
                 NavigationGroup::make('Katalog')->icon('heroicon-o-tag'),
-                NavigationGroup::make('Layanan')->icon('heroicon-o-bolt'),
+                NavigationGroup::make('Voucher')->icon('heroicon-o-wifi'),
+                NavigationGroup::make('Langganan')->icon('heroicon-o-user-group'),
                 NavigationGroup::make('Jaringan')->icon('heroicon-o-server-stack'),
                 NavigationGroup::make('Radius')->icon('heroicon-o-key'),
                 NavigationGroup::make('Tagihan')->icon('heroicon-o-document-text'),
@@ -73,7 +83,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
-                Pages\Dashboard::class,
+                \App\Filament\Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([

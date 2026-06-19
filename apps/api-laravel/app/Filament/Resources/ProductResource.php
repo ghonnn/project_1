@@ -19,7 +19,7 @@ class ProductResource extends Resource
 {
     protected static ?string $model = Product::class;
 
-    protected static ?string $navigationGroup = 'Layanan';
+    protected static ?string $navigationGroup = 'Langganan';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-circle';
 

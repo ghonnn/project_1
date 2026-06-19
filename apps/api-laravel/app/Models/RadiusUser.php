@@ -21,4 +21,9 @@ class RadiusUser extends NexModel
     {
         return $this->belongsTo(RadiusProfile::class, 'profile_id');
     }
+
+    public function router(): BelongsTo
+    {
+        return $this->belongsTo(Router::class);
+    }
 }

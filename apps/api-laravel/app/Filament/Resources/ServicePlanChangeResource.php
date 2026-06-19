@@ -17,7 +17,7 @@ class ServicePlanChangeResource extends Resource
 {
     protected static ?string $model = ServicePlanChange::class;
 
-    protected static ?string $navigationGroup = 'Layanan';
+    protected static ?string $navigationGroup = 'Langganan';
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
 
