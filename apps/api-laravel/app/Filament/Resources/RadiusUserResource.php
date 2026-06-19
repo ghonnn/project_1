@@ -35,8 +35,19 @@ class RadiusUserResource extends Resource
         return $form
             ->columns(1)
             ->schema([
-                Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\Select::make('customer_id')->options(fn () => AdminOptions::customers())->searchable()->required(),
+                Forms\Components\Select::make('tenant_id')
+                    ->options(fn () => AdminOptions::tenants())
+                    ->searchable()
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('customer_id', null)),
+                Forms\Components\Select::make('customer_id')
+                    ->label('Pelanggan')
+                    ->options(fn (Forms\Get $get) => AdminOptions::customers($get('tenant_id')))
+                    ->getSearchResultsUsing(fn (string $search, Forms\Get $get): array => AdminOptions::customers($get('tenant_id'), $search))
+                    ->getOptionLabelUsing(fn (?string $value): ?string => AdminOptions::customerOptionLabel($value))
+                    ->searchable()
+                    ->required(),
                 Forms\Components\Select::make('service_id')->options(fn () => AdminOptions::services())->searchable()->required(),
                 Forms\Components\Select::make('router_id')->options(fn () => AdminOptions::routers())->searchable(),
                 Forms\Components\Select::make('profile_id')->label('Profil Langganan')->options(fn () => AdminOptions::radiusProfiles())->searchable(),

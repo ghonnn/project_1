@@ -35,8 +35,19 @@ class InvoiceResource extends Resource
         return $form
             ->columns(1)
             ->schema([
-                Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\Select::make('customer_id')->options(fn () => AdminOptions::customers())->searchable()->required(),
+                Forms\Components\Select::make('tenant_id')
+                    ->options(fn () => AdminOptions::tenants())
+                    ->searchable()
+                    ->required()
+                    ->live()
+                    ->afterStateUpdated(fn (Forms\Set $set) => $set('customer_id', null)),
+                Forms\Components\Select::make('customer_id')
+                    ->label('Pelanggan')
+                    ->options(fn (Forms\Get $get) => AdminOptions::customers($get('tenant_id')))
+                    ->getSearchResultsUsing(fn (string $search, Forms\Get $get): array => AdminOptions::customers($get('tenant_id'), $search))
+                    ->getOptionLabelUsing(fn (?string $value): ?string => AdminOptions::customerOptionLabel($value))
+                    ->searchable()
+                    ->required(),
                 Forms\Components\TextInput::make('invoice_number')->required()->maxLength(255),
                 Forms\Components\DatePicker::make('issue_date')->required(),
                 Forms\Components\DatePicker::make('due_date')->required(),

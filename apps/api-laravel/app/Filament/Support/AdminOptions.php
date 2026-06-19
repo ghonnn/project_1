@@ -27,9 +27,41 @@ class AdminOptions
     /**
      * @return array<string, string>
      */
-    public static function customers(): array
+    public static function customers(?string $tenantId = null, ?string $search = null): array
     {
-        return Customer::query()->orderBy('name')->pluck('name', 'id')->all();
+        return Customer::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->when($search, fn ($query) => $query->where(function ($query) use ($search): void {
+                $query
+                    ->where('name', 'like', '%'.$search.'%')
+                    ->orWhere('phone', 'like', '%'.$search.'%')
+                    ->orWhere('customer_number', 'like', '%'.$search.'%');
+            }))
+            ->orderBy('name')
+            ->limit(50)
+            ->get()
+            ->mapWithKeys(fn (Customer $customer): array => [
+                $customer->id => self::customerLabel($customer),
+            ])
+            ->all();
+    }
+
+    public static function customerOptionLabel(?string $customerId): ?string
+    {
+        $customer = $customerId ? Customer::query()->find($customerId) : null;
+
+        return $customer ? self::customerLabel($customer) : null;
+    }
+
+    private static function customerLabel(Customer $customer): string
+    {
+        $parts = array_filter([
+            $customer->name,
+            $customer->phone,
+            $customer->customer_number,
+        ]);
+
+        return implode(' - ', $parts);
     }
 
     /**
