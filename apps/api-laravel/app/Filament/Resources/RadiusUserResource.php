@@ -22,7 +22,11 @@ class RadiusUserResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-key';
 
-    protected static ?string $navigationLabel = 'Users';
+    protected static ?string $navigationLabel = 'Pengguna';
+
+    protected static ?string $modelLabel = 'Pengguna Radius';
+
+    protected static ?string $pluralModelLabel = 'Pengguna Radius';
 
     protected static ?int $navigationSort = 30;
 

@@ -18,11 +18,11 @@ class RouterScriptGenerator extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationGroup = 'Network';
+    protected static ?string $navigationGroup = 'Jaringan';
 
     protected static ?string $navigationIcon = 'heroicon-o-command-line';
 
-    protected static ?string $navigationLabel = 'Script Generator';
+    protected static ?string $navigationLabel = 'Generator Script';
 
     protected static ?int $navigationSort = 50;
 

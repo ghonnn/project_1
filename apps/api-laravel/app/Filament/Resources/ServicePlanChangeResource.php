@@ -17,11 +17,15 @@ class ServicePlanChangeResource extends Resource
 {
     protected static ?string $model = ServicePlanChange::class;
 
-    protected static ?string $navigationGroup = 'Service';
+    protected static ?string $navigationGroup = 'Layanan';
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
 
-    protected static ?string $navigationLabel = 'Upgrade / Downgrade';
+    protected static ?string $navigationLabel = 'Naik / Turun Paket';
+
+    protected static ?string $modelLabel = 'Naik / Turun Paket';
+
+    protected static ?string $pluralModelLabel = 'Naik / Turun Paket';
 
     protected static ?int $navigationSort = 20;
 

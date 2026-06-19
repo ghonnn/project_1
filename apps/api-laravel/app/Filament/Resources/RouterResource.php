@@ -19,7 +19,7 @@ class RouterResource extends Resource
 {
     protected static ?string $model = Router::class;
 
-    protected static ?string $navigationGroup = 'Network';
+    protected static ?string $navigationGroup = 'Jaringan';
 
     protected static ?string $navigationIcon = 'heroicon-o-server-stack';
 

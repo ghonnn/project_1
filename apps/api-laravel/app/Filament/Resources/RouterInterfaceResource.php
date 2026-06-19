@@ -18,11 +18,15 @@ class RouterInterfaceResource extends Resource
 {
     protected static ?string $model = RouterInterface::class;
 
-    protected static ?string $navigationGroup = 'Network';
+    protected static ?string $navigationGroup = 'Jaringan';
 
     protected static ?string $navigationIcon = 'heroicon-o-circle-stack';
 
-    protected static ?string $navigationLabel = 'Interfaces';
+    protected static ?string $navigationLabel = 'Interface';
+
+    protected static ?string $modelLabel = 'Interface Router';
+
+    protected static ?string $pluralModelLabel = 'Interface Router';
 
     protected static ?int $navigationSort = 30;
 

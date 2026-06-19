@@ -22,7 +22,11 @@ class RadiusServerResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-signal';
 
-    protected static ?string $navigationLabel = 'Servers';
+    protected static ?string $navigationLabel = 'Server';
+
+    protected static ?string $modelLabel = 'Server Radius';
+
+    protected static ?string $pluralModelLabel = 'Server Radius';
 
     protected static ?int $navigationSort = 10;
 

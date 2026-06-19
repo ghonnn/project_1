@@ -21,6 +21,12 @@ class TenantResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
 
+    protected static ?string $navigationLabel = 'Tenant';
+
+    protected static ?string $modelLabel = 'Tenant';
+
+    protected static ?string $pluralModelLabel = 'Tenant';
+
     protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form

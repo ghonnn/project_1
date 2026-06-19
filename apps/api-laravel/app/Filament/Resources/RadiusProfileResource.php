@@ -22,7 +22,11 @@ class RadiusProfileResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static ?string $navigationLabel = 'Profiles';
+    protected static ?string $navigationLabel = 'Profil';
+
+    protected static ?string $modelLabel = 'Profil Radius';
+
+    protected static ?string $pluralModelLabel = 'Profil Radius';
 
     protected static ?int $navigationSort = 20;
 

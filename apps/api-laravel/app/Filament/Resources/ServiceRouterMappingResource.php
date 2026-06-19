@@ -18,11 +18,15 @@ class ServiceRouterMappingResource extends Resource
 {
     protected static ?string $model = ServiceRouterMapping::class;
 
-    protected static ?string $navigationGroup = 'Network';
+    protected static ?string $navigationGroup = 'Jaringan';
 
     protected static ?string $navigationIcon = 'heroicon-o-arrows-right-left';
 
-    protected static ?string $navigationLabel = 'Service Mapping';
+    protected static ?string $navigationLabel = 'Mapping Layanan';
+
+    protected static ?string $modelLabel = 'Mapping Layanan';
+
+    protected static ?string $pluralModelLabel = 'Mapping Layanan';
 
     protected static ?int $navigationSort = 40;
 

@@ -43,14 +43,14 @@ class AdminPanelProvider extends PanelProvider
             ->spa()
             ->navigationGroups([
                 NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
-                NavigationGroup::make('Customer')->icon('heroicon-o-users'),
-                NavigationGroup::make('Catalog')->icon('heroicon-o-tag'),
-                NavigationGroup::make('Service')->icon('heroicon-o-bolt'),
-                NavigationGroup::make('Network')->icon('heroicon-o-server-stack'),
+                NavigationGroup::make('Pelanggan')->icon('heroicon-o-users'),
+                NavigationGroup::make('Katalog')->icon('heroicon-o-tag'),
+                NavigationGroup::make('Layanan')->icon('heroicon-o-bolt'),
+                NavigationGroup::make('Jaringan')->icon('heroicon-o-server-stack'),
                 NavigationGroup::make('Radius')->icon('heroicon-o-key'),
-                NavigationGroup::make('Billing')->icon('heroicon-o-document-text'),
-                NavigationGroup::make('Payment')->icon('heroicon-o-banknotes'),
-                NavigationGroup::make('Security & Audit')->icon('heroicon-o-shield-check')->collapsed(),
+                NavigationGroup::make('Tagihan')->icon('heroicon-o-document-text'),
+                NavigationGroup::make('Pembayaran')->icon('heroicon-o-banknotes'),
+                NavigationGroup::make('Keamanan & Audit')->icon('heroicon-o-shield-check')->collapsed(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
