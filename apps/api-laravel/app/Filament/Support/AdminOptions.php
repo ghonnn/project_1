@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\RadiusProfile;
+use App\Models\RadiusServer;
 use App\Models\Router;
 use App\Models\RouterInterface;
 use App\Models\Service;
@@ -94,6 +95,20 @@ class AdminOptions
     public static function radiusProfiles(): array
     {
         return RadiusProfile::query()->orderBy('name')->pluck('name', 'id')->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function radiusServers(): array
+    {
+        return RadiusServer::query()
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (RadiusServer $server): array => [
+                $server->id => $server->name.' - '.$server->host,
+            ])
+            ->all();
     }
 
     /**
