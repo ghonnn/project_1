@@ -32,4 +32,27 @@ class Product extends NexModel
     {
         return $this->hasMany(Service::class);
     }
+
+    protected static function booted(): void
+    {
+        static::saved(function (Product $product): void {
+            RadiusProfile::updateOrCreate(
+                [
+                    'tenant_id' => $product->tenant_id,
+                    'name' => $product->name,
+                ],
+                [
+                    'attributes' => [
+                        'Mikrotik-Group' => $product->mikrotik_group,
+                        'Mikrotik-Rate-Limit' => $product->mikrotik_rate_limit,
+                        'Shared-Users' => $product->shared_users,
+                        'Active-Days' => $product->active_days,
+                        'Profile-Price' => $product->price,
+                        'Profile-HPP' => $product->hpp,
+                        'Profile-Commission' => $product->commission,
+                    ],
+                ]
+            );
+        });
+    }
 }

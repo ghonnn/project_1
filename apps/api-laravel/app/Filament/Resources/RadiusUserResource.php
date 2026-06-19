@@ -39,7 +39,7 @@ class RadiusUserResource extends Resource
                 Forms\Components\Select::make('customer_id')->options(fn () => AdminOptions::customers())->searchable()->required(),
                 Forms\Components\Select::make('service_id')->options(fn () => AdminOptions::services())->searchable()->required(),
                 Forms\Components\Select::make('router_id')->options(fn () => AdminOptions::routers())->searchable(),
-                Forms\Components\Select::make('profile_id')->options(fn () => AdminOptions::radiusProfiles())->searchable(),
+                Forms\Components\Select::make('profile_id')->label('Profil Langganan')->options(fn () => AdminOptions::radiusProfiles())->searchable(),
                 Forms\Components\TextInput::make('username')->required()->maxLength(255),
                 Forms\Components\TextInput::make('secret')->password()->revealable()->required()->maxLength(255),
                 Forms\Components\Select::make('status')
@@ -55,7 +55,8 @@ class RadiusUserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('tenant.name')->label('Tenant')->searchable(),
                 Tables\Columns\TextColumn::make('username')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('service.cid')->label('Service')->searchable(),
+                Tables\Columns\TextColumn::make('service.cid')->label('Layanan')->searchable(),
+                Tables\Columns\TextColumn::make('profile.name')->label('Profil Langganan')->searchable(),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',
                     'pending' => 'warning',
