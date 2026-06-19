@@ -95,8 +95,33 @@ class AdminPanelProvider extends PanelProvider
                         .fi-section {
                             width: 100%;
                         }
+
+                        .nex-topbar-brand {
+                            display: flex;
+                            align-items: center;
+                            gap: 28px;
+                            min-width: 340px;
+                            padding-left: 8px;
+                        }
+
+                        .nex-topbar-brand img {
+                            width: 72px;
+                            height: 40px;
+                            object-fit: contain;
+                        }
+
+                        .nex-server-time {
+                            color: #e5e7eb;
+                            font-size: 14px;
+                            font-weight: 700;
+                            white-space: nowrap;
+                        }
                     </style>
                 HTML)
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): HtmlString => new HtmlString(self::topbarBrand())
             )
             ->navigationGroups([
                 NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
@@ -153,5 +178,18 @@ class AdminPanelProvider extends PanelProvider
                 <text x="100" y="149" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#38bdf8">PLATFORM</text>
             </svg>
         SVG);
+    }
+
+    private static function topbarBrand(): string
+    {
+        $logo = e(self::brandLogo());
+        $time = now('Asia/Jakarta')->format('d/m/Y H:i:s').' WIB';
+
+        return <<<HTML
+            <div class="nex-topbar-brand">
+                <img src="{$logo}" alt="NEX ISP PLATFORM">
+                <div class="nex-server-time">WAKTU SERVER : {$time}</div>
+            </div>
+        HTML;
     }
 }

@@ -125,7 +125,7 @@ class ListServices extends ListRecords
                         ->options(['from_paid_date' => 'SAMBUNG DARI TGL BAYAR', 'from_isolation_date' => 'SAMBUNG DARI TGL ISOLIR'])
                         ->default('from_paid_date')
                         ->required()
-                        ->helperText('Jika sambung dari tanggal bayar, masa isolir diabaikan dan dihitung kembali mulai dari pembayaran.'),
+                        ->helperText('Sambung dari tanggal isolir: masa isolir tetap dihitung invoice. Sambung dari tanggal bayar: masa isolir diabaikan dan dihitung kembali sejak pembayaran.'),
                     Forms\Components\TextInput::make('isolation_time')
                         ->label('Jam isolir')
                         ->default('23:59:00')

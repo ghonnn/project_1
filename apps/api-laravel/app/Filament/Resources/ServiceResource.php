@@ -8,6 +8,7 @@ use App\Filament\Support\AdminOptions;
 use App\Models\Product;
 use App\Models\Service;
 use App\Models\Router;
+use App\Models\Tenant;
 use App\Services\ServiceProvisioningService;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -18,6 +19,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
 
 class ServiceResource extends Resource
@@ -54,7 +56,11 @@ class ServiceResource extends Resource
                             ->searchable()
                             ->required()
                             ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('customer_id', null)),
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state): void {
+                                $set('customer_id', null);
+                                self::refreshBillingDates($set, $state, $get('billing_active_date'));
+                                self::refreshPpnFromSettings($set, $state, $get('product_id'));
+                            }),
                         Forms\Components\Select::make('customer_id')
                             ->label('Nama Pelanggan')
                             ->options(fn (Forms\Get $get) => AdminOptions::customers($get('tenant_id')))
@@ -81,17 +87,8 @@ class ServiceResource extends Resource
                             ->options(fn () => AdminOptions::products())
                             ->searchable()
                             ->live()
-                            ->afterStateUpdated(function (Forms\Set $set, ?string $state): void {
-                                $product = $state ? Product::query()->find($state) : null;
-
-                                if (! $product) {
-                                    return;
-                                }
-
-                                $set('service_category_id', $product->service_category_id);
-                                $set('billing_profile_name', $product->name);
-                                $set('billing_cycle', $product->billing_cycle);
-                                $set('profile_price', self::formatRupiah($product->price));
+                            ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state): void {
+                                self::applyProductBilling($set, $get('tenant_id'), $state);
                             }),
                         Forms\Components\Select::make('service_category_id')->label('Kategori Layanan')->options(fn () => AdminOptions::serviceCategories())->searchable(),
                         Forms\Components\TextInput::make('server_name')->label('Server')->maxLength(255),
@@ -118,12 +115,35 @@ class ServiceResource extends Resource
                         Forms\Components\Select::make('billing_type')
                             ->label('Jenis Tagihan')
                             ->options(['prabayar' => 'Prabayar', 'pascabayar' => 'Pascabayar']),
-                        Forms\Components\DatePicker::make('billing_active_date')->label('Tanggal Aktif'),
-                        Forms\Components\DatePicker::make('billing_isolation_date')->label('Tanggal Isolir'),
-                        Forms\Components\Toggle::make('ppn_enabled')->label('PPN 11%'),
+                        Forms\Components\DatePicker::make('billing_active_date')
+                            ->label('Tanggal Aktif')
+                            ->default(now())
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshBillingDates($set, $get('tenant_id'), $state)),
+                        Forms\Components\DatePicker::make('billing_isolation_date')
+                            ->label('Tanggal Isolir')
+                            ->helperText('Otomatis mengikuti Setting Billing Langganan: Tanggal Isolir SIKLUS BULAN.'),
+                        Forms\Components\DatePicker::make('invoice_issue_date')
+                            ->label('Tanggal Terbit Invoice')
+                            ->helperText('Otomatis mengikuti kolom Terbit invoice pada Setting Billing Langganan.'),
+                        Forms\Components\Toggle::make('ppn_enabled')
+                            ->label('PPN')
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshServicePrice($set, $get('dpp_amount'), $get('ppn_rate'), (bool) $state)),
                         Forms\Components\TextInput::make('unit_code')->label('Kode Unit')->maxLength(255),
+                        self::rupiahInput('dpp_amount', 'Harga Dasar / DPP')
+                            ->helperText('Dasar pengenaan pajak sebelum PPN.')
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshServicePrice($set, $state, $get('ppn_rate'), (bool) $get('ppn_enabled'))),
+                        Forms\Components\TextInput::make('ppn_rate')
+                            ->label('Tarif PPN')
+                            ->numeric()
+                            ->suffix('%')
+                            ->default(11)
+                            ->live(onBlur: true)
+                            ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshServicePrice($set, $get('dpp_amount'), $state, (bool) $get('ppn_enabled'))),
                         self::rupiahInput('profile_price', 'Harga Profile')
-                            ->helperText('Otomatis mengikuti harga yang sudah diset di Profile Langganan.')
+                            ->helperText('Harga final pelanggan, otomatis dari DPP dan tarif PPN.')
                             ->readOnly(),
                         self::rupiahInput('partner_commission', 'Komisi Partner'),
                     ]),
@@ -135,9 +155,9 @@ class ServiceResource extends Resource
                             ->default('requested')
                             ->required(),
                         Forms\Components\DatePicker::make('installed_at')->label('Tanggal Pasang'),
-                        Forms\Components\DateTimePicker::make('activated_at')->label('Tanggal Aktif Sistem'),
-                        Forms\Components\DateTimePicker::make('suspended_at')->label('Tanggal Suspend'),
-                        Forms\Components\DateTimePicker::make('terminated_at')->label('Tanggal Terminate'),
+                        Forms\Components\DatePicker::make('activated_at')->label('Tanggal Aktif Sistem'),
+                        Forms\Components\DatePicker::make('suspended_at')->label('Tanggal Suspend'),
+                        Forms\Components\DatePicker::make('terminated_at')->label('Tanggal Terminate'),
                         Forms\Components\Placeholder::make('created_at')->label('Tanggal Input')->content(fn (?Service $record): string => $record?->created_at?->format('Y-m-d H:i:s') ?? '-'),
                         Forms\Components\Placeholder::make('updated_at')->label('Log Terakhir Diubah')->content(fn (?Service $record): string => $record?->updated_at?->format('Y-m-d H:i:s') ?? '-'),
                         Forms\Components\Textarea::make('notes')->label('Catatan')->rows(4),
@@ -303,5 +323,97 @@ class ServiceResource extends Resource
         }
 
         return (float) str_replace('.', '', $value);
+    }
+
+    private static function applyProductBilling(Forms\Set $set, ?string $tenantId, ?string $productId): void
+    {
+        $product = $productId ? Product::query()->find($productId) : null;
+
+        if (! $product) {
+            return;
+        }
+
+        $settings = self::billingSettings($tenantId ?: $product->tenant_id);
+        $ppnEnabled = self::resolvePpnEnabled($settings, $product);
+        $ppnRate = (float) ($settings['ppn_rate'] ?? 11);
+        $dpp = (float) ($product->hpp ?: $product->price);
+
+        $set('service_category_id', $product->service_category_id);
+        $set('billing_profile_name', $product->name);
+        $set('billing_cycle', $product->billing_cycle);
+        $set('ppn_enabled', $ppnEnabled);
+        $set('ppn_rate', $ppnRate);
+        $set('dpp_amount', self::formatRupiah($dpp));
+        self::refreshServicePrice($set, $dpp, $ppnRate, $ppnEnabled);
+    }
+
+    private static function refreshPpnFromSettings(Forms\Set $set, ?string $tenantId, ?string $productId): void
+    {
+        if (! $productId) {
+            return;
+        }
+
+        self::applyProductBilling($set, $tenantId, $productId);
+    }
+
+    private static function refreshServicePrice(Forms\Set $set, mixed $dpp, mixed $ppnRate, bool $ppnEnabled): void
+    {
+        $base = self::parseRupiah($dpp);
+        $rate = (float) ($ppnRate ?: 0);
+        $price = $ppnEnabled ? round($base + ($base * ($rate / 100))) : $base;
+
+        $set('profile_price', self::formatRupiah($price));
+    }
+
+    private static function refreshBillingDates(Forms\Set $set, ?string $tenantId, mixed $activeDate): void
+    {
+        $settings = self::billingSettings($tenantId);
+        $active = self::dateFromState($activeDate) ?: now();
+        $isolationDay = max(1, min(31, (int) ($settings['monthly_isolation_day'] ?? 15)));
+        $publishBeforeDays = max(0, (int) ($settings['invoice_publish_day'] ?? 10));
+
+        $isolationDate = $active->copy()->day(min($isolationDay, $active->daysInMonth));
+
+        if ($isolationDate->lt($active->copy()->startOfDay())) {
+            $nextMonth = $active->copy()->addMonthNoOverflow();
+            $isolationDate = $nextMonth->copy()->day(min($isolationDay, $nextMonth->daysInMonth));
+        }
+
+        $invoiceIssueDate = $isolationDate->copy()->subDays($publishBeforeDays);
+
+        $set('billing_isolation_date', $isolationDate->toDateString());
+        $set('suspended_at', $isolationDate->toDateString());
+        $set('invoice_issue_date', $invoiceIssueDate->toDateString());
+    }
+
+    private static function billingSettings(?string $tenantId): array
+    {
+        $tenant = $tenantId
+            ? Tenant::query()->find($tenantId)
+            : Tenant::query()->orderBy('name')->first();
+
+        return $tenant?->billing_settings ?? [];
+    }
+
+    private static function resolvePpnEnabled(array $settings, Product $product): bool
+    {
+        return match ($settings['ppn_rule'] ?? 'optional') {
+            'all_taxed' => true,
+            'all_untaxed' => false,
+            default => (bool) $product->ppn_enabled,
+        };
+    }
+
+    private static function dateFromState(mixed $state): ?Carbon
+    {
+        if ($state instanceof Carbon) {
+            return $state->copy();
+        }
+
+        if (! $state) {
+            return null;
+        }
+
+        return Carbon::parse($state);
     }
 }

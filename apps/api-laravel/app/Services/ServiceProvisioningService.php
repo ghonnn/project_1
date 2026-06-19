@@ -85,6 +85,11 @@ class ServiceProvisioningService
                 ]
             );
 
+            $dpp = (float) ($service->dpp_amount ?: $service->product->hpp ?: $service->product->price);
+            $ppnRate = (float) ($service->ppn_rate ?: 11);
+            $ppnEnabled = (bool) $service->ppn_enabled;
+            $profilePrice = (float) ($service->profile_price ?: ($ppnEnabled ? round($dpp + ($dpp * ($ppnRate / 100))) : $dpp));
+
             $service->update([
                 'status' => 'active',
                 'activated_at' => Carbon::now(),
@@ -93,8 +98,10 @@ class ServiceProvisioningService
                 'internet_password' => $password,
                 'billing_profile_name' => $service->product->name,
                 'billing_cycle' => $service->product->billing_cycle,
-                'profile_price' => $service->product->price,
-                'ppn_enabled' => $service->product->ppn_enabled,
+                'dpp_amount' => $dpp,
+                'ppn_rate' => $ppnRate,
+                'profile_price' => $profilePrice,
+                'ppn_enabled' => $ppnEnabled,
             ]);
 
             $syncLog = $this->freeRadius->syncUser($radiusUser->fresh());
@@ -146,8 +153,8 @@ class ServiceProvisioningService
             'tenant_id' => $service->tenant_id,
             'customer_id' => $service->customer_id,
             'invoice_number' => 'INV-'.now()->format('YmdHis').'-'.random_int(100, 999),
-            'issue_date' => now()->toDateString(),
-            'due_date' => now()->addDays(14)->toDateString(),
+            'issue_date' => $service->invoice_issue_date?->toDateString() ?? now()->toDateString(),
+            'due_date' => $service->billing_isolation_date?->toDateString() ?? now()->addDays(14)->toDateString(),
             'status' => 'issued',
             'total_amount' => $total,
         ]);
