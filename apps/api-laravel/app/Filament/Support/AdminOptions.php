@@ -12,6 +12,7 @@ use App\Models\RouterInterface;
 use App\Models\Service;
 use App\Models\ServiceCategory;
 use App\Models\Tenant;
+use App\Models\User;
 
 class AdminOptions
 {
@@ -117,5 +118,13 @@ class AdminOptions
     public static function invoices(): array
     {
         return Invoice::query()->orderByDesc('created_at')->pluck('invoice_number', 'id')->all();
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public static function users(): array
+    {
+        return User::query()->orderBy('name')->pluck('name', 'id')->all();
     }
 }

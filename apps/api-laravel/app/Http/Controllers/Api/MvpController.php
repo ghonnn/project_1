@@ -211,13 +211,23 @@ class MvpController extends Controller
         $data = $request->validate(['customer_id' => ['required', 'uuid'], 'items' => ['required', 'array', 'min:1'], 'items.*.service_id' => ['required', 'uuid'], 'items.*.description' => ['required'], 'items.*.quantity' => ['required', 'numeric'], 'items.*.unit_amount' => ['required', 'numeric']]);
         return DB::transaction(function () use ($data, $tenantId) {
             $total = 0;
+            $services = [];
             foreach ($data['items'] as $item) {
-                $service = Service::where('tenant_id', $tenantId)->findOrFail($item['service_id']);
+                $service = Service::with('addons')->where('tenant_id', $tenantId)->findOrFail($item['service_id']);
                 if ($service->status !== 'active') return $this->fail('Invoice only allowed for active service.', ['service_id' => ['Service must be active.']], 409);
+                $services[$service->id] = $service;
                 $total += $item['quantity'] * $item['unit_amount'];
+                foreach ($service->addons->where('status', 'active') as $addon) {
+                    $total += (float) $addon->monthly_amount;
+                }
             }
             $invoice = Invoice::create(['tenant_id' => $tenantId, 'customer_id' => $data['customer_id'], 'invoice_number' => 'INV-'.now()->format('YmdHis').'-'.random_int(100, 999), 'issue_date' => now()->toDateString(), 'due_date' => now()->addDays(14)->toDateString(), 'status' => 'issued', 'total_amount' => $total]);
-            foreach ($data['items'] as $item) InvoiceItem::create(['tenant_id' => $tenantId, 'invoice_id' => $invoice->id, 'service_id' => $item['service_id'], 'description' => $item['description'], 'quantity' => $item['quantity'], 'unit_amount' => $item['unit_amount'], 'total_amount' => $item['quantity'] * $item['unit_amount']]);
+            foreach ($data['items'] as $item) {
+                InvoiceItem::create(['tenant_id' => $tenantId, 'invoice_id' => $invoice->id, 'service_id' => $item['service_id'], 'description' => $item['description'], 'quantity' => $item['quantity'], 'unit_amount' => $item['unit_amount'], 'total_amount' => $item['quantity'] * $item['unit_amount']]);
+                foreach (($services[$item['service_id']]?->addons ?? collect())->where('status', 'active') as $addon) {
+                    InvoiceItem::create(['tenant_id' => $tenantId, 'invoice_id' => $invoice->id, 'service_id' => $item['service_id'], 'description' => 'Addon: '.$addon->name, 'quantity' => $addon->quantity, 'unit_amount' => $addon->unit_price, 'total_amount' => $addon->monthly_amount]);
+                }
+            }
             return $this->ok($invoice->fresh('items'), 'Created', [], 201);
         });
     }
