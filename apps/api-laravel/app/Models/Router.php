@@ -12,7 +12,10 @@ class Router extends NexModel
 
     protected function casts(): array
     {
-        return ['snmp_profile' => 'array'];
+        return [
+            'online_sessions' => 'integer',
+            'snmp_profile' => 'array',
+        ];
     }
 
     public function interfaces(): HasMany

@@ -120,7 +120,7 @@ class MvpController extends Controller
 
     public function storeRouter(Request $request, string $tenantId)
     {
-        $data = $request->validate(['router_name' => ['required'], 'hostname' => ['required'], 'vendor' => ['nullable'], 'model' => ['nullable'], 'serial_number' => ['nullable'], 'router_role' => ['required', 'in:core_router,aggregation_router,edge_router,pppoe_router,bng,wireless_gateway,pop_router,bts_router'], 'site_name' => ['nullable'], 'management_ip' => ['required'], 'public_ip' => ['nullable'], 'status' => ['nullable'], 'snmp_status' => ['nullable'], 'snmp_profile' => ['nullable', 'array']]);
+        $data = $request->validate(['router_name' => ['required'], 'hostname' => ['required'], 'vendor' => ['nullable'], 'model' => ['nullable'], 'serial_number' => ['nullable'], 'router_role' => ['required', 'in:core_router,aggregation_router,edge_router,pppoe_router,bng,wireless_gateway,pop_router,bts_router'], 'connection_type' => ['nullable', 'in:ip_public,vpn_radius'], 'radius_secret' => ['nullable'], 'online_sessions' => ['nullable', 'integer'], 'site_name' => ['nullable'], 'management_ip' => ['required'], 'public_ip' => ['nullable'], 'status' => ['nullable'], 'snmp_status' => ['nullable'], 'snmp_profile' => ['nullable', 'array']]);
         $router = Router::create(['tenant_id' => $tenantId] + $data);
         $this->audit->log('router.created', 'routers', $router->id, [], $router->toArray(), $request);
         return $this->ok($router, 'Created', [], 201);
@@ -132,7 +132,7 @@ class MvpController extends Controller
     {
         $router = Router::where('tenant_id', $tenantId)->findOrFail($id);
         $old = $router->toArray();
-        $router->update($request->only(['router_name', 'hostname', 'vendor', 'model', 'serial_number', 'router_role', 'site_name', 'management_ip', 'public_ip', 'status', 'snmp_status', 'snmp_profile']));
+        $router->update($request->only(['router_name', 'hostname', 'vendor', 'model', 'serial_number', 'router_role', 'connection_type', 'radius_secret', 'online_sessions', 'site_name', 'management_ip', 'public_ip', 'status', 'snmp_status', 'snmp_profile']));
         $this->audit->log('router.updated', 'routers', $router->id, $old, $router->fresh()->toArray(), $request);
         return $this->ok($router->fresh());
     }
