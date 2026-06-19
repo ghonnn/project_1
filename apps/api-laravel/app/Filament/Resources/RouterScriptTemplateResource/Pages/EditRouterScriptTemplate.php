@@ -1,0 +1,19 @@
+<?php
+
+namespace App\Filament\Resources\RouterScriptTemplateResource\Pages;
+
+use App\Filament\Resources\RouterScriptTemplateResource;
+use Filament\Actions;
+use Filament\Resources\Pages\EditRecord;
+
+class EditRouterScriptTemplate extends EditRecord
+{
+    protected static string $resource = RouterScriptTemplateResource::class;
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Actions\DeleteAction::make(),
+        ];
+    }
+}
