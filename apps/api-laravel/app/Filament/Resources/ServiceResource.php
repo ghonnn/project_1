@@ -9,11 +9,9 @@ use App\Models\Product;
 use App\Models\Service;
 use App\Models\Router;
 use App\Models\Tenant;
-use App\Services\ServiceProvisioningService;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Notifications\Notification;
 use Filament\Support\RawJs;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -44,12 +42,13 @@ class ServiceResource extends Resource
             ->columns(1)
             ->schema([
                 Forms\Components\Section::make('Data Berlangganan')
-                    ->columns(1)
+                    ->columns(2)
                     ->schema([
                         Forms\Components\TextInput::make('cid')
                             ->label('No. CID / Layanan')
                             ->disabled()
                             ->dehydrated(false)
+                            ->maxLength(32)
                             ->placeholder('Otomatis saat disimpan'),
                         Forms\Components\Select::make('tenant_id')
                             ->options(fn () => AdminOptions::tenants())
@@ -68,50 +67,88 @@ class ServiceResource extends Resource
                             ->getOptionLabelUsing(fn (?string $value): ?string => AdminOptions::customerOptionLabel($value))
                             ->searchable()
                             ->required(),
-                        Forms\Components\TextInput::make('region')->label('Wilayah')->maxLength(255),
-                        Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric(),
-                        Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric(),
+                        Forms\Components\TextInput::make('region')->label('Wilayah')->maxLength(80),
+                        Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric()->maxLength(16),
+                        Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric()->maxLength(16),
                         Forms\Components\Placeholder::make('map_link')
                             ->label('Map')
                             ->content(fn (?Service $record): HtmlString|string => $record?->latitude && $record?->longitude
                                 ? new HtmlString('<a class="text-primary-600 underline" href="https://www.google.com/maps?q='.$record->latitude.','.$record->longitude.'" target="_blank" rel="noopener">Buka Google Maps</a>')
-                                : 'Isi latitude dan longitude, lalu simpan untuk mendapatkan link map.'),
-                        Forms\Components\Textarea::make('installation_address')->label('Alamat Pemasangan')->rows(3),
+                                : 'Isi latitude dan longitude, lalu simpan untuk mendapatkan link map.')
+                            ->columnSpanFull(),
+                        Forms\Components\Textarea::make('installation_address')->label('Alamat Pemasangan')->rows(3)->maxLength(500)->columnSpanFull(),
                     ]),
                 Forms\Components\Section::make('Internet Hardware')
-                    ->columns(1)
+                    ->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('partner_name')->label('Nama Partner')->maxLength(255),
+                        Forms\Components\TextInput::make('partner_name')->label('Nama Partner')->maxLength(80),
                         Forms\Components\Select::make('product_id')
                             ->label('Profile / Produk')
-                            ->options(fn () => AdminOptions::products())
+                            ->options(fn (Forms\Get $get) => AdminOptions::products($get('tenant_id')))
                             ->searchable()
                             ->live()
                             ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state): void {
                                 self::applyProductBilling($set, $get('tenant_id'), $state);
                             }),
-                        Forms\Components\Select::make('service_category_id')->label('Kategori Layanan')->options(fn () => AdminOptions::serviceCategories())->searchable(),
-                        Forms\Components\TextInput::make('server_name')->label('Server')->maxLength(255),
+                        Forms\Components\Select::make('service_category_id')->label('Kategori Layanan')->options(fn (Forms\Get $get) => AdminOptions::serviceCategories($get('tenant_id')))->searchable(),
+                        Forms\Components\TextInput::make('server_name')->label('Server')->maxLength(80),
                         Forms\Components\Select::make('connection_type')
                             ->label('Kategori Koneksi')
                             ->options(['PPP' => 'PPP', 'DHCP' => 'DHCP', 'HOTSPOT' => 'HOTSPOT']),
-                        Forms\Components\TextInput::make('internet_username')->label('Username Internet')->maxLength(255),
-                        Forms\Components\TextInput::make('internet_password')->label('Password Internet')->password()->revealable()->maxLength(255),
-                        Forms\Components\TextInput::make('ip_address')->label('IP Address')->placeholder('Kosongkan jika dynamic')->maxLength(255),
+                        Forms\Components\TextInput::make('internet_username')->label('Username Internet')->maxLength(64),
+                        Forms\Components\TextInput::make('internet_password')->label('Password Internet')->password()->revealable()->maxLength(64),
+                        Forms\Components\TextInput::make('ip_address')->label('IP Address')->placeholder('Kosongkan jika dynamic')->maxLength(45),
                         Forms\Components\Select::make('device_ownership_status')
                             ->label('Status Perangkat')
                             ->options(['dipinjamkan' => 'Dipinjamkan', 'beli' => 'Beli']),
-                        Forms\Components\TextInput::make('device_brand')->label('Merk Perangkat')->maxLength(255),
-                        Forms\Components\TextInput::make('device_serial_number')->label('SN Perangkat')->maxLength(255),
-                        Forms\Components\TextInput::make('odp_number')->label('ODP Nomor')->maxLength(255),
-                        Forms\Components\TextInput::make('odp_port')->label('No. Port ODP')->maxLength(255),
-                        Forms\Components\TextInput::make('onu_slot')->label('Slot ONU')->placeholder('gpon-onu_1/1/1:1')->maxLength(255),
+                        Forms\Components\TextInput::make('device_brand')->label('Merk Perangkat')->maxLength(80),
+                        Forms\Components\TextInput::make('device_serial_number')->label('SN Perangkat')->maxLength(80),
+                        Forms\Components\TextInput::make('odp_number')->label('ODP Nomor')->maxLength(50),
+                        Forms\Components\TextInput::make('odp_port')->label('No. Port ODP')->maxLength(20),
+                        Forms\Components\TextInput::make('onu_slot')->label('Slot ONU')->placeholder('gpon-onu_1/1/1:1')->maxLength(50),
+                    ]),
+                Forms\Components\Section::make('Hubungkan Router')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\Select::make('provision_router_id')
+                            ->label('Router')
+                            ->options(fn (Forms\Get $get) => AdminOptions::routers($get('tenant_id')))
+                            ->searchable()
+                            ->live()
+                            ->afterStateUpdated(fn (Forms\Set $set) => $set('provision_interface_id', null))
+                            ->default(fn (?Service $record): ?string => $record?->routerMappings()->where('is_primary', true)->value('router_id')),
+                        Forms\Components\Select::make('provision_interface_id')
+                            ->label('Interface Router')
+                            ->options(fn (Forms\Get $get) => AdminOptions::routerInterfaces($get('provision_router_id')))
+                            ->searchable()
+                            ->disabled(fn (Forms\Get $get): bool => blank($get('provision_router_id')))
+                            ->default(fn (?Service $record): ?string => $record?->routerMappings()->where('is_primary', true)->value('interface_id')),
+                        Forms\Components\TextInput::make('provision_vlan_id')
+                            ->label('VLAN ID')
+                            ->numeric()
+                            ->minValue(1)
+                            ->maxValue(4094)
+                            ->maxLength(4)
+                            ->default(fn (?Service $record): ?int => $record?->routerMappings()->where('is_primary', true)->value('vlan_id')),
+                        Forms\Components\TextInput::make('provision_username')
+                            ->label('Username Internet')
+                            ->maxLength(64)
+                            ->default(fn (?Service $record): ?string => $record?->internet_username),
+                        Forms\Components\TextInput::make('provision_password')
+                            ->label('Password Internet')
+                            ->password()
+                            ->revealable()
+                            ->maxLength(64)
+                            ->default(fn (?Service $record): ?string => $record?->internet_password),
+                        Forms\Components\Toggle::make('provision_create_invoice')
+                            ->label('Buat invoice awal')
+                            ->default(fn (?Service $record): bool => ! $record?->exists),
                     ]),
                 Forms\Components\Section::make('Billing')
-                    ->columns(1)
+                    ->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('billing_profile_name')->label('Profile Sedang Digunakan')->maxLength(255),
-                        Forms\Components\TextInput::make('billing_cycle')->label('Siklus Tagihan')->placeholder('Siklus bulan')->maxLength(255),
+                        Forms\Components\TextInput::make('billing_profile_name')->label('Profile Sedang Digunakan')->maxLength(80),
+                        Forms\Components\TextInput::make('billing_cycle')->label('Siklus Tagihan')->placeholder('Siklus bulan')->maxLength(30),
                         Forms\Components\Select::make('billing_type')
                             ->label('Jenis Tagihan')
                             ->options(['prabayar' => 'Prabayar', 'pascabayar' => 'Pascabayar']),
@@ -130,7 +167,7 @@ class ServiceResource extends Resource
                             ->label('PPN')
                             ->live()
                             ->afterStateUpdated(fn (Forms\Set $set, Forms\Get $get, mixed $state) => self::refreshServicePrice($set, $get('dpp_amount'), $get('ppn_rate'), (bool) $state)),
-                        Forms\Components\TextInput::make('unit_code')->label('Kode Unit')->maxLength(255),
+                        Forms\Components\TextInput::make('unit_code')->label('Kode Unit')->maxLength(50),
                         self::rupiahInput('dpp_amount', 'Harga Dasar / DPP')
                             ->helperText('Dasar pengenaan pajak sebelum PPN.')
                             ->live(onBlur: true)
@@ -148,7 +185,7 @@ class ServiceResource extends Resource
                         self::rupiahInput('partner_commission', 'Komisi Partner'),
                     ]),
                 Forms\Components\Section::make('Lainnya')
-                    ->columns(1)
+                    ->columns(2)
                     ->schema([
                         Forms\Components\Select::make('status')
                             ->options(['requested' => 'Requested', 'active' => 'Active', 'suspended' => 'Suspended', 'terminated' => 'Terminated'])
@@ -160,7 +197,7 @@ class ServiceResource extends Resource
                         Forms\Components\DatePicker::make('terminated_at')->label('Tanggal Terminate'),
                         Forms\Components\Placeholder::make('created_at')->label('Tanggal Input')->content(fn (?Service $record): string => $record?->created_at?->format('Y-m-d H:i:s') ?? '-'),
                         Forms\Components\Placeholder::make('updated_at')->label('Log Terakhir Diubah')->content(fn (?Service $record): string => $record?->updated_at?->format('Y-m-d H:i:s') ?? '-'),
-                        Forms\Components\Textarea::make('notes')->label('Catatan')->rows(4),
+                        Forms\Components\Textarea::make('notes')->label('Catatan')->rows(4)->maxLength(1000)->columnSpanFull(),
                     ]),
             ]);
     }
@@ -213,50 +250,6 @@ class ServiceResource extends Resource
                     ->options(fn () => Product::query()->orderBy('name')->pluck('name', 'id')->all()),
             ])
             ->actions([
-                Tables\Actions\Action::make('provision')
-                    ->label('Hubungkan')
-                    ->icon('heroicon-o-link')
-                    ->color('success')
-                    ->modalHeading(fn (Service $record): string => 'Hubungkan Layanan '.$record->cid)
-                    ->form(fn (Service $record): array => [
-                        Forms\Components\Select::make('router_id')
-                            ->label('Router')
-                            ->options(fn () => AdminOptions::routers())
-                            ->searchable()
-                            ->required()
-                            ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('interface_id', null)),
-                        Forms\Components\Select::make('interface_id')
-                            ->label('Interface Router')
-                            ->options(fn (Forms\Get $get) => AdminOptions::routerInterfaces($get('router_id')))
-                            ->searchable()
-                            ->disabled(fn (Forms\Get $get): bool => blank($get('router_id'))),
-                        Forms\Components\TextInput::make('vlan_id')
-                            ->label('VLAN ID')
-                            ->numeric()
-                            ->minValue(1)
-                            ->maxValue(4094),
-                        Forms\Components\TextInput::make('username')
-                            ->label('Username Internet')
-                            ->default(fn () => $record->internet_username ?: $record->cid)
-                            ->required(),
-                        Forms\Components\TextInput::make('password')
-                            ->label('Password Internet')
-                            ->default(fn () => $record->internet_password ?: strtoupper(substr(bin2hex(random_bytes(4)), 0, 8)))
-                            ->required(),
-                        Forms\Components\Toggle::make('create_invoice')
-                            ->label('Buat invoice awal')
-                            ->default(true),
-                    ])
-                    ->action(function (Service $record, array $data): void {
-                        $result = app(ServiceProvisioningService::class)->provision($record, $data);
-
-                        Notification::make()
-                            ->title('Pelanggan berhasil terhubung')
-                            ->body('Radius user tersinkron dan layanan aktif'.($result['invoice'] ? ', invoice awal dibuat.' : '.'))
-                            ->success()
-                            ->send();
-                    }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
