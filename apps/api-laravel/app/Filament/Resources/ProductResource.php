@@ -52,14 +52,13 @@ class ProductResource extends Resource
                     ->maxLength(255),
                 Forms\Components\TextInput::make('shared_users')->label('Shared')->numeric()->default(1)->required(),
                 Forms\Components\TextInput::make('active_days')->label('Masa aktif (Hari)')->numeric()->default(30)->required(),
-                Forms\Components\TextInput::make('hpp')->label('HPP')->numeric()->prefix('Rp')->default(0),
-                Forms\Components\TextInput::make('commission')
-                    ->label('Komisi')
-                    ->numeric()
-                    ->prefix('Rp')
+                self::rupiahInput('hpp', 'HPP')->default(0),
+                self::rupiahInput('commission', 'Komisi')
                     ->default(0)
                     ->helperText('Komisi reseller yang akan dikeluarkan tiap pembayaran. Isi 0 jika hitungan komisi dalam bentuk persentase.'),
-                Forms\Components\TextInput::make('price')->label('Harga')->numeric()->prefix('Rp')->helperText('Harga diluar PPN')->required(),
+                self::rupiahInput('price', 'Harga')
+                    ->helperText('Harga diluar PPN')
+                    ->required(),
                 Forms\Components\Select::make('billing_cycle')
                     ->options(['monthly' => 'Monthly', 'one_time' => 'One time'])
                     ->default('monthly')
@@ -82,9 +81,9 @@ class ProductResource extends Resource
                 Tables\Columns\TextColumn::make('mikrotik_rate_limit')->label('Rate Limit')->searchable()->wrap(),
                 Tables\Columns\TextColumn::make('shared_users')->label('Shared')->alignCenter()->sortable(),
                 Tables\Columns\TextColumn::make('active_days')->label('Aktif')->suffix(' Hari')->sortable(),
-                Tables\Columns\TextColumn::make('hpp')->label('HPP')->numeric(decimalPlaces: 0)->sortable(),
-                Tables\Columns\TextColumn::make('commission')->label('Komisi')->numeric(decimalPlaces: 0)->sortable(),
-                Tables\Columns\TextColumn::make('price')->label('Harga')->numeric(decimalPlaces: 0)->sortable(),
+                Tables\Columns\TextColumn::make('hpp')->label('HPP')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
+                Tables\Columns\TextColumn::make('commission')->label('Komisi')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
+                Tables\Columns\TextColumn::make('price')->label('Harga')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
                 Tables\Columns\TextColumn::make('services_count')->label('Pelanggan')->counts('services')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('status')->label('Status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',
@@ -132,5 +131,45 @@ class ProductResource extends Resource
             'create' => Pages\CreateProduct::route('/create'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
+    }
+
+    private static function rupiahInput(string $name, string $label): Forms\Components\TextInput
+    {
+        return Forms\Components\TextInput::make($name)
+            ->label($label)
+            ->prefix('Rp')
+            ->inputMode('numeric')
+            ->formatStateUsing(fn ($state) => self::formatRupiah($state))
+            ->dehydrateStateUsing(fn ($state) => self::parseRupiah($state));
+    }
+
+    private static function formatRupiah(mixed $state): string
+    {
+        if ($state === null || $state === '') {
+            return '0';
+        }
+
+        return number_format((float) $state, 0, ',', '.');
+    }
+
+    private static function parseRupiah(mixed $state): float
+    {
+        $value = trim((string) $state);
+
+        if ($value === '') {
+            return 0;
+        }
+
+        $value = str_replace(['Rp', ' '], '', $value);
+
+        if (str_contains($value, ',')) {
+            return (float) str_replace(',', '.', str_replace('.', '', $value));
+        }
+
+        if (preg_match('/^\d+\.\d{2}$/', $value) === 1) {
+            return (float) $value;
+        }
+
+        return (float) str_replace('.', '', $value);
     }
 }

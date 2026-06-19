@@ -56,7 +56,22 @@ class MvpApiTest extends TestCase
     {
         $tenant = $this->tenant();
         $category = ServiceCategory::where('tenant_id', $tenant->id)->where('code', $categoryCode)->firstOrFail();
-        $product = Product::where('tenant_id', $tenant->id)->where('service_category_id', $category->id)->firstOrFail();
+        $product = Product::firstOrCreate(
+            ['tenant_id' => $tenant->id, 'sku' => 'TEST-'.$categoryCode],
+            [
+                'service_category_id' => $category->id,
+                'name' => 'Test '.$category->name,
+                'mikrotik_group' => 'RLRADIUS',
+                'mikrotik_rate_limit' => $categoryCode === 'BROADBAND' ? '100M/100M' : null,
+                'shared_users' => 1,
+                'active_days' => 30,
+                'hpp' => 0,
+                'commission' => 0,
+                'price' => 100000,
+                'billing_cycle' => 'monthly',
+                'status' => 'active',
+            ]
+        );
 
         return Service::create([
             'tenant_id' => $tenant->id,

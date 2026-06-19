@@ -4,8 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\NasDevice;
 use App\Models\Permission;
-use App\Models\Product;
-use App\Models\RadiusProfile;
 use App\Models\RadiusServer;
 use App\Models\Role;
 use App\Models\Router;
@@ -64,42 +62,6 @@ class DatabaseSeeder extends Seeder
             ['tenant_id' => $tenant->id] + $category
         ));
 
-        foreach ([
-            ['BROADBAND', 'MD-70M', 'MD 70 Mbps', 450450, '70M/70M 85M/85M 55M/55M 10/10 1 35M/35M', 450450],
-            ['BROADBAND', 'MD-60M', 'MD 60 Mbps', 382883, '60M/60M 72M/72M 48M/48M 10/10 1 30M/30M', 382883],
-            ['BROADBAND', 'MD-35M', 'MD 35 Mbps', 292793, '35M/35M 42M/42M 20M/20M 10/10 1 18M/18M', 292793],
-            ['BROADBAND', 'MD-25M', 'MD 25 Mbps', 238739, '25M/25M 30M/30M 20M/20M 10/10 1 12M/12M', 238739],
-            ['BROADBAND', 'MD-15M', 'MD 15 Mbps', 180180, '15M/15M 18M/18M 12M/12M 10/10 1 8M/8M', 180180],
-            ['BROADBAND', 'MD-10M', 'MD 10 Mbps', 148649, '10M/10M 12M/12M 8M/8M 10/10 1 5M/5M', 148649],
-            ['BROADBAND', 'YD-70M', 'YD 70 Mbps', 450450, '70M/70M', 450450],
-            ['BROADBAND', 'YD-60M', 'YD 60 Mbps', 382883, '60M/60M', 382883],
-            ['BROADBAND', 'YD-35M', 'YD 35 Mbps', 292793, '35M/35M', 292793],
-            ['BROADBAND', 'YD-25M', 'YD 25 Mbps', 238739, '25M/25M', 238739],
-            ['BROADBAND', 'YD-15M', 'YD 15 Mbps', 180180, '15M/15M', 180180],
-            ['BROADBAND', 'YD-10M', 'YD 10 Mbps', 148649, '10M/10M', 148649],
-            ['CLOUD', 'VPS-BASIC', 'Cloud VPS Basic', 150000, null, 100000],
-            ['DOMAIN', 'DOMAIN-HOSTING', 'Domain Hosting', 100000, null, 75000],
-        ] as [$categoryCode, $sku, $name, $price, $rateLimit, $hpp]) {
-            Product::updateOrCreate(
-                ['tenant_id' => $tenant->id, 'sku' => $sku],
-                [
-                    'tenant_id' => $tenant->id,
-                    'service_category_id' => $categories->firstWhere('code', $categoryCode)->id,
-                    'name' => $name,
-                    'mikrotik_group' => 'RLRADIUS',
-                    'mikrotik_rate_limit' => $rateLimit,
-                    'shared_users' => 1,
-                    'active_days' => 30,
-                    'hpp' => $hpp,
-                    'commission' => 0,
-                    'price' => $price,
-                    'billing_cycle' => 'monthly',
-                    'status' => 'active',
-                    'pricing' => ['recurring' => ['amount' => $price, 'period' => 'month']],
-                ]
-            );
-        }
-
         $radiusServer = RadiusServer::updateOrCreate(
             ['tenant_id' => $tenant->id, 'name' => 'FreeRadius RND'],
             [
@@ -134,11 +96,6 @@ class DatabaseSeeder extends Seeder
                 'secret' => 'testing123',
                 'status' => 'active',
             ]
-        );
-
-        RadiusProfile::updateOrCreate(
-            ['tenant_id' => $tenant->id, 'name' => '100M'],
-            ['attributes' => ['Mikrotik-Rate-Limit' => '100M/100M']]
         );
     }
 }
