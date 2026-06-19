@@ -13,12 +13,14 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
+use App\Models\Tenant;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -29,7 +31,9 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('NEX')
+            ->brandName('NEX ISP PLATFORM')
+            ->brandLogo(fn (): string => self::brandLogo())
+            ->brandLogoHeight('46px')
             ->login()
             ->colors([
                 'primary' => Color::Violet,
@@ -57,13 +61,39 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         .fi-sidebar-item-button {
-                            min-height: 30px !important;
-                            padding-block: 3px !important;
+                            min-height: 26px !important;
+                            padding-block: 1px !important;
                         }
 
                         .fi-sidebar-group,
                         .fi-sidebar-group-items {
                             row-gap: 1px !important;
+                        }
+
+                        .fi-sidebar-header {
+                            min-height: 56px !important;
+                            padding-inline: 14px !important;
+                        }
+
+                        .fi-sidebar-header img {
+                            max-height: 46px !important;
+                            max-width: 200px !important;
+                            object-fit: contain;
+                        }
+
+                        .fi-main {
+                            max-width: none !important;
+                            width: 100% !important;
+                            padding-inline: 18px !important;
+                        }
+
+                        .fi-page {
+                            max-width: none !important;
+                        }
+
+                        .fi-ta,
+                        .fi-section {
+                            width: 100%;
                         }
                     </style>
                 HTML)
@@ -104,5 +134,24 @@ class AdminPanelProvider extends PanelProvider
             ->authMiddleware([
                 Authenticate::class,
             ]);
+    }
+
+    private static function brandLogo(): string
+    {
+        $path = Tenant::query()->whereNotNull('logo_path')->value('logo_path');
+
+        if ($path) {
+            return Storage::disk('public')->url($path);
+        }
+
+        return 'data:image/svg+xml;base64,'.base64_encode(<<<'SVG'
+            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+                <rect width="200" height="200" rx="28" fill="#0f172a"/>
+                <circle cx="100" cy="62" r="31" fill="#0ea5e9"/>
+                <path d="M51 68c20-24 45 25 69 0 12-12 22-14 32-9" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
+                <text x="100" y="123" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#fff">NEX ISP</text>
+                <text x="100" y="149" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#38bdf8">PLATFORM</text>
+            </svg>
+        SVG);
     }
 }

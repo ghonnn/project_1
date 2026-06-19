@@ -37,6 +37,16 @@ class TenantResource extends Resource
                 Forms\Components\TextInput::make('name')->required()->maxLength(255),
                 Forms\Components\TextInput::make('slug')->required()->maxLength(255),
                 Forms\Components\TextInput::make('plan')->maxLength(255),
+                Forms\Components\FileUpload::make('logo_path')
+                    ->label('Logo Admin Panel')
+                    ->disk('public')
+                    ->directory('tenant-logos')
+                    ->image()
+                    ->imageResizeMode('cover')
+                    ->imageCropAspectRatio('1:1')
+                    ->imageResizeTargetWidth('200')
+                    ->imageResizeTargetHeight('200')
+                    ->helperText('Upload logo ukuran 200px x 200px untuk pojok kiri atas admin panel.'),
                 Forms\Components\Select::make('status')
                     ->options(['active' => 'Active', 'suspended' => 'Suspended'])
                     ->default('active')
@@ -50,6 +60,7 @@ class TenantResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('slug')->searchable(),
+                Tables\Columns\ImageColumn::make('logo_path')->label('Logo')->disk('public')->square(),
                 Tables\Columns\TextColumn::make('plan'),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',
