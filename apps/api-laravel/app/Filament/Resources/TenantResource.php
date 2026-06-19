@@ -36,7 +36,35 @@ class TenantResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('name')->required()->maxLength(255),
                 Forms\Components\TextInput::make('slug')->required()->maxLength(255),
-                Forms\Components\TextInput::make('plan')->maxLength(255),
+                Forms\Components\Section::make('Lisensi Platform')
+                    ->columns(2)
+                    ->schema([
+                        Forms\Components\Select::make('plan')
+                            ->label('Paket Lisensi')
+                            ->options(['NEX BASIC' => 'NEX BASIC'])
+                            ->default('NEX BASIC')
+                            ->required(),
+                        Forms\Components\TextInput::make('license_max_sessions')
+                            ->label('Maks. Sesi Online')
+                            ->numeric()
+                            ->default(250)
+                            ->required(),
+                        Forms\Components\TextInput::make('license_max_vouchers')
+                            ->label('Maks. Voucher')
+                            ->numeric()
+                            ->default(5000)
+                            ->required(),
+                        Forms\Components\TextInput::make('license_max_subscriptions')
+                            ->label('Maks. Berlangganan')
+                            ->numeric()
+                            ->default(200)
+                            ->required(),
+                        Forms\Components\TextInput::make('license_max_routers')
+                            ->label('Maks. Router')
+                            ->numeric()
+                            ->default(2)
+                            ->required(),
+                    ]),
                 Forms\Components\FileUpload::make('logo_path')
                     ->label('Logo Admin Panel')
                     ->disk('public')
@@ -61,7 +89,10 @@ class TenantResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('slug')->searchable(),
                 Tables\Columns\ImageColumn::make('logo_path')->label('Logo')->disk('public')->square(),
-                Tables\Columns\TextColumn::make('plan'),
+                Tables\Columns\TextColumn::make('plan')->label('Paket Lisensi')->badge(),
+                Tables\Columns\TextColumn::make('license_max_sessions')->label('Sesi'),
+                Tables\Columns\TextColumn::make('license_max_subscriptions')->label('Langganan'),
+                Tables\Columns\TextColumn::make('license_max_routers')->label('Router'),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',
                     'suspended' => 'danger',

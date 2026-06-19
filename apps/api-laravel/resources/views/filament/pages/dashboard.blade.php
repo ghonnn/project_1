@@ -48,26 +48,26 @@
         <div class="rounded bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
             <div class="border-b px-4 py-3 font-semibold dark:border-gray-800">INFORMASI LISENSI</div>
             <div class="space-y-4 p-4">
-                <h2 class="text-2xl font-semibold">RLCLOUD BASIC</h2>
+                <h2 class="text-2xl font-semibold">{{ $licenseName }}</h2>
                 <div>
-                    <div class="font-medium">Total Sesi Online {{ number_format($subscriptionOnline, 0, ',', '.') }}/250</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-sky-500" style="width: {{ min(100, $subscriptionOnline / 250 * 100) }}%"></div></div>
+                    <div class="font-medium">Total Sesi Online {{ number_format($subscriptionOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-sky-500" style="width: {{ min(100, $subscriptionOnline / max(1, $maxSessions) * 100) }}%"></div></div>
                 </div>
                 <div>
-                    <div class="font-medium">Total Voucher {{ number_format($voucherOnline, 0, ',', '.') }}/5.000</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-emerald-500" style="width: {{ min(100, $voucherOnline / 5000 * 100) }}%"></div></div>
+                    <div class="font-medium">Total Voucher {{ number_format($voucherOnline, 0, ',', '.') }}/{{ number_format($maxVouchers, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-emerald-500" style="width: {{ min(100, $voucherOnline / max(1, $maxVouchers) * 100) }}%"></div></div>
                 </div>
                 <div>
-                    <div class="font-medium">Total Berlangganan {{ number_format($activeSubscriptions, 0, ',', '.') }}/200</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-rose-500" style="width: {{ min(100, $activeSubscriptions / 200 * 100) }}%"></div></div>
+                    <div class="font-medium">Total Berlangganan {{ number_format($activeSubscriptions, 0, ',', '.') }}/{{ number_format($maxSubscriptions, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-rose-500" style="width: {{ min(100, $activeSubscriptions / max(1, $maxSubscriptions) * 100) }}%"></div></div>
                 </div>
                 <div>
-                    <div class="font-medium">Total Router {{ number_format($routerActive, 0, ',', '.') }}/{{ max(1, $routerCount) }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-blue-500" style="width: {{ min(100, $routerActive / max(1, $routerCount) * 100) }}%"></div></div>
+                    <div class="font-medium">Total Router {{ number_format($routerActive, 0, ',', '.') }}/{{ number_format($maxRouters, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-blue-500" style="width: {{ min(100, $routerActive / max(1, $maxRouters) * 100) }}%"></div></div>
                 </div>
                 <div class="rounded bg-blue-600 p-5 font-semibold text-white">
-                    PT NEX SOLUSI TEKNOLOGI<br>
-                    <span class="text-sm">TimeZone : Asia/Jakarta<br>Sisa Masa Aktif : 1 HARI</span>
+                    {{ strtoupper($tenant?->name ?? 'NEX ISP PLATFORM') }}<br>
+                    <span class="text-sm">TimeZone : {{ $timezone }}<br>Sisa Masa Aktif : Unlimited</span>
                 </div>
             </div>
         </div>

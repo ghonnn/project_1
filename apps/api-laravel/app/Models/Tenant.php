@@ -11,6 +11,10 @@ class Tenant extends NexModel
     {
         return [
             'billing_settings' => 'array',
+            'license_max_routers' => 'integer',
+            'license_max_sessions' => 'integer',
+            'license_max_subscriptions' => 'integer',
+            'license_max_vouchers' => 'integer',
         ];
     }
 
