@@ -36,24 +36,25 @@ class RouterResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Placeholder::make('router_help')
                     ->label('')
-                    ->content('IP Public: router terpasang langsung di MikroTik. VPN Radius: router dihubungkan via jalur VPN Radius yang disediakan.'),
+                    ->content('IP Public: router terpasang langsung di MikroTik. VPN Radius: router dihubungkan via jalur VPN Radius yang disediakan.')
+                    ->columnSpanFull(),
                 Forms\Components\Select::make('tenant_id')->label('Tenant')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\TextInput::make('router_name')->label('Nama Router')->required()->maxLength(255),
+                Forms\Components\TextInput::make('router_name')->label('Nama Router')->required()->maxLength(80),
                 Forms\Components\Select::make('connection_type')
                     ->label('Tipe Koneksi')
                     ->options(['ip_public' => 'IP Public', 'vpn_radius' => 'VPN Radius'])
                     ->default('ip_public')
                     ->required(),
-                Forms\Components\TextInput::make('management_ip')->label('IP Address')->required()->maxLength(255),
-                Forms\Components\TextInput::make('radius_secret')->label('Secret')->password()->revealable()->maxLength(255),
-                Forms\Components\TextInput::make('hostname')->label('Hostname')->required()->maxLength(255),
-                Forms\Components\TextInput::make('vendor')->label('Vendor')->maxLength(255),
-                Forms\Components\TextInput::make('model')->label('Model')->maxLength(255),
-                Forms\Components\TextInput::make('serial_number')->label('Serial Number')->maxLength(255),
+                Forms\Components\TextInput::make('management_ip')->label('IP Address')->required()->maxLength(45),
+                Forms\Components\TextInput::make('radius_secret')->label('Secret')->password()->revealable()->maxLength(80),
+                Forms\Components\TextInput::make('hostname')->label('Hostname')->required()->maxLength(80),
+                Forms\Components\TextInput::make('vendor')->label('Vendor')->maxLength(50),
+                Forms\Components\TextInput::make('model')->label('Model')->maxLength(80),
+                Forms\Components\TextInput::make('serial_number')->label('Serial Number')->maxLength(80),
                 Forms\Components\Select::make('router_role')
                     ->options([
                         'core_router' => 'Core Router',
@@ -66,11 +67,11 @@ class RouterResource extends Resource
                         'bts_router' => 'BTS Router',
                     ])
                     ->required(),
-                Forms\Components\TextInput::make('site_name')->label('Nama Site')->maxLength(255),
-                Forms\Components\TextInput::make('public_ip')->label('IP Public')->maxLength(255),
+                Forms\Components\TextInput::make('site_name')->label('Nama Site')->maxLength(80),
+                Forms\Components\TextInput::make('public_ip')->label('IP Public')->maxLength(45),
                 Forms\Components\TextInput::make('online_sessions')->label('Online')->numeric()->default(0),
-                Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric(),
-                Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric(),
+                Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric()->maxLength(16),
+                Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric()->maxLength(16),
                 Forms\Components\Select::make('status')
                     ->label('Status')
                     ->options(['draft' => 'Draft', 'active' => 'Aktif', 'maintenance' => 'Maintenance', 'inactive' => 'Non Aktif'])
@@ -86,63 +87,82 @@ class RouterResource extends Resource
                     ->schema([
                         Forms\Components\TextInput::make('snmp_profile.snmp_community')
                             ->label('SNMP Community')
-                            ->default('NEXRADIUS'),
+                            ->default('NEXRADIUS')
+                            ->maxLength(50),
                         Forms\Components\TextInput::make('snmp_profile.snmp_allowed_address')
                             ->label('SNMP Allowed Address')
-                            ->placeholder('103.142.202.19'),
+                            ->placeholder('103.142.202.19')
+                            ->maxLength(45),
                         Forms\Components\TextInput::make('snmp_profile.time_zone')
                             ->label('Time Zone')
-                            ->default('Asia/Jakarta'),
+                            ->default('Asia/Jakarta')
+                            ->maxLength(50),
                         Forms\Components\TextInput::make('snmp_profile.dns_servers')
                             ->label('DNS Server')
-                            ->default('8.8.8.8,1.1.1.1'),
+                            ->default('8.8.8.8,1.1.1.1')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.ntp_servers')
                             ->label('NTP Server')
-                            ->default('162.159.200.1,162.159.200.123'),
+                            ->default('162.159.200.1,162.159.200.123')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.radius_src_address')
                             ->label('Radius Src Address')
-                            ->placeholder('103.142.203.19'),
+                            ->placeholder('103.142.203.19')
+                            ->maxLength(45),
                         Forms\Components\TextInput::make('snmp_profile.radius_incoming_port')
                             ->label('Radius Incoming Port')
                             ->numeric()
-                            ->default(3799),
+                            ->default(3799)
+                            ->maxLength(5),
                         Forms\Components\TextInput::make('snmp_profile.pool_name')
                             ->label('Nama IP Pool')
-                            ->default('NEXPOOL'),
+                            ->default('NEXPOOL')
+                            ->maxLength(50),
                         Forms\Components\TextInput::make('snmp_profile.pool_comment')
                             ->label('Comment IP Pool')
-                            ->default('Network : 10.200.192.0/20'),
+                            ->default('Network : 10.200.192.0/20')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.pool_ranges')
                             ->label('Range IP Pool')
-                            ->placeholder('10.200.192.100-10.200.207.254'),
+                            ->placeholder('10.200.192.100-10.200.207.254')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.isolir_pool_name')
                             ->label('Nama IP Pool Isolir')
-                            ->default('NEXISOLIR'),
+                            ->default('NEXISOLIR')
+                            ->maxLength(50),
                         Forms\Components\TextInput::make('snmp_profile.isolir_pool_comment')
                             ->label('Comment IP Pool Isolir')
-                            ->default('Network 10.200.208.0/23'),
+                            ->default('Network 10.200.208.0/23')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.isolir_pool_ranges')
                             ->label('Range IP Pool Isolir')
-                            ->placeholder('10.200.208.10-10.200.209.254'),
+                            ->placeholder('10.200.208.10-10.200.209.254')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.ppp_profile_name')
                             ->label('Nama PPP Profile')
-                            ->default('NEXRADIUS'),
+                            ->default('NEXRADIUS')
+                            ->maxLength(50),
                         Forms\Components\TextInput::make('snmp_profile.ppp_local_address')
                             ->label('PPP Local Address')
-                            ->placeholder('10.200.192.1'),
+                            ->placeholder('10.200.192.1')
+                            ->maxLength(45),
                         Forms\Components\TextInput::make('snmp_profile.isolir_profile_name')
                             ->label('Nama PPP Profile Isolir')
-                            ->default('NEXISOLIR'),
+                            ->default('NEXISOLIR')
+                            ->maxLength(50),
                         Forms\Components\TextInput::make('snmp_profile.isolir_local_address')
                             ->label('PPP Local Address Isolir')
-                            ->placeholder('10.200.208.1'),
+                            ->placeholder('10.200.208.1')
+                            ->maxLength(45),
                         Forms\Components\TextInput::make('snmp_profile.isolir_redirect_host')
                             ->label('Host Redirect Isolir')
-                            ->placeholder('103.253.27.164'),
+                            ->placeholder('103.253.27.164')
+                            ->maxLength(120),
                         Forms\Components\TextInput::make('snmp_profile.isolir_redirect_port')
                             ->label('Port Redirect Isolir')
                             ->numeric()
-                            ->default(3125),
+                            ->default(3125)
+                            ->maxLength(5),
                     ]),
             ]);
     }

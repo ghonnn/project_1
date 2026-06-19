@@ -33,7 +33,7 @@ class RadiusUserResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')
                     ->options(fn () => AdminOptions::tenants())
@@ -51,8 +51,8 @@ class RadiusUserResource extends Resource
                 Forms\Components\Select::make('service_id')->options(fn () => AdminOptions::services())->searchable()->required(),
                 Forms\Components\Select::make('router_id')->options(fn () => AdminOptions::routers())->searchable(),
                 Forms\Components\Select::make('profile_id')->label('Profil Langganan')->options(fn () => AdminOptions::radiusProfiles())->searchable(),
-                Forms\Components\TextInput::make('username')->required()->maxLength(255),
-                Forms\Components\TextInput::make('secret')->password()->revealable()->required()->maxLength(255),
+                Forms\Components\TextInput::make('username')->required()->maxLength(64),
+                Forms\Components\TextInput::make('secret')->password()->revealable()->required()->maxLength(64),
                 Forms\Components\Select::make('status')
                     ->options(['pending' => 'Pending', 'active' => 'Active', 'suspended' => 'Suspended'])
                     ->default('pending')

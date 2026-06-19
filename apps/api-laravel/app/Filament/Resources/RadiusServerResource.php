@@ -33,14 +33,14 @@ class RadiusServerResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable(),
-                Forms\Components\TextInput::make('name')->required()->maxLength(255),
-                Forms\Components\TextInput::make('host')->required()->maxLength(255),
+                Forms\Components\TextInput::make('name')->required()->maxLength(80),
+                Forms\Components\TextInput::make('host')->required()->maxLength(120),
                 Forms\Components\TextInput::make('auth_port')->numeric()->default(1812)->required(),
                 Forms\Components\TextInput::make('acct_port')->numeric()->default(1813)->required(),
-                Forms\Components\TextInput::make('shared_secret')->password()->revealable()->required()->maxLength(255),
+                Forms\Components\TextInput::make('shared_secret')->password()->revealable()->required()->maxLength(80),
                 Forms\Components\Select::make('status')
                     ->options(['active' => 'Active', 'inactive' => 'Inactive'])
                     ->default('active')

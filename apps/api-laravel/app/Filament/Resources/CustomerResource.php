@@ -34,19 +34,19 @@ class CustomerResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\TextInput::make('customer_number')
                     ->label('ID')
                     ->helperText('Isi dengan angka, jika kosong akan dibuatkan otomatis')
-                    ->maxLength(255),
+                    ->maxLength(20),
                 Forms\Components\Select::make('tenant_id')->label('Tenant')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\TextInput::make('name')->label('Nama')->required()->maxLength(255),
-                Forms\Components\TextInput::make('phone')->label('Phone')->tel()->required()->maxLength(255),
-                Forms\Components\Textarea::make('address')->label('Alamat')->required()->rows(3),
-                Forms\Components\TextInput::make('identity_number')->label('No. Identitas')->maxLength(255),
-                Forms\Components\TextInput::make('tax_number')->label('No. NPWP')->maxLength(255),
-                Forms\Components\TextInput::make('partner_name')->label('Mitra')->maxLength(255),
+                Forms\Components\TextInput::make('name')->label('Nama')->required()->maxLength(120),
+                Forms\Components\TextInput::make('phone')->label('Phone')->tel()->required()->maxLength(20),
+                Forms\Components\Textarea::make('address')->label('Alamat')->required()->rows(3)->maxLength(500)->columnSpanFull(),
+                Forms\Components\TextInput::make('identity_number')->label('No. Identitas')->maxLength(32),
+                Forms\Components\TextInput::make('tax_number')->label('No. NPWP')->maxLength(32),
+                Forms\Components\TextInput::make('partner_name')->label('Mitra')->maxLength(80),
                 Forms\Components\TextInput::make('balance')->label('Saldo')->numeric()->prefix('Rp')->default(0),
                 Forms\Components\TextInput::make('client_area_url')->label('URL Client Area')->url()->maxLength(2048),
                 Forms\Components\Hidden::make('type')->default('individual'),

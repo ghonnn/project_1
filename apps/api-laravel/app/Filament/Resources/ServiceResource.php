@@ -130,16 +130,6 @@ class ServiceResource extends Resource
                             ->maxValue(4094)
                             ->maxLength(4)
                             ->default(fn (?Service $record): ?int => $record?->routerMappings()->where('is_primary', true)->value('vlan_id')),
-                        Forms\Components\TextInput::make('provision_username')
-                            ->label('Username Internet')
-                            ->maxLength(64)
-                            ->default(fn (?Service $record): ?string => $record?->internet_username),
-                        Forms\Components\TextInput::make('provision_password')
-                            ->label('Password Internet')
-                            ->password()
-                            ->revealable()
-                            ->maxLength(64)
-                            ->default(fn (?Service $record): ?string => $record?->internet_password),
                         Forms\Components\Toggle::make('provision_create_invoice')
                             ->label('Buat invoice awal')
                             ->default(fn (?Service $record): bool => ! $record?->exists),

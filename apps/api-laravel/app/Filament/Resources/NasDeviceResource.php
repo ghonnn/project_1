@@ -30,7 +30,7 @@ class NasDeviceResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')
                     ->label('Tenant')
@@ -54,21 +54,21 @@ class NasDeviceResource extends Resource
                 Forms\Components\TextInput::make('hostname')
                     ->label('NAS Name / Hostname')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(80),
                 Forms\Components\TextInput::make('nas_ip_address')
                     ->label('NAS IP Address')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(45),
                 Forms\Components\TextInput::make('vendor_type')
                     ->label('Vendor Type')
                     ->placeholder('MikroTik / Cisco / Juniper')
-                    ->maxLength(255),
+                    ->maxLength(50),
                 Forms\Components\TextInput::make('secret')
                     ->label('NAS Secret')
                     ->password()
                     ->revealable()
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(80),
                 Forms\Components\Select::make('status')
                     ->options(['active' => 'Active', 'inactive' => 'Inactive', 'maintenance' => 'Maintenance'])
                     ->default('active')

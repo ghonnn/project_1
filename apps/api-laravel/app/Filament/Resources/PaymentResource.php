@@ -35,11 +35,11 @@ class PaymentResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('invoice_id')->options(fn () => AdminOptions::invoices())->searchable()->required(),
-                Forms\Components\TextInput::make('amount')->numeric()->prefix('Rp')->required(),
+                Forms\Components\TextInput::make('amount')->numeric()->prefix('Rp')->required()->maxLength(14),
                 Forms\Components\Select::make('method')
                     ->options(['manual' => 'Manual', 'transfer' => 'Transfer', 'cash' => 'Cash', 'gateway' => 'Gateway'])
                     ->default('manual')
@@ -48,7 +48,7 @@ class PaymentResource extends Resource
                     ->options(['initiated' => 'Initiated', 'paid' => 'Paid', 'failed' => 'Failed', 'refunded' => 'Refunded'])
                     ->default('initiated')
                     ->required(),
-                Forms\Components\TextInput::make('external_ref')->maxLength(255),
+                Forms\Components\TextInput::make('external_ref')->maxLength(80),
                 Forms\Components\DateTimePicker::make('paid_at'),
             ]);
     }
