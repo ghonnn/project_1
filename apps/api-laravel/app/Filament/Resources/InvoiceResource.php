@@ -6,6 +6,7 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
 use App\Models\Invoice;
+use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -18,13 +19,13 @@ class InvoiceResource extends Resource
 {
     protected static ?string $model = Invoice::class;
 
-    protected static ?string $navigationGroup = 'Tagihan';
+    protected static ?string $navigationGroup = 'Billing';
 
-    protected static ?string $navigationLabel = 'Invoice';
+    protected static ?string $navigationLabel = 'Invoice unpaid';
 
-    protected static ?string $modelLabel = 'Invoice';
+    protected static ?string $modelLabel = 'Invoice unpaid';
 
-    protected static ?string $pluralModelLabel = 'Invoice';
+    protected static ?string $pluralModelLabel = 'Invoice unpaid';
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
@@ -63,25 +64,43 @@ class InvoiceResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->heading('Data Invoice Belum Lunas')
             ->columns([
-                Tables\Columns\TextColumn::make('tenant.name')->label('Tenant')->searchable(),
-                Tables\Columns\TextColumn::make('invoice_number')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('customer.name')->label('Customer')->searchable(),
-                Tables\Columns\TextColumn::make('issue_date')->date()->sortable(),
-                Tables\Columns\TextColumn::make('due_date')->date()->sortable(),
-                Tables\Columns\TextColumn::make('total_amount')->money('IDR')->sortable(),
-                Tables\Columns\TextColumn::make('paid_amount')->money('IDR')->sortable(),
-                Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
+                Tables\Columns\TextColumn::make('status')->label('STATUS')->badge()->color(fn (string $state): string => match ($state) {
                     'paid' => 'success',
-                    'issued' => 'info',
                     'overdue' => 'danger',
-                    default => 'gray',
+                    'issued' => 'info',
+                    default => 'warning',
                 }),
+                Tables\Columns\TextColumn::make('invoice_number')->label('INVOICE')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('items.service.cid')->label('NO. LAYANAN')->default('-')->searchable(),
+                Tables\Columns\TextColumn::make('customer.name')->label('PELANGGAN')->searchable(),
+                Tables\Columns\TextColumn::make('items.service.billing_profile_name')->label('PROFILE')->default('-'),
+                Tables\Columns\TextColumn::make('items.service.partner_name')->label('MITRA')->default('-'),
+                Tables\Columns\TextColumn::make('items.description')->label('KATEGORI')->default('RECURRING')->limit(18),
+                Tables\Columns\TextColumn::make('issue_date')->label('TGL TERBIT')->date('d/m/Y')->sortable(),
+                Tables\Columns\TextColumn::make('due_date')->label('JTH TEMPO')->date('d/m/Y')->sortable()->color('danger'),
+                Tables\Columns\TextColumn::make('subtotal')->label('SUBTOTAL')->state(fn (Invoice $record): string => self::formatRupiah(self::subtotal($record))),
+                Tables\Columns\TextColumn::make('discount')->label('DISKON')->state('0'),
+                Tables\Columns\TextColumn::make('ppn')->label('PPN')->state(fn (Invoice $record): string => self::formatRupiah(max(0, (float) $record->total_amount - self::subtotal($record)))),
+                Tables\Columns\TextColumn::make('code')->label('KODE')->state('0'),
+                Tables\Columns\TextColumn::make('total_amount')->label('TOTAL')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
+                Tables\Columns\IconColumn::make('note')->label('NOTE')->boolean()->state(fn () => true)->trueIcon('heroicon-s-pencil-square')->trueColor('success'),
+                Tables\Columns\TextColumn::make('tagih')->label('TAGIH')->state('-'),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Semua INV')
+                    ->options(['issued' => 'Issued', 'overdue' => 'Overdue', 'draft' => 'Draft']),
             ])
             ->actions([
+                Tables\Actions\Action::make('pay')
+                    ->label('Bayar')
+                    ->icon('heroicon-o-banknotes')
+                    ->color('success')
+                    ->action(function (Invoice $record): void {
+                        $record->update(['status' => 'paid', 'paid_amount' => $record->total_amount]);
+                    }),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([
@@ -89,6 +108,13 @@ class InvoiceResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['customer', 'items.service'])
+            ->where('status', '!=', 'paid');
     }
 
     public static function getRelations(): array
@@ -105,5 +131,23 @@ class InvoiceResource extends Resource
             'create' => Pages\CreateInvoice::route('/create'),
             'edit' => Pages\EditInvoice::route('/{record}/edit'),
         ];
+    }
+
+    public static function formatRupiah(mixed $state): string
+    {
+        return number_format((float) $state, 0, ',', '.');
+    }
+
+    public static function subtotal(Invoice $invoice): float
+    {
+        $service = $invoice->items->first()?->service;
+
+        if ($service instanceof Service && (bool) $service->ppn_enabled) {
+            $rate = (float) ($service->ppn_rate ?: 11);
+
+            return round(((float) $invoice->total_amount) / (1 + ($rate / 100)));
+        }
+
+        return (float) $invoice->total_amount;
     }
 }

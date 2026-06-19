@@ -16,7 +16,7 @@ class ServiceAddonResource extends Resource
 {
     protected static ?string $model = ServiceAddon::class;
 
-    protected static ?string $navigationGroup = 'Tagihan';
+    protected static ?string $navigationGroup = 'Billing';
 
     protected static ?string $navigationIcon = 'heroicon-o-plus-circle';
 

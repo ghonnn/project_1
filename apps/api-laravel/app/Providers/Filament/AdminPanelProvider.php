@@ -131,8 +131,7 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make('Langganan')->icon('heroicon-o-user-group'),
                 NavigationGroup::make('Jaringan')->icon('heroicon-o-server-stack'),
                 NavigationGroup::make('Radius')->icon('heroicon-o-key'),
-                NavigationGroup::make('Tagihan')->icon('heroicon-o-document-text'),
-                NavigationGroup::make('Pembayaran')->icon('heroicon-o-banknotes'),
+                NavigationGroup::make('Billing')->icon('heroicon-o-credit-card'),
                 NavigationGroup::make('Keamanan & Audit')->icon('heroicon-o-shield-check')->collapsed(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
