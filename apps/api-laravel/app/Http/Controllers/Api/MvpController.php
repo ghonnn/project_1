@@ -42,7 +42,7 @@ class MvpController extends Controller
 
     public function storeCustomer(Request $request, string $tenantId)
     {
-        $data = $request->validate(['type' => ['required', 'in:individual,business'], 'name' => ['required'], 'email' => ['nullable', 'email'], 'phone' => ['nullable'], 'billing_contact' => ['nullable', 'array']]);
+        $data = $request->validate(['customer_number' => ['nullable'], 'type' => ['nullable', 'in:individual,business'], 'name' => ['required'], 'email' => ['nullable', 'email'], 'phone' => ['nullable'], 'address' => ['nullable'], 'identity_number' => ['nullable'], 'tax_number' => ['nullable'], 'balance' => ['nullable', 'numeric'], 'partner_name' => ['nullable'], 'client_area_url' => ['nullable'], 'billing_contact' => ['nullable', 'array']]);
         $customer = Customer::create(['tenant_id' => $tenantId] + $data);
         $this->audit->log('customer.created', 'customers', $customer->id, [], $customer->toArray(), $request);
         return $this->ok($customer, 'Created', [], 201);
@@ -54,7 +54,7 @@ class MvpController extends Controller
     {
         $customer = Customer::where('tenant_id', $tenantId)->findOrFail($id);
         $old = $customer->toArray();
-        $customer->update($request->only(['type', 'name', 'email', 'phone', 'status', 'billing_contact']));
+        $customer->update($request->only(['customer_number', 'type', 'name', 'email', 'phone', 'address', 'identity_number', 'tax_number', 'balance', 'partner_name', 'client_area_url', 'status', 'billing_contact']));
         $this->audit->log('customer.updated', 'customers', $customer->id, $old, $customer->fresh()->toArray(), $request);
         return $this->ok($customer->fresh());
     }
