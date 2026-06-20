@@ -29,6 +29,11 @@ class RouterScriptGenerator extends Page implements HasForms
 
     protected static string $view = 'filament.pages.router-script-generator';
 
+    public static function canAccess(): bool
+    {
+        return Auth::user()?->hasPermission('router.manage') ?? false;
+    }
+
     public static function shouldRegisterNavigation(): bool
     {
         return false;

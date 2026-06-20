@@ -10,6 +10,7 @@ Dokumen ini adalah index paket pre-coding agar development berjalan rapi.
 
 ## Dokumen Pre-Coding
 
+- `docs/PRD_NEX_OSS_BSS_Voucher_Mitra_NetworkOps_Addendum.md`: addendum menu Mitra, Voucher, Map/ODP/OLT/GenieACS, Tiket, dan Pengaturan (WhatsApp/Tools/Admin/Setting), termasuk status build dan gap.
 - `docs/pre-coding/SPRINT_TASK_BREAKDOWN.md`: breakdown task sprint per phase.
 - `docs/pre-coding/BACKEND_STACK_LARAVEL.md`: keputusan stack backend Laravel.
 - `docs/pre-coding/MONOREPO_STRUCTURE.md`: struktur repo monorepo.

@@ -125,13 +125,17 @@ class AdminPanelProvider extends PanelProvider
             )
             ->navigationGroups([
                 NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
+                NavigationGroup::make('Mitra')->icon('heroicon-o-user-group'),
                 NavigationGroup::make('Pelanggan')->icon('heroicon-o-users'),
                 NavigationGroup::make('Katalog')->icon('heroicon-o-tag'),
                 NavigationGroup::make('Voucher')->icon('heroicon-o-wifi'),
                 NavigationGroup::make('Langganan')->icon('heroicon-o-user-group'),
+                NavigationGroup::make('Map')->icon('heroicon-o-map'),
                 NavigationGroup::make('Jaringan')->icon('heroicon-o-server-stack'),
                 NavigationGroup::make('Radius')->icon('heroicon-o-key'),
+                NavigationGroup::make('Tiket')->icon('heroicon-o-ticket'),
                 NavigationGroup::make('Billing')->icon('heroicon-o-credit-card'),
+                NavigationGroup::make('Pengaturan')->icon('heroicon-o-cog-6-tooth'),
                 NavigationGroup::make('Keamanan & Audit')->icon('heroicon-o-shield-check')->collapsed(),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

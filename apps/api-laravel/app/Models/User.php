@@ -47,9 +47,19 @@ class User extends Authenticatable implements FilamentUser
         return $this->roles()->where('code', 'platform_owner')->exists();
     }
 
+    public function hasPermission(string $code): bool
+    {
+        if ($this->isPlatformOwner()) {
+            return true;
+        }
+
+        return $this->roles()->whereHas('permissions', fn ($query) => $query->where('code', $code))->exists();
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->status === 'active' && $this->isPlatformOwner();
+        return $this->status === 'active'
+            && $this->roles()->whereNotIn('code', ['customer', 'partner'])->exists();
     }
 
     /**
