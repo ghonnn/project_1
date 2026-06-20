@@ -78,7 +78,7 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('items.service.cid')->label('NO. LAYANAN')->default('-')->searchable(),
                 Tables\Columns\TextColumn::make('customer.name')->label('PELANGGAN')->searchable(),
                 Tables\Columns\TextColumn::make('items.service.billing_profile_name')->label('PROFILE')->default('-'),
-                Tables\Columns\TextColumn::make('items.service.partner_name')->label('MITRA')->default('-'),
+                Tables\Columns\TextColumn::make('items.service.partner_name')->label('PARTNER')->default('-'),
                 Tables\Columns\TextColumn::make('items.description')->label('KATEGORI')->default('RECURRING')->limit(18),
                 Tables\Columns\TextColumn::make('issue_date')->label('TGL TERBIT')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('due_date')->label('JTH TEMPO')->date('d/m/Y')->sortable()->color('danger'),

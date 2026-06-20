@@ -35,7 +35,7 @@ class PaidInvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('items.service.cid')->label('NO.LAYANAN')->default('-'),
                 Tables\Columns\TextColumn::make('customer.name')->label('PELANGGAN')->searchable(),
                 Tables\Columns\TextColumn::make('items.service.billing_profile_name')->label('PROFILE')->default('-'),
-                Tables\Columns\TextColumn::make('items.service.partner_name')->label('MITRA')->default('-'),
+                Tables\Columns\TextColumn::make('items.service.partner_name')->label('PARTNER')->default('-'),
                 Tables\Columns\TextColumn::make('items.description')->label('KATEGORI')->default('RECURRING')->limit(18),
                 Tables\Columns\TextColumn::make('payments.paid_at')->label('TGL BAYAR')->dateTime('d/m/Y H:i:s'),
                 Tables\Columns\TextColumn::make('admin')->label('ADMIN')->state('SYSTEM'),

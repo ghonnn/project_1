@@ -220,7 +220,7 @@ class ServiceResource extends Resource
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('partner_name')
-                    ->label('Cari mitra')
+                    ->label('Cari partner')
                     ->options(fn () => Service::query()->whereNotNull('partner_name')->distinct()->orderBy('partner_name')->pluck('partner_name', 'partner_name')->all()),
                 Tables\Filters\SelectFilter::make('region')
                     ->label('Cari wilayah')

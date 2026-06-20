@@ -46,7 +46,7 @@ class CustomerResource extends Resource
                 Forms\Components\Textarea::make('address')->label('Alamat')->required()->rows(3)->maxLength(500)->columnSpanFull(),
                 Forms\Components\TextInput::make('identity_number')->label('No. Identitas')->maxLength(32),
                 Forms\Components\TextInput::make('tax_number')->label('No. NPWP')->maxLength(32),
-                Forms\Components\TextInput::make('partner_name')->label('Mitra')->maxLength(80),
+                Forms\Components\TextInput::make('partner_name')->label('Partner')->maxLength(80),
                 Forms\Components\TextInput::make('balance')->label('Saldo')->numeric()->prefix('Rp')->default(0),
                 Forms\Components\TextInput::make('client_area_url')->label('URL Client Area')->url()->maxLength(2048),
                 Forms\Components\Hidden::make('type')->default('individual'),
@@ -64,7 +64,7 @@ class CustomerResource extends Resource
                 Tables\Columns\TextColumn::make('phone')->label('Phone')->searchable(),
                 Tables\Columns\TextColumn::make('address')->label('Alamat')->searchable()->limit(45),
                 Tables\Columns\TextColumn::make('balance')->label('Saldo')->money('IDR')->sortable(),
-                Tables\Columns\TextColumn::make('partner_name')->label('Mitra')->searchable(),
+                Tables\Columns\TextColumn::make('partner_name')->label('Partner')->searchable(),
                 Tables\Columns\TextColumn::make('client_area_url')->label('URL Client Area')->searchable()->limit(48)->copyable(),
                 Tables\Columns\TextColumn::make('status')->label('Status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',

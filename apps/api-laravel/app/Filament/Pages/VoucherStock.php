@@ -6,6 +6,8 @@ use App\Filament\Support\VoucherPage;
 
 class VoucherStock extends VoucherPage
 {
+    protected string $pageType = 'stock';
+
     protected static ?string $navigationLabel = 'Stok voucher';
 
     protected static ?int $navigationSort = 20;

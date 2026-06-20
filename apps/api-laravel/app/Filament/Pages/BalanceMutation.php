@@ -16,7 +16,7 @@ class BalanceMutation extends FinanceTablePage
 
     public function tableTitle(): string
     {
-        return 'Mutasi Saldo Mitra';
+        return 'Mutasi Saldo Partner';
     }
 
     public function toolbarActions(): array
@@ -30,7 +30,7 @@ class BalanceMutation extends FinanceTablePage
 
     public function columns(): array
     {
-        return ['#', 'MITRA', 'TGL TRANSAKSI', 'KATEGORI', 'KETERANGAN', 'KREDIT', 'DEBET', 'SALDO'];
+        return ['#', 'PARTNER', 'TGL TRANSAKSI', 'KATEGORI', 'KETERANGAN', 'KREDIT', 'DEBET', 'SALDO'];
     }
 
     public function rows(): array
