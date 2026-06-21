@@ -15,15 +15,15 @@ class MitraResource extends Resource
 {
     protected static ?string $model = Mitra::class;
 
-    protected static ?string $navigationGroup = 'Mitra';
+    protected static ?string $navigationGroup = 'Partner';
 
     protected static ?string $navigationIcon = 'heroicon-o-user-group';
 
-    protected static ?string $navigationLabel = 'Data Mitra';
+    protected static ?string $navigationLabel = 'Data Partner';
 
-    protected static ?string $modelLabel = 'Mitra';
+    protected static ?string $modelLabel = 'Partner';
 
-    protected static ?string $pluralModelLabel = 'Mitra';
+    protected static ?string $pluralModelLabel = 'Partner';
 
     protected static ?int $navigationSort = 10;
 
@@ -33,8 +33,8 @@ class MitraResource extends Resource
             ->columns(1)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\TextInput::make('code')->label('Kode mitra')->placeholder('Otomatis jika dikosongkan')->maxLength(255),
-                Forms\Components\TextInput::make('name')->label('Nama mitra')->required()->maxLength(255),
+                Forms\Components\TextInput::make('code')->label('Kode Partner')->placeholder('Otomatis jika dikosongkan')->maxLength(255),
+                Forms\Components\TextInput::make('name')->label('Nama Partner')->required()->maxLength(255),
                 Forms\Components\TextInput::make('outlet_name')->label('Nama outlet')->maxLength(255),
                 Forms\Components\TextInput::make('phone')->label('No. HP')->tel()->maxLength(255),
                 Forms\Components\Textarea::make('address')->label('Alamat')->rows(2),
@@ -57,7 +57,7 @@ class MitraResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('code')->label('Kode')->searchable()->sortable(),
-                Tables\Columns\TextColumn::make('name')->label('Nama Mitra')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('name')->label('Nama Partner')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('outlet_name')->label('Outlet')->searchable(),
                 Tables\Columns\TextColumn::make('phone')->label('No. HP')->searchable(),
                 Tables\Columns\TextColumn::make('commission_type')->label('Jenis Komisi')->badge()->color('info'),

@@ -10,6 +10,8 @@ use App\Models\Router;
 use App\Models\Service;
 use App\Models\Tenant;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class Dashboard extends Page
 {
@@ -30,16 +32,8 @@ class Dashboard extends Page
         $tenant = Tenant::query()->where('status', 'active')->orderBy('name')->first()
             ?? Tenant::query()->orderBy('name')->first();
         $tenantId = $tenant?->id;
-        $subscriptionOnline = RadiusUser::query()
-            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
-            ->where('status', 'active')
-            ->whereHas('service', fn ($query) => $query->whereIn('connection_type', Router::PPP_CONNECTION_TYPES))
-            ->count();
-        $voucherOnline = RadiusUser::query()
-            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
-            ->where('status', 'active')
-            ->whereHas('service', fn ($query) => $query->whereIn('connection_type', Router::HOTSPOT_CONNECTION_TYPES))
-            ->count();
+        $subscriptionOnline = $this->onlineSessionCount($tenantId, Router::PPP_CONNECTION_TYPES);
+        $voucherOnline = $this->onlineSessionCount($tenantId, Router::HOTSPOT_CONNECTION_TYPES);
         $activeSubscriptions = Service::query()
             ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
             ->where('status', 'active')
@@ -93,5 +87,34 @@ class Dashboard extends Page
                 ->limit(8)
                 ->get(),
         ];
+    }
+
+    /**
+     * @param array<int, string> $connectionTypes
+     */
+    private function onlineSessionCount(?string $tenantId, array $connectionTypes): int
+    {
+        if (! Schema::hasTable('radacct')) {
+            return 0;
+        }
+
+        $usernames = RadiusUser::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->where('status', 'active')
+            ->whereHas('service', fn ($query) => $query->whereIn('connection_type', $connectionTypes))
+            ->pluck('username')
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($usernames->isEmpty()) {
+            return 0;
+        }
+
+        return DB::table('radacct')
+            ->whereNull('acctstoptime')
+            ->whereIn('username', $usernames)
+            ->distinct('username')
+            ->count('username');
     }
 }

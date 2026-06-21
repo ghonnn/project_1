@@ -40,6 +40,7 @@ class AdminPanelProvider extends PanelProvider
                 'warning' => Color::Amber,
             ])
             ->defaultThemeMode(ThemeMode::Light)
+            ->darkMode(false)
             ->sidebarCollapsibleOnDesktop()
             ->spa()
             ->renderHook(
@@ -63,17 +64,21 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         body,
-                        .fi-body {
+                        .fi-body,
+                        .dark body,
+                        .dark .fi-body {
                             background: var(--nex-page) !important;
                             color: var(--nex-ink) !important;
                             font-family: "Segoe UI", Inter, ui-sans-serif, system-ui, sans-serif !important;
                         }
 
-                        .fi-layout {
+                        .fi-layout,
+                        .dark .fi-layout {
                             background: var(--nex-page) !important;
                         }
 
-                        .fi-sidebar {
+                        .fi-sidebar,
+                        .dark .fi-sidebar {
                             background: #ffffff !important;
                             border-right: 1px solid var(--nex-border) !important;
                             box-shadow: 1px 0 0 rgba(15, 23, 42, 0.02) !important;
@@ -156,7 +161,8 @@ class AdminPanelProvider extends PanelProvider
                             width: 100%;
                         }
 
-                        .fi-topbar {
+                        .fi-topbar,
+                        .dark .fi-topbar {
                             background: #ffffff !important;
                             border-bottom: 1px solid var(--nex-border) !important;
                             box-shadow: none !important;
@@ -171,31 +177,87 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-section,
                         .fi-ta-ctn,
-                        .fi-modal-window {
+                        .fi-modal-window,
+                        .fi-wi-stats-overview-stat,
+                        .dark .fi-section,
+                        .dark .fi-ta-ctn,
+                        .dark .fi-modal-window,
+                        .dark .fi-wi-stats-overview-stat {
                             background: var(--nex-surface) !important;
                             border: 1px solid var(--nex-border) !important;
                             border-radius: 8px !important;
                             box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
                         }
 
-                        .fi-section-header {
+                        .fi-section-header,
+                        .dark .fi-section-header {
                             background: #ffffff !important;
                             border-bottom: 1px solid #eef2f7 !important;
                         }
 
                         .fi-ta-header,
                         .fi-ta-content,
-                        .fi-ta-footer {
+                        .fi-ta-footer,
+                        .dark .fi-ta-header,
+                        .dark .fi-ta-content,
+                        .dark .fi-ta-footer {
                             background: #ffffff !important;
                         }
 
                         .fi-ta-header-cell,
-                        .fi-ta-cell {
-                            border-color: #eef2f7 !important;
+                        .fi-ta-cell,
+                        .dark .fi-ta-header-cell,
+                        .dark .fi-ta-cell {
+                            border-color: #e2e8f0 !important;
+                            border-bottom-width: 1px !important;
                         }
 
-                        .fi-ta-row:hover {
-                            background: #f8fafc !important;
+                        .fi-ta-row,
+                        .dark .fi-ta-row {
+                            background: #ffffff !important;
+                        }
+
+                        .fi-ta-row:nth-child(even),
+                        .dark .fi-ta-row:nth-child(even) {
+                            background: #fbfdff !important;
+                        }
+
+                        .fi-ta-row:hover,
+                        .dark .fi-ta-row:hover {
+                            background: #f0fdf4 !important;
+                        }
+
+                        .fi-ta,
+                        .fi-ta-header-cell,
+                        .fi-ta-cell,
+                        .fi-ta-text,
+                        .fi-ta-header-cell-label,
+                        .fi-wi-stats-overview-stat,
+                        .fi-wi-stats-overview-stat *:not(svg):not(path),
+                        .dark .fi-ta,
+                        .dark .fi-ta-header-cell,
+                        .dark .fi-ta-cell,
+                        .dark .fi-ta-text,
+                        .dark .fi-ta-header-cell-label,
+                        .dark .fi-wi-stats-overview-stat,
+                        .dark .fi-wi-stats-overview-stat *:not(svg):not(path) {
+                            color: #1f2937 !important;
+                        }
+
+                        .fi-ta-header-cell-label {
+                            color: #475569 !important;
+                            font-size: 11px !important;
+                            font-weight: 800 !important;
+                            text-transform: uppercase;
+                        }
+
+                        .fi-ta-table {
+                            border-collapse: separate !important;
+                            border-spacing: 0 !important;
+                        }
+
+                        .fi-ta-content {
+                            border-top: 1px solid #e2e8f0 !important;
                         }
 
                         .fi-input-wrp,
@@ -224,12 +286,40 @@ class AdminPanelProvider extends PanelProvider
                             font-weight: 700 !important;
                         }
 
+                        .fi-badge * {
+                            color: inherit !important;
+                        }
+
                         .nex-topbar-brand {
                             display: flex;
                             align-items: center;
                             gap: 24px;
                             min-width: 430px;
                             padding-left: 8px;
+                        }
+
+                        .nex-app-logo {
+                            display: inline-flex;
+                            align-items: center;
+                            gap: 10px;
+                            color: var(--nex-ink);
+                            font-size: 15px;
+                            font-weight: 800;
+                            white-space: nowrap;
+                        }
+
+                        .nex-logo-mark {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 34px;
+                            height: 28px;
+                            border-radius: 6px;
+                            background: var(--nex-emerald);
+                            color: #ffffff;
+                            font-size: 11px;
+                            font-weight: 900;
+                            letter-spacing: 0;
                         }
 
                         .nex-brand-text {
@@ -257,6 +347,49 @@ class AdminPanelProvider extends PanelProvider
                             }
                         }
                     </style>
+                    <script>
+                        (() => {
+                            const pad = (value) => String(value).padStart(2, '0');
+                            const formatJakartaTime = (date) => {
+                                const parts = new Intl.DateTimeFormat('en-GB', {
+                                    timeZone: 'Asia/Jakarta',
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    hour12: false,
+                                }).formatToParts(date).reduce((carry, part) => {
+                                    carry[part.type] = part.value;
+                                    return carry;
+                                }, {});
+
+                                return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}:${parts.second} WIB`;
+                            };
+
+                            const bootClock = () => {
+                                document.querySelectorAll('[data-nex-server-time]').forEach((node) => {
+                                    if (node.dataset.clockReady === '1') {
+                                        return;
+                                    }
+
+                                    node.dataset.clockReady = '1';
+                                    const startedAt = new Date(node.dataset.nexServerTime);
+                                    const clientStartedAt = Date.now();
+                                    const tick = () => {
+                                        node.textContent = `WAKTU SERVER : ${formatJakartaTime(new Date(startedAt.getTime() + Date.now() - clientStartedAt))}`;
+                                    };
+
+                                    tick();
+                                    setInterval(tick, 1000);
+                                });
+                            };
+
+                            document.addEventListener('DOMContentLoaded', bootClock);
+                            document.addEventListener('livewire:navigated', bootClock);
+                        })();
+                    </script>
                 HTML)
             )
             ->renderHook(
@@ -265,7 +398,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->navigationGroups([
                 NavigationGroup::make('Platform')->icon('heroicon-o-building-office-2'),
-                NavigationGroup::make('Mitra')->icon('heroicon-o-user-group'),
+                NavigationGroup::make('Partner')->icon('heroicon-o-user-group'),
                 NavigationGroup::make('Pelanggan')->icon('heroicon-o-users'),
                 NavigationGroup::make('Katalog')->icon('heroicon-o-tag'),
                 NavigationGroup::make('Voucher')->icon('heroicon-o-wifi'),
@@ -307,11 +440,12 @@ class AdminPanelProvider extends PanelProvider
     private static function topbarBrand(): string
     {
         $time = e(now('Asia/Jakarta')->format('d/m/Y H:i:s').' WIB');
+        $timeIso = e(now('Asia/Jakarta')->format('c'));
 
         return <<<HTML
             <div class="nex-topbar-brand">
-                <div class="nex-brand-text">NEX ISP Platform</div>
-                <div class="nex-server-time">WAKTU SERVER : {$time}</div>
+                <div class="nex-app-logo"><span class="nex-logo-mark">NEX</span><span class="nex-brand-text">NEX ISP Platform</span></div>
+                <div class="nex-server-time" data-nex-server-time="{$timeIso}">WAKTU SERVER : {$time}</div>
             </div>
         HTML;
     }
