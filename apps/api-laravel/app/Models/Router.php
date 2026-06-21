@@ -58,7 +58,7 @@ class Router extends NexModel
     /**
      * @param array<int, string> $connectionTypes
      */
-    private function onlineRadiusUsersQuery(array $connectionTypes): \Illuminate\Database\Eloquent\Builder
+    private function onlineRadiusUsersQuery(array $connectionTypes): HasMany
     {
         return $this->radiusUsers()
             ->where('status', 'active')
