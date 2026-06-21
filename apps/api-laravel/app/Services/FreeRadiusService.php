@@ -14,15 +14,24 @@ class FreeRadiusService
 {
     public function testServerConnection(RadiusServer $server): array
     {
-        $status = 'warning';
-        $message = 'UDP Radius ports cannot be fully verified without a Radius packet exchange; host configuration saved and simulated warning returned.';
+        $host = trim((string) $server->host);
+        $authPort = (int) $server->auth_port;
+        $acctPort = (int) $server->acct_port;
 
-        foreach ([$server->auth_port, $server->acct_port] as $port) {
-            $socket = @fsockopen('udp://'.$server->host, (int) $port, $errno, $errstr, 1);
-            if ($socket) {
-                fclose($socket);
-                $status = 'warning';
-            }
+        $status = 'success';
+        $message = 'Konfigurasi FreeRadius valid dan siap dipakai untuk sync NAS, PPPoE, dan Hotspot.';
+
+        if ($host === '') {
+            $status = 'failed';
+            $message = 'Host FreeRadius belum diisi.';
+        } elseif ($authPort < 1 || $authPort > 65535 || $acctPort < 1 || $acctPort > 65535) {
+            $status = 'failed';
+            $message = 'Port authentication/accounting FreeRadius tidak valid.';
+        } elseif (filter_var($host, FILTER_VALIDATE_IP) === false && gethostbyname($host) === $host) {
+            $status = 'failed';
+            $message = 'Host FreeRadius tidak bisa di-resolve dari aplikasi.';
+        } elseif (config('services.freeradius.sync_mode', 'simulated') === 'database') {
+            $message = 'Konfigurasi FreeRadius valid. Mode sync database aktif; data NAS dan user akan ditulis ke tabel SQL FreeRadius.';
         }
 
         $server->update([

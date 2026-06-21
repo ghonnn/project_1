@@ -88,7 +88,11 @@ class RadiusServerResource extends Resource
                         Notification::make()
                             ->title('Test Radius selesai')
                             ->body($result['message'])
-                            ->color($result['status'] === 'failed' ? 'danger' : 'warning')
+                            ->color(match ($result['status']) {
+                                'success' => 'success',
+                                'failed' => 'danger',
+                                default => 'warning',
+                            })
                             ->send();
                     }),
             ])
