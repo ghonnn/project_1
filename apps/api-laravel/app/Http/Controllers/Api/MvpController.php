@@ -130,7 +130,10 @@ class MvpController extends Controller
 
     public function storeRouter(Request $request, string $tenantId)
     {
-        $data = $request->validate(['router_name' => ['required'], 'hostname' => ['required'], 'vendor' => ['nullable'], 'model' => ['nullable'], 'serial_number' => ['nullable'], 'router_role' => ['required', 'in:core_router,aggregation_router,edge_router,pppoe_router,bng,wireless_gateway,pop_router,bts_router'], 'connection_type' => ['nullable', 'in:ip_public,vpn_radius'], 'radius_secret' => ['nullable'], 'online_sessions' => ['nullable', 'integer'], 'site_name' => ['nullable'], 'management_ip' => ['required'], 'public_ip' => ['nullable'], 'status' => ['nullable'], 'snmp_status' => ['nullable'], 'snmp_profile' => ['nullable', 'array']]);
+        $data = $request->validate(['router_name' => ['required'], 'hostname' => ['nullable'], 'vendor' => ['nullable'], 'model' => ['nullable'], 'serial_number' => ['nullable'], 'router_role' => ['nullable', 'in:core_router,aggregation_router,edge_router,pppoe_router,bng,wireless_gateway,pop_router,bts_router'], 'connection_type' => ['nullable', 'in:ip_public,vpn_radius'], 'radius_secret' => ['nullable'], 'site_name' => ['nullable'], 'management_ip' => ['required'], 'public_ip' => ['nullable'], 'status' => ['nullable'], 'snmp_profile' => ['nullable', 'array']]);
+        $data['hostname'] = $data['hostname'] ?: $data['router_name'];
+        $data['router_role'] = $data['router_role'] ?? 'pppoe_router';
+        $data['radius_secret'] = $data['radius_secret'] ?: str_pad((string) random_int(0, 999999999999), 12, '0', STR_PAD_LEFT);
         $router = Router::create(['tenant_id' => $tenantId] + $data);
         $this->audit->log('router.created', 'routers', $router->id, [], $router->toArray(), $request);
         return $this->ok($router, 'Created', [], 201);
@@ -142,7 +145,14 @@ class MvpController extends Controller
     {
         $router = Router::where('tenant_id', $tenantId)->findOrFail($id);
         $old = $router->toArray();
-        $router->update($request->only(['router_name', 'hostname', 'vendor', 'model', 'serial_number', 'router_role', 'connection_type', 'radius_secret', 'online_sessions', 'site_name', 'management_ip', 'public_ip', 'status', 'snmp_status', 'snmp_profile']));
+        $data = $request->only(['router_name', 'hostname', 'vendor', 'model', 'serial_number', 'router_role', 'connection_type', 'radius_secret', 'site_name', 'management_ip', 'public_ip', 'status', 'snmp_profile']);
+        if (array_key_exists('router_name', $data) && blank($data['hostname'] ?? null)) {
+            $data['hostname'] = $data['router_name'];
+        }
+        if (array_key_exists('radius_secret', $data) && blank($data['radius_secret'])) {
+            unset($data['radius_secret']);
+        }
+        $router->update($data);
         $this->audit->log('router.updated', 'routers', $router->id, $old, $router->fresh()->toArray(), $request);
         return $this->ok($router->fresh());
     }

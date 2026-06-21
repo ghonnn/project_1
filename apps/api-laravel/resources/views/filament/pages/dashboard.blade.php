@@ -7,6 +7,7 @@
                 ['label' => 'Pengeluaran', 'value' => 'Rp'.number_format($expenseToday, 0, ',', '.'), 'icon' => 'heroicon-o-calendar', 'color' => '#f59e0b'],
                 ['label' => 'Voucher Online', 'value' => number_format($voucherOnline, 0, ',', '.'), 'icon' => 'heroicon-o-wifi', 'color' => '#16a34a'],
                 ['label' => 'Langganan Online', 'value' => number_format($subscriptionOnline, 0, ',', '.'), 'icon' => 'heroicon-o-user-group', 'color' => '#0891b2'],
+                ['label' => 'SNMP Aktif', 'value' => number_format($routerSnmpActive, 0, ',', '.').'/'.number_format($routerCount, 0, ',', '.'), 'icon' => 'heroicon-o-signal', 'color' => '#8b5cf6'],
                 ['label' => 'Pelanggan Terisolir', 'value' => number_format($isolatedCustomers, 0, ',', '.'), 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#6b7280'],
             ];
         @endphp
@@ -50,8 +51,8 @@
             <div class="space-y-4 p-4">
                 <h2 class="text-2xl font-semibold">{{ $licenseName }}</h2>
                 <div>
-                    <div class="font-medium">Total Sesi Online {{ number_format($subscriptionOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-sky-500" style="width: {{ min(100, $subscriptionOnline / max(1, $maxSessions) * 100) }}%"></div></div>
+                    <div class="font-medium">Total Sesi Online {{ number_format($totalOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-sky-500" style="width: {{ min(100, $totalOnline / max(1, $maxSessions) * 100) }}%"></div></div>
                 </div>
                 <div>
                     <div class="font-medium">Total Voucher {{ number_format($voucherOnline, 0, ',', '.') }}/{{ number_format($maxVouchers, 0, ',', '.') }}</div>

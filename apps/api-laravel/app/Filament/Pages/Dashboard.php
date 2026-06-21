@@ -33,6 +33,12 @@ class Dashboard extends Page
         $subscriptionOnline = RadiusUser::query()
             ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
             ->where('status', 'active')
+            ->whereHas('service', fn ($query) => $query->whereIn('connection_type', Router::PPP_CONNECTION_TYPES))
+            ->count();
+        $voucherOnline = RadiusUser::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->where('status', 'active')
+            ->whereHas('service', fn ($query) => $query->whereIn('connection_type', Router::HOTSPOT_CONNECTION_TYPES))
             ->count();
         $activeSubscriptions = Service::query()
             ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
@@ -44,6 +50,10 @@ class Dashboard extends Page
         $routerActive = Router::query()
             ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
             ->where('status', 'active')
+            ->count();
+        $routerSnmpActive = Router::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->where('snmp_status', 'reachable')
             ->count();
 
         return [
@@ -61,8 +71,9 @@ class Dashboard extends Page
                 ->sum('total_amount'),
             'expenseToday' => 0,
             'voucherIncomeToday' => 0,
-            'voucherOnline' => 0,
+            'voucherOnline' => $voucherOnline,
             'subscriptionOnline' => $subscriptionOnline,
+            'totalOnline' => $subscriptionOnline + $voucherOnline,
             'isolatedCustomers' => Service::query()
                 ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
                 ->where('status', 'suspended')
@@ -70,6 +81,7 @@ class Dashboard extends Page
             'activeSubscriptions' => $activeSubscriptions,
             'routerCount' => $routerCount,
             'routerActive' => $routerActive,
+            'routerSnmpActive' => $routerSnmpActive,
             'maxSessions' => $tenant?->license_max_sessions ?: 250,
             'maxVouchers' => $tenant?->license_max_vouchers ?: 5000,
             'maxSubscriptions' => $tenant?->license_max_subscriptions ?: 200,

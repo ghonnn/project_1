@@ -45,33 +45,39 @@ class RouterResource extends Resource
                     ->content('IP Public: router terpasang langsung di MikroTik. VPN Radius: router dihubungkan via jalur VPN Radius yang disediakan.')
                     ->columnSpanFull(),
                 Forms\Components\Select::make('tenant_id')->label('Tenant')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\TextInput::make('router_name')->label('Nama Router')->required()->maxLength(80),
+                Forms\Components\TextInput::make('router_name')
+                    ->label('Nama Router / Hostname')
+                    ->required()
+                    ->maxLength(80),
+                Forms\Components\Hidden::make('hostname')
+                    ->dehydrated(true),
+                Forms\Components\Hidden::make('router_role')
+                    ->default('pppoe_router')
+                    ->dehydrated(true),
                 Forms\Components\Select::make('connection_type')
                     ->label('Tipe Koneksi')
                     ->options(['ip_public' => 'IP Public', 'vpn_radius' => 'VPN Radius'])
                     ->default('ip_public')
                     ->required(),
                 Forms\Components\TextInput::make('management_ip')->label('IP Address')->required()->maxLength(45),
-                Forms\Components\TextInput::make('radius_secret')->label('Secret')->password()->revealable()->maxLength(80),
-                Forms\Components\TextInput::make('hostname')->label('Hostname')->required()->maxLength(80),
+                Forms\Components\TextInput::make('radius_secret')
+                    ->label('Secret Radius')
+                    ->password()
+                    ->revealable()
+                    ->readOnly()
+                    ->default(fn (): string => self::generateRadiusSecret())
+                    ->afterStateHydrated(function (Forms\Components\TextInput $component, mixed $state): void {
+                        if (blank($state)) {
+                            $component->state(self::generateRadiusSecret());
+                        }
+                    })
+                    ->dehydrated(true)
+                    ->maxLength(12),
                 Forms\Components\TextInput::make('vendor')->label('Vendor')->maxLength(50),
                 Forms\Components\TextInput::make('model')->label('Model')->maxLength(80),
                 Forms\Components\TextInput::make('serial_number')->label('Serial Number')->maxLength(80),
-                Forms\Components\Select::make('router_role')
-                    ->options([
-                        'core_router' => 'Core Router',
-                        'aggregation_router' => 'Aggregation Router',
-                        'edge_router' => 'Edge Router',
-                        'pppoe_router' => 'PPPoE Router',
-                        'bng' => 'BNG',
-                        'wireless_gateway' => 'Wireless Gateway',
-                        'pop_router' => 'POP Router',
-                        'bts_router' => 'BTS Router',
-                    ])
-                    ->required(),
                 Forms\Components\TextInput::make('site_name')->label('Nama Site')->maxLength(80),
                 Forms\Components\TextInput::make('public_ip')->label('IP Public')->maxLength(45),
-                Forms\Components\TextInput::make('online_sessions')->label('Online')->numeric()->default(0),
                 Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric()->maxLength(16),
                 Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric()->maxLength(16),
                 Forms\Components\Select::make('status')
@@ -79,11 +85,15 @@ class RouterResource extends Resource
                     ->options(['draft' => 'Draft', 'active' => 'Aktif', 'maintenance' => 'Maintenance', 'inactive' => 'Non Aktif'])
                     ->default('draft')
                     ->required(),
-                Forms\Components\Select::make('snmp_status')
+                Forms\Components\Placeholder::make('snmp_status_display')
                     ->label('Status SNMP')
-                    ->options(['not_configured' => 'Belum Dikonfigurasi', 'reachable' => 'Aktif', 'unreachable' => 'Tidak Terhubung'])
-                    ->default('not_configured')
-                    ->required(),
+                    ->content(fn (?Router $record): string => self::snmpStatusLabel($record?->snmp_status)),
+                Forms\Components\Placeholder::make('pppoe_online_display')
+                    ->label('Langganan Online (PPPoE)')
+                    ->content(fn (?Router $record): string => number_format($record?->pppoeOnlineCount() ?? 0, 0, ',', '.')),
+                Forms\Components\Placeholder::make('hotspot_online_display')
+                    ->label('Voucher Online (Hotspot)')
+                    ->content(fn (?Router $record): string => number_format($record?->hotspotOnlineCount() ?? 0, 0, ',', '.')),
                 Forms\Components\Section::make('Script MikroTik')
                     ->columns(2)
                     ->schema([
@@ -121,6 +131,13 @@ class RouterResource extends Resource
      */
     public static function normalizeRouterSettings(array $data, ?Router $router = null): array
     {
+        $data['hostname'] = trim((string) ($data['router_name'] ?? $router?->router_name ?? $router?->hostname ?? ''));
+        $data['router_role'] = $data['router_role'] ?? $router?->router_role ?? 'pppoe_router';
+
+        if (blank($data['radius_secret'] ?? null)) {
+            $data['radius_secret'] = self::generateRadiusSecret();
+        }
+
         $profile = $data['snmp_profile'] ?? [];
 
         $data['snmp_profile'] = RouterProvisioningService::mergeDefaultSnmpProfile(
@@ -130,6 +147,26 @@ class RouterResource extends Resource
         );
 
         return $data;
+    }
+
+    private static function generateRadiusSecret(): string
+    {
+        $secret = '';
+
+        for ($i = 0; $i < 12; $i++) {
+            $secret .= (string) random_int(0, 9);
+        }
+
+        return $secret;
+    }
+
+    private static function snmpStatusLabel(?string $state): string
+    {
+        return match ($state) {
+            'reachable' => 'Aktif / Reachable',
+            'unreachable' => 'Tidak Terhubung',
+            default => 'Belum Dikonfigurasi',
+        };
     }
 
     private static function scriptProfileInput(
@@ -187,15 +224,22 @@ class RouterResource extends Resource
                     ->label('NAS IP')
                     ->placeholder('-')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('online_sessions')->label('Online')->alignCenter()->color('success')->weight('bold'),
+                Tables\Columns\TextColumn::make('pppoe_online')
+                    ->label('Langganan Online')
+                    ->state(fn (Router $record): int => $record->pppoeOnlineCount())
+                    ->alignCenter()
+                    ->color('success')
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('hotspot_online')
+                    ->label('Voucher Online')
+                    ->state(fn (Router $record): int => $record->hotspotOnlineCount())
+                    ->alignCenter()
+                    ->color('info')
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('script_download')->label('Script')->state('Download')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('snmp_status')
                     ->label('SNMP Monitoring')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'reachable' => 'Aktif',
-                        'unreachable' => 'Tidak Terhubung',
-                        default => 'Belum Aktif',
-                    })
+                    ->formatStateUsing(fn (?string $state): string => self::snmpStatusLabel($state))
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'reachable' => 'success',
@@ -274,12 +318,6 @@ class RouterResource extends Resource
                             ->color($result['status'] === 'reachable' ? 'success' : 'warning')
                             ->send();
                     }),
-                Tables\Actions\Action::make('set_snmp_active')
-                    ->label('Set SNMP Aktif')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (Router $record): bool => $record->snmp_status !== 'reachable')
-                    ->action(fn (Router $record) => $record->update(['snmp_status' => 'reachable'])),
                 Tables\Actions\Action::make('download_script')
                     ->label('Download Script')
                     ->icon('heroicon-o-arrow-down-tray')
@@ -334,10 +372,11 @@ class RouterResource extends Resource
         return new HtmlString('
             <div style="display:grid;gap:18px">
                 <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
-                    <div><strong>Status SNMP:</strong> '.($record->snmp_status === 'reachable' ? 'Aktif' : 'Belum Aktif').'</div>
+                    <div><strong>Status SNMP:</strong> '.e(self::snmpStatusLabel($record->snmp_status)).'</div>
                     <div><strong>FreeRadius:</strong> '.e($record->primaryNasDevice?->radiusServer?->name ?? 'Belum terhubung').'</div>
                     <div><strong>NAS IP:</strong> '.e($record->primaryNasDevice?->nas_ip_address ?? '-').'</div>
-                    <div><strong>Online:</strong> '.e((string) $record->online_sessions).'</div>
+                    <div><strong>Langganan Online:</strong> '.e((string) $record->pppoeOnlineCount()).'</div>
+                    <div><strong>Voucher Online:</strong> '.e((string) $record->hotspotOnlineCount()).'</div>
                 </div>
                 '.self::snmpTable('Interface Router', ['Interface', 'Tipe', 'IP Address', 'Status'], $interfaces).'
                 '.self::snmpTable('PPPoE Active', ['Username', 'CID', 'Profile', 'Pelanggan'], $pppoeUsers).'
