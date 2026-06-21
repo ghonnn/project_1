@@ -264,9 +264,14 @@ class AdminPanelProvider extends PanelProvider
                         .fi-fo-select,
                         .choices__inner {
                             background: #ffffff !important;
-                            border-color: #d1d5db !important;
+                            border: 1px solid #94a3b8 !important;
                             border-radius: 6px !important;
                             box-shadow: none !important;
+                        }
+
+                        .fi-input-wrp:not(:focus-within):hover,
+                        .choices:not(.is-focused):hover .choices__inner {
+                            border-color: #64748b !important;
                         }
 
                         .fi-input,
@@ -285,6 +290,46 @@ class AdminPanelProvider extends PanelProvider
                         .fi-pagination * {
                             font-size: 14px !important;
                             letter-spacing: 0 !important;
+                        }
+
+                        .fi-input,
+                        .fi-select-input,
+                        .fi-textarea {
+                            color: #0f172a !important;
+                            min-height: 36px !important;
+                        }
+
+                        .fi-input::placeholder,
+                        .fi-textarea::placeholder {
+                            color: #64748b !important;
+                            opacity: 1 !important;
+                        }
+
+                        .fi-input:disabled,
+                        .fi-select-input:disabled,
+                        .fi-textarea:disabled,
+                        .fi-input[readonly],
+                        .fi-textarea[readonly] {
+                            color: #0f172a !important;
+                            -webkit-text-fill-color: #0f172a !important;
+                            opacity: 1 !important;
+                            background: #f8fafc !important;
+                        }
+
+                        .fi-fo-field-wrp {
+                            gap: 6px !important;
+                        }
+
+                        .fi-fo-field-wrp-label,
+                        .fi-fo-field-wrp-label span {
+                            color: #0f172a !important;
+                            font-weight: 650 !important;
+                        }
+
+                        .fi-section-content {
+                            background-image: linear-gradient(to right, transparent calc(50% - 1px), #e2e8f0 calc(50% - 1px), #e2e8f0 50%, transparent 50%);
+                            background-size: 100% 100%;
+                            background-repeat: no-repeat;
                         }
 
                         .fi-input-wrp:focus-within,
