@@ -512,4 +512,94 @@ class AdminPanelProvider extends PanelProvider
             </div>
         HTML;
     }
+
+    public static function applyNexAppearance(Panel $panel): Panel
+    {
+        return $panel
+            ->defaultThemeMode(ThemeMode::Light)
+            ->darkMode(false)
+            ->sidebarCollapsibleOnDesktop()
+            ->spa()
+            ->renderHook(
+                PanelsRenderHook::HEAD_END,
+                fn (): HtmlString => new HtmlString(<<<'HTML'
+                    <style>
+                        :root {
+                            --nex-emerald: #059669;
+                            --nex-emerald-dark: #047857;
+                            --nex-emerald-soft: #ecfdf5;
+                            --nex-border: #dbe3ef;
+                            --nex-page: #f8fafc;
+                            color-scheme: light;
+                        }
+
+                        html { font-size: 14px; }
+                        body, .fi-body, .fi-layout { background: var(--nex-page) !important; color: #0f172a !important; }
+                        .fi-topbar, .fi-sidebar, .fi-section, .fi-ta-ctn, .fi-modal-window, .fi-wi-stats-overview-stat {
+                            background: #ffffff !important;
+                            border-color: var(--nex-border) !important;
+                        }
+
+                        .fi-sidebar { border-right: 1px solid var(--nex-border) !important; }
+                        .fi-sidebar-header { border-bottom: 1px solid var(--nex-border) !important; }
+                        .fi-sidebar-header .fi-logo { color: #0f172a !important; font-size: 16px !important; font-weight: 800 !important; }
+                        .fi-sidebar-item-label, .fi-sidebar-item-icon { color: #334155 !important; font-size: 14px !important; }
+                        .fi-sidebar-group-label { color: #64748b !important; font-size: 12px !important; font-weight: 800 !important; text-transform: uppercase; }
+                        .fi-sidebar-item-button { border-radius: 6px !important; }
+                        .fi-sidebar-item-button:hover, .fi-sidebar-item-active > .fi-sidebar-item-button, .fi-sidebar-item-button[aria-current="page"] {
+                            background: var(--nex-emerald-soft) !important;
+                            color: var(--nex-emerald-dark) !important;
+                        }
+
+                        .fi-input-wrp, .fi-fo-select, .choices__inner {
+                            background: #ffffff !important;
+                            border: 1px solid #94a3b8 !important;
+                            border-radius: 6px !important;
+                            box-shadow: none !important;
+                        }
+
+                        .fi-input, .fi-select-input, .fi-textarea, .choices__item, .fi-btn, .fi-dropdown-list-item, .fi-ta-cell, .fi-ta-text, .fi-pagination, .fi-pagination * {
+                            color: #0f172a !important;
+                            font-size: 14px !important;
+                            letter-spacing: 0 !important;
+                        }
+
+                        .fi-ta-header-cell, .fi-ta-cell { border-color: #dbe3ef !important; border-bottom-width: 1px !important; }
+                        .fi-ta-row:nth-child(even) { background: #fbfdff !important; }
+                        .fi-ta-row:hover { background: #f0fdf4 !important; }
+                        .fi-btn { border-radius: 6px !important; box-shadow: none !important; }
+                        .nex-topbar-brand { display: flex; align-items: center; gap: 24px; min-width: 430px; padding-left: 8px; }
+                        .nex-app-logo { display: inline-flex; align-items: center; gap: 10px; color: #0f172a; font-size: 15px; font-weight: 800; white-space: nowrap; }
+                        .nex-logo-mark { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 28px; border-radius: 6px; background: var(--nex-emerald); color: #ffffff; font-size: 11px; font-weight: 900; }
+                        .nex-server-time { color: #64748b; font-size: 14px; font-weight: 700; white-space: nowrap; }
+                    </style>
+                    <script>
+                        (() => {
+                            const formatJakartaTime = (date) => {
+                                const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).formatToParts(date).reduce((carry, part) => {
+                                    carry[part.type] = part.value;
+                                    return carry;
+                                }, {});
+                                return `${parts.day}/${parts.month}/${parts.year} ${parts.hour}:${parts.minute}:${parts.second} WIB`;
+                            };
+                            const bootClock = () => document.querySelectorAll('[data-nex-server-time]').forEach((node) => {
+                                if (node.dataset.clockReady === '1') return;
+                                node.dataset.clockReady = '1';
+                                const startedAt = new Date(node.dataset.nexServerTime);
+                                const clientStartedAt = Date.now();
+                                const tick = () => node.textContent = `WAKTU SERVER : ${formatJakartaTime(new Date(startedAt.getTime() + Date.now() - clientStartedAt))}`;
+                                tick();
+                                setInterval(tick, 1000);
+                            });
+                            document.addEventListener('DOMContentLoaded', bootClock);
+                            document.addEventListener('livewire:navigated', bootClock);
+                        })();
+                    </script>
+                HTML)
+            )
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_START,
+                fn (): HtmlString => new HtmlString(self::topbarBrand())
+            );
+    }
 }

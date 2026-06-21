@@ -47,6 +47,13 @@ class User extends Authenticatable implements FilamentUser
         return $this->roles()->where('code', 'platform_owner')->exists();
     }
 
+    public function hasRole(string|array $codes): bool
+    {
+        $codes = is_array($codes) ? $codes : [$codes];
+
+        return $this->roles()->whereIn('code', $codes)->exists();
+    }
+
     public function hasPermission(string $code): bool
     {
         if ($this->isPlatformOwner()) {
@@ -58,8 +65,17 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->status === 'active'
-            && $this->roles()->whereNotIn('code', ['customer', 'partner'])->exists();
+        if ($this->status !== 'active') {
+            return false;
+        }
+
+        return match ($panel->getId()) {
+            'owner' => $this->hasRole('platform_owner'),
+            'isp' => $this->hasRole(['tenant_owner', 'tenant_admin', 'finance', 'noc', 'sales', 'technician']),
+            'customer' => $this->hasRole('customer'),
+            'admin' => $this->roles()->whereNotIn('code', ['customer', 'partner'])->exists(),
+            default => false,
+        };
     }
 
     /**
