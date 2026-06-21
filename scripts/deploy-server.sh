@@ -4,6 +4,8 @@ set -euo pipefail
 APP_DIR="${APP_DIR:-/var/www/nex-oss-bss}"
 BRANCH="${BRANCH:-feat/mvp-phase-1-3-backend}"
 APP_PORT="${APP_PORT:-18000}"
+POSTGRES_BIND="${POSTGRES_BIND:-10.20.1.32}"
+POSTGRES_PORT="${POSTGRES_PORT:-5432}"
 
 cd "$APP_DIR"
 
@@ -23,6 +25,18 @@ if [ -f .env ]; then
     fi
 else
     printf 'APP_PORT=%s\n' "$APP_PORT" > .env
+fi
+
+if grep -q '^POSTGRES_BIND=' .env; then
+    sed -i "s/^POSTGRES_BIND=.*/POSTGRES_BIND=${POSTGRES_BIND}/" .env
+else
+    printf 'POSTGRES_BIND=%s\n' "$POSTGRES_BIND" >> .env
+fi
+
+if grep -q '^POSTGRES_PORT=' .env; then
+    sed -i "s/^POSTGRES_PORT=.*/POSTGRES_PORT=${POSTGRES_PORT}/" .env
+else
+    printf 'POSTGRES_PORT=%s\n' "$POSTGRES_PORT" >> .env
 fi
 
 docker compose build api
