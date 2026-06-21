@@ -1,309 +1,263 @@
-# PRD NEX OSS/BSS - Development Roadmap v3.4 Router-Centric
+# PRD NEX OSS/BSS - Development Roadmap
 
 Peran: Technical Product Owner
 
-Roadmap ini merevisi Step 5 agar mengikuti PRD v3.4. Urutan phase lama diganti penuh dengan Phase 0 sampai Phase 10 berikut.
+Dokumen ini merevisi roadmap agar sesuai dengan kondisi implementasi aplikasi saat ini. Status ini mengacu pada kode Laravel/Filament, skema database, Docker deployment, dan integrasi FreeRadius yang sudah ada di branch `feat/mvp-phase-1-3-backend`.
 
-## Gap Analysis v3.4
+## Status Implementasi Saat Ini
 
-| Area | Gap Lama | Revisi v3.4 |
-|---|---|---|
-| Phase 4 | Fokus FreeRadius dan suspend saja | Menjadi Router Management, FreeRadius AAA, Suspend Engine |
-| Monitoring | Belum eksplisit Router SNMP | Phase 6 fokus Monitoring & NOC dengan Router SNMP |
-| GIS | Belum router layer sebagai dasar | Phase 8 GIS & Inventory memakai router/fiber/customer layer |
-| Marketplace | Belum membatasi MikroTik API | Marketplace awal fokus FreeRadius Connector, Router SNMP, Script Generator |
+Kesimpulan singkat: aplikasi saat ini sudah melewati fondasi MVP dan berada di akhir Phase 4, dengan sebagian awal Phase 6, Phase 8, dan Phase 9 sudah mulai terbentuk. Phase 5 Ticket/Work Order belum lengkap, sehingga secara roadmap produk belum bisa disebut selesai Phase 6 penuh.
 
-## Phase Summary
-
-| Phase | Nama | Prioritas | Output Utama |
+| Phase | Nama | Status Saat Ini | Catatan |
 |---|---|---|---|
-| Phase 0 | Discovery & Blueprint | Wajib | Scope lock, process map, data model baseline, integration blueprint |
-| Phase 1 | Core Foundation | Wajib | Auth, RBAC, tenant, customer, product, service category flags |
-| Phase 2 | Billing MVP | Wajib | Invoice, recurring billing, prorate, AR aging, manual payment |
-| Phase 3 | Payment & Notification | Wajib | Payment gateway, reconciliation, WhatsApp/email notification |
-| Phase 4 | Router Management FreeRadius AAA Suspend Engine | Tinggi | Router, interface, NAS, Radius profile/user, RouterOS script, suspend/unsuspend |
-| Phase 5 | Ticket & Work Order | Tinggi | Ticket, SLA, work order, field report, installation/maintenance flow |
-| Phase 6 | Monitoring & NOC | Tinggi | Router SNMP, PRTG/LibreNMS, NOC dashboard, impact analysis |
-| Phase 7 | OSS Advanced | Sedang | OLT/ONU, IPAM, VLAN, capacity planning, revenue assurance |
-| Phase 8 | GIS & Inventory | Sedang | Router/customer/fiber map, ODC/ODP, asset tracking |
-| Phase 9 | Partner & SaaS | Strategis | Partner portal, commission, white label, license, usage metering |
-| Phase 10 | Marketplace & AI | Belakangan | Addon marketplace, AI NOC, anomaly detection, predictive churn |
+| Phase 0 | Discovery & Blueprint | Selesai dasar | PRD, roadmap, flow, role matrix, API contract, database design tersedia. |
+| Phase 1 | Core Foundation | Selesai MVP | Auth Filament, RBAC, tenant, customer, product, service category, audit log tersedia. |
+| Phase 2 | Billing MVP | Selesai MVP | Invoice, invoice item, payment manual, paid invoice, unpaid invoice, billing setting dasar tersedia. |
+| Phase 3 | Payment & Notification | Sebagian | Payment record dan rekonsiliasi dasar tersedia; gateway/webhook dan WhatsApp/email otomatis belum final. |
+| Phase 4 | Router Management, FreeRadius AAA, Suspend Engine | Hampir selesai MVP | Router, interface, NAS, Radius server/profile/user, service provisioning, FreeRadius SQL sync, MikroTik script, suspend/activate tersedia. |
+| Phase 5 | Ticket & Work Order | Awal | Ticket resource tersedia; work order, SLA, technician assignment, evidence field report belum lengkap. |
+| Phase 6 | Monitoring & NOC | Sebagian awal | SNMP test/status router tersedia, dashboard count online memakai `radacct`; belum ada NOC incident, capacity, impact automation. |
+| Phase 7 | OSS Advanced | Awal placeholder | OLT/ODP/GenieACS page tersedia sebagai awal; IPAM/VLAN/capacity belum lengkap. |
+| Phase 8 | GIS & Inventory | Awal placeholder | Map customer/ODP page tersedia; GIS topology dan inventory asset belum lengkap. |
+| Phase 9 | Partner & SaaS | Sebagian awal | Partner data, commission fields, license counters, multi-tenant dasar tersedia; partner portal/white-label/usage metering belum lengkap. |
+| Phase 10 | Marketplace & AI | Belum mulai | Connector marketplace dan AI NOC belum diimplementasikan. |
 
 ## Phase 0 - Discovery & Blueprint
 
-Objective:
+Status: Selesai dasar.
 
-- Mengunci scope MVP dan blueprint router-centric.
+Sudah ada:
 
-Deliverables:
+- PRD roadmap dan flow bisnis.
+- Database design.
+- API contract MVP.
+- Role matrix.
+- Acceptance criteria MVP.
+- Blueprint pre-coding.
 
-- Business process map.
-- Tenant and RBAC blueprint.
-- Router-centric data model.
-- Billing and payment policy.
-- FreeRadius integration design.
-- Monitoring integration decision.
+Sisa:
 
-Acceptance Criteria:
-
-- POP/BTS disepakati sebagai Router Role, bukan modul utama.
-- Service category flags `requires_router_mapping` dan `requires_radius` disetujui.
-- Flow Radius: service active, radius user active, invoice overdue, suspend, paid, unsuspend disetujui.
+- Menjaga dokumen tetap sinkron dengan kode saat fitur berubah.
+- Menambahkan runbook operasional produksi.
 
 ## Phase 1 - Core Foundation
 
-Objective:
+Status: Selesai MVP.
 
-- Membangun fondasi SaaS multi-tenant.
+Sudah ada:
 
-Scope:
-
-- Auth and session.
+- Laravel 12 + Filament admin.
 - Tenant management.
-- RBAC and permission matrix.
+- User, role, permission matrix.
 - Customer master.
-- Product catalog.
-- Service category.
+- Product/profile layanan.
+- Service category flags.
 - Service instance.
 - Audit log.
+- UI theme clean light + emerald navigation.
 
-Acceptance Criteria:
+Sisa:
 
-- Data tenant terisolasi.
-- Customer dan service dapat dibuat.
-- Service category memiliki flags router/radius.
-- Audit log mencatat aksi penting.
+- Hardening permission per tenant untuk semua edge case.
+- Audit event lebih rinci untuk semua aksi massal.
 
 ## Phase 2 - Billing MVP
 
-Objective:
+Status: Selesai MVP.
 
-- Menghasilkan billing MVP yang benar untuk ISP.
+Sudah ada:
 
-Scope:
+- Invoice dan invoice item.
+- Payment record.
+- Paid/unpaid invoice resources.
+- Billing setting dasar.
+- Auto suspend command untuk overdue service.
+- Dashboard finance dasar.
 
-- Invoice.
-- Invoice items.
-- Recurring billing.
-- Prorate.
-- AR aging.
-- Manual payment record.
-- Basic finance reports.
+Sisa:
 
-Acceptance Criteria:
-
-- Invoice hanya dibuat untuk service valid.
-- Invoice item mengacu ke service.
-- Payment mengubah outstanding balance.
-- AR aging dapat ditampilkan.
+- AR aging detail.
+- Prorate dan recurring scheduler produksi.
+- Receipt dan reporting finansial lengkap.
 
 ## Phase 3 - Payment & Notification
 
-Objective:
+Status: Sebagian.
 
-- Menghubungkan pembayaran dan komunikasi pelanggan.
+Sudah ada:
 
-Scope:
+- Payment manual dan paid invoice flow.
+- Unsuspend evaluation setelah pembayaran tersedia di service layer.
+- Halaman pengaturan WhatsApp sebagai placeholder.
 
-- Payment gateway integration.
-- Payment webhook.
-- Reconciliation.
-- Receipt.
-- WhatsApp/email notification.
-- Dunning notification.
+Belum lengkap:
 
-Acceptance Criteria:
+- Payment gateway callback/webhook produksi.
+- Rekonsiliasi otomatis mutasi bank/e-wallet.
+- WhatsApp/email delivery engine.
+- Template notifikasi invoice, overdue, paid, suspend.
 
-- Payment reconciled dapat menandai invoice paid.
-- Paid invoice dapat memicu unsuspend evaluation.
-- Notifikasi invoice, overdue, paid, dan suspend terkirim.
+## Phase 4 - Router Management, FreeRadius AAA, Suspend Engine
 
-## Phase 4 - Router Management FreeRadius AAA Suspend Engine
+Status: Hampir selesai MVP.
 
-Objective:
+Sudah ada:
 
-- Membangun inti OSS network activation berbasis router.
+- Router CRUD dengan nama router/hostname otomatis.
+- Secret Radius auto-generate 12 digit.
+- Router interface relation.
+- Router script MikroTik untuk SNMP, Radius, PPP profile, PPPoE, Hotspot/WiFi, pool, isolir.
+- Router action `Hubungkan Radius`.
+- Router action `Test SNMP`.
+- FreeRadius server CRUD dan test validasi konfigurasi.
+- NAS device CRUD dan sync NAS ke SQL FreeRadius.
+- Radius profile dan Radius user CRUD.
+- Sync user ke tabel `radcheck`, `radreply`, `radusergroup`, `radgroupcheck`, `radgroupreply`.
+- Sync NAS ke tabel `nas`.
+- Tabel accounting `radacct` untuk sesi online aktif.
+- Service provisioning membuat/menghubungkan Radius user, router, NAS, dan billing data.
+- Suspend/activate Radius user.
+- Product `mikrotik_group` dinormalisasi untuk group FreeRadius.
 
-Scope:
+Penyesuaian dari PRD lama:
 
-- Router Management.
-- Router Interface Management.
-- Router Link Management.
-- Radius NAS mapped to Router.
-- Radius Profile.
-- Radius User.
-- Service Router Mapping.
-- Customer Router Mapping.
-- RouterOS Script Generator.
-- Suspend/Unsuspend Engine.
+- `router_role` tidak lagi ditampilkan sebagai field UI utama. Untuk MVP, role disimpan default internal agar UX lebih sederhana.
+- Status SNMP bukan input manual. Status berubah dari hasil `Test SNMP`.
+- Online PPPoE/Hotspot bukan input manual. Angka online berasal dari accounting aktif `radacct.acctstoptime IS NULL`.
 
-Tasks Backend:
+Sisa:
 
-- CRUD `routers`, `router_interfaces`, `router_links`.
-- CRUD `nas_devices`, `radius_profiles`, `radius_users`.
-- Service activation validation for router mapping.
-- Generate ROS6/ROS7 PPPoE and Hotspot scripts.
-- Suspend service and disable Radius user.
-- Unsuspend service and enable Radius user.
-
-Tasks Frontend:
-
-- Router Dashboard.
-- Router Detail.
-- Interface and link screens.
-- Radius profile/user screens.
-- Script Generator screen.
-- Suspend/unsuspend controls.
-
-Acceptance Criteria:
-
-- Router dapat dibuat, diubah, dinonaktifkan.
-- Router memiliki role Core, Aggregation, Edge, PPPoE, BNG, Wireless Gateway, POP Router, BTS Router.
-- Service Internet wajib memiliki router mapping.
-- Radius user aktif setelah service provisioning valid.
-- Script generator menghasilkan ROS6 PPPoE, ROS7 PPPoE, ROS6 Hotspot, ROS7 Hotspot.
-- Suspend mematikan Radius user; unsuspend mengaktifkannya kembali.
+- Validasi end-to-end PPPoE dan Hotspot dari MikroTik produksi.
+- Script variants ROS6/ROS7 yang lebih eksplisit.
+- Reset/regenerate secret dengan audit.
+- SNMP collector periodik, bukan hanya test manual.
+- FreeRadius accounting harus dipastikan aktif di server Radius.
 
 ## Phase 5 - Ticket & Work Order
 
-Objective:
+Status: Awal.
 
-- Menghubungkan support, NOC, dan field operation.
+Sudah ada:
 
-Scope:
+- Ticket resource dasar.
 
-- Ticket.
-- SLA.
-- Work Order.
+Belum lengkap:
+
+- SLA policy.
+- Work order.
 - Technician assignment.
-- Installation report.
-- Maintenance report.
-- Photo/GPS evidence.
+- Schedule.
+- Photo/GPS/checklist field report.
+- Link ticket ke incident/router/service secara lengkap.
 
-Acceptance Criteria:
-
-- Ticket dapat mengacu ke customer, service, router, incident.
-- Work order dapat mengacu ke router, interface, link, atau service.
-- Field report dapat diverifikasi dan ditutup.
+Phase 5 harus diselesaikan sebelum NOC automation dianggap production-ready.
 
 ## Phase 6 - Monitoring & NOC
 
-Objective:
+Status: Sebagian awal.
 
-- Memberi visibility operasional jaringan dan dampak pelanggan.
+Sudah ada:
 
-Scope:
+- SNMP status per router dari action `Test SNMP`.
+- Router list menampilkan status SNMP.
+- Router list menampilkan Langganan Online dan Voucher Online.
+- Dashboard menampilkan SNMP aktif, Langganan Online, Voucher Online.
+- Online count berbasis `radacct`, bukan user terdaftar.
 
-- Router SNMP Monitoring.
-- Capacity Dashboard.
-- PRTG/LibreNMS/SNMP integration.
-- FreeRadius availability monitoring.
-- NOC Dashboard.
-- Customer Impact Analysis.
-- Incident generation.
+Belum lengkap:
 
-Acceptance Criteria:
-
-- SNMP status menampilkan Reachable, Unreachable, Auth Failed, Not Configured.
-- Router Down menampilkan customer terdampak, radius user terdampak, revenue impact.
-- Capacity warning/critical memicu event.
-- Incident dapat dibuat otomatis dari router down.
+- SNMP polling scheduler.
+- Interface traffic/capacity history.
+- Router down incident generation.
+- Customer impact analysis otomatis.
+- NOC dashboard khusus.
+- PRTG/LibreNMS connector.
 
 ## Phase 7 - OSS Advanced
 
-Objective:
+Status: Awal placeholder.
 
-- Memperluas OSS setelah core router/radius stabil.
+Sudah ada:
 
-Scope:
+- Halaman OLT.
+- Halaman ODP.
+- Halaman GenieACS.
 
-- OLT/ONU management.
+Belum lengkap:
+
+- Data model OLT/ONU detail.
 - IPAM.
 - VLAN management.
-- CID generator.
 - Capacity planning.
 - Revenue assurance.
 
-Acceptance Criteria:
-
-- VLAN dan CID tidak duplikat per tenant.
-- IPAM dapat mengacu ke service/router/interface.
-- Capacity planning membaca histori router.
-
 ## Phase 8 - GIS & Inventory
 
-Objective:
+Status: Awal placeholder.
 
-- Menyediakan peta dan inventory berbasis topology.
+Sudah ada:
 
-Scope:
+- Halaman Map Pelanggan.
+- Halaman Map ODP.
+- Field latitude/longitude pada beberapa entity.
 
-- GIS Router Layer.
-- GIS Customer Layer.
-- Fiber Layer.
-- ODC/ODP Layer.
-- Inventory asset.
-- Router as inventory asset and network object.
+Belum lengkap:
 
-Acceptance Criteria:
-
-- GIS menampilkan router, customer, fiber, ODC, ODP.
-- Customer dapat ditelusuri ke router.
-- Asset router dapat dikaitkan dengan object router.
+- GIS topology layer router/customer/fiber/ODC/ODP.
+- Inventory asset lifecycle.
+- Fiber path and splice management.
 
 ## Phase 9 - Partner & SaaS
 
-Objective:
+Status: Sebagian awal.
 
-- Menyiapkan model partner dan SaaS multi-tenant untuk dijual ke ISP lain.
+Sudah ada:
 
-Scope:
+- Menu Partner.
+- Data Partner.
+- Field partner pada customer/service.
+- Field komisi partner.
+- Tenant license counters.
+- Multi-tenant foundation.
+
+Belum lengkap:
 
 - Partner portal.
-- Commission engine.
-- White label.
-- License management.
-- Usage metering.
-- Tenant billing.
-
-Acceptance Criteria:
-
-- Komisi dihitung dari payment reconciled.
-- Usage metering mencakup customer count, router count, storage, API usage, WhatsApp usage.
-- Tenant isolation berlaku untuk router, radius, customer, service, billing, monitoring.
+- Commission engine dari paid invoice.
+- Payout approval.
+- White-label per tenant.
+- Usage metering produksi.
 
 ## Phase 10 - Marketplace & AI
 
-Objective:
+Status: Belum mulai.
 
-- Menambahkan addon dan AI setelah platform stabil.
+Belum lengkap:
 
-Scope:
-
-- FreeRadius Connector.
-- Router SNMP Monitoring Connector.
-- Notification connector.
+- Marketplace connector.
 - AI NOC.
 - Anomaly detection.
 - Predictive churn.
+- Connector packaging.
 
-Acceptance Criteria:
+## Critical Path Berikutnya
 
-- Marketplace connector dapat diaktifkan per tenant.
-- MikroTik API Integration tidak masuk phase awal.
-- Script Generator tetap menjadi mekanisme RouterOS awal, bukan kontrol router via API.
+1. Selesaikan validasi PPPoE/Hotspot end-to-end: MikroTik -> FreeRadius -> SQL -> aplikasi.
+2. Pastikan FreeRadius accounting menulis ke `radacct`.
+3. Selesaikan Ticket dan Work Order agar Phase 5 lengkap.
+4. Tambahkan SNMP polling scheduler dan NOC dashboard agar Phase 6 naik dari partial ke MVP.
+5. Lanjutkan GIS/inventory setelah router/radius/monitoring stabil.
 
-## Critical Path
+## Definisi Phase Saat Ini
 
-1. Core Foundation harus selesai sebelum billing dan router.
-2. Billing harus selesai sebelum suspend engine.
-3. Router Management dan FreeRadius menjadi prasyarat NOC monitoring.
-4. Ticket/Work Order menjadi prasyarat eskalasi incident operasional.
-5. SaaS dan Marketplace dilakukan setelah tenant isolation stabil.
+Produk saat ini dapat dinyatakan:
 
-## QC Checklist
+- Phase 1 selesai MVP.
+- Phase 2 selesai MVP.
+- Phase 3 partial.
+- Phase 4 hampir selesai MVP.
+- Phase 5 awal.
+- Phase 6 partial awal.
+- Phase 8 dan Phase 9 memiliki fondasi awal, belum production-ready.
 
-- Roadmap memakai Phase 0 sampai Phase 10 sesuai PRD v3.4.
-- Phase 4 berisi Router Management, FreeRadius AAA, dan Suspend Engine.
-- Phase 6 berisi Router SNMP Monitoring, NOC, dan Impact Analysis.
-- POP/BTS tidak menjadi phase atau modul terpisah.
+Dengan kata lain, posisi proyek saat ini adalah **Phase 4 late MVP dengan beberapa komponen Phase 6/8/9 sudah dimulai**.

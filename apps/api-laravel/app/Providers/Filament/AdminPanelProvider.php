@@ -86,7 +86,7 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-sidebar-group-label,
                         .fi-sidebar-item-label {
-                            font-size: 13px !important;
+                            font-size: 14px !important;
                             line-height: 1.2 !important;
                             letter-spacing: 0 !important;
                         }
@@ -246,9 +246,9 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-ta-header-cell-label {
                             color: #475569 !important;
-                            font-size: 11px !important;
+                            font-size: 14px !important;
                             font-weight: 800 !important;
-                            text-transform: uppercase;
+                            text-transform: none;
                         }
 
                         .fi-ta-table {
@@ -267,6 +267,24 @@ class AdminPanelProvider extends PanelProvider
                             border-color: #d1d5db !important;
                             border-radius: 6px !important;
                             box-shadow: none !important;
+                        }
+
+                        .fi-input,
+                        .fi-select-input,
+                        .fi-textarea,
+                        .choices__inner,
+                        .choices__item,
+                        .fi-fo-field-wrp-label,
+                        .fi-fo-field-wrp-helper-text,
+                        .fi-btn,
+                        .fi-dropdown-list-item,
+                        .fi-ta-cell,
+                        .fi-ta-text,
+                        .fi-ta-summary-row,
+                        .fi-pagination,
+                        .fi-pagination * {
+                            font-size: 14px !important;
+                            letter-spacing: 0 !important;
                         }
 
                         .fi-input-wrp:focus-within,
