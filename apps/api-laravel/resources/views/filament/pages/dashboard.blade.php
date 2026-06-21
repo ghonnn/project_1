@@ -13,60 +13,62 @@
         @endphp
 
         @foreach ($cards as $card)
-            <div class="rounded bg-white p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
-                <x-dynamic-component :component="$card['icon']" class="h-8 w-8" style="color: {{ $card['color'] }}" />
+            <div class="rounded-md border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex h-10 w-10 items-center justify-center rounded-md" style="background: color-mix(in srgb, {{ $card['color'] }} 12%, white)">
+                    <x-dynamic-component :component="$card['icon']" class="h-6 w-6" style="color: {{ $card['color'] }}" />
+                </div>
                 <div class="mt-5 flex items-end justify-between">
                     <div>
-                        <div class="text-2xl font-semibold">{{ $card['value'] }}</div>
-                        <div class="mt-4 text-sm text-gray-600 dark:text-gray-300">{{ $card['label'] }}</div>
+                        <div class="text-2xl font-semibold text-slate-950">{{ $card['value'] }}</div>
+                        <div class="mt-3 text-sm font-medium text-slate-500">{{ $card['label'] }}</div>
                     </div>
-                    <div class="text-sm text-gray-500">Total hari ini</div>
+                    <div class="text-xs font-semibold uppercase text-slate-400">Hari ini</div>
                 </div>
             </div>
         @endforeach
     </div>
 
     <div class="grid gap-4 lg:grid-cols-2">
-        <div class="rounded bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
-            <div class="border-b px-4 py-3 font-semibold dark:border-gray-800">LOG APLIKASI</div>
-            <div class="divide-y dark:divide-gray-800">
+        <div class="rounded-md border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 px-4 py-3 font-semibold text-slate-900">LOG APLIKASI</div>
+            <div class="divide-y divide-slate-100">
                 @forelse ($logs as $log)
                     <div class="flex gap-3 px-4 py-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-sky-600 text-white">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
                             <x-heroicon-o-user class="h-5 w-5" />
                         </div>
                         <div>
-                            <div class="font-medium">{{ $log->user?->name ?? 'SYSTEM' }}</div>
-                            <div class="text-sm text-gray-500">{{ $log->action }} - {{ $log->created_at?->format('d/m/Y H:i:s') }}</div>
+                            <div class="font-medium text-slate-900">{{ $log->user?->name ?? 'SYSTEM' }}</div>
+                            <div class="text-sm text-slate-500">{{ $log->action }} - {{ $log->created_at?->format('d/m/Y H:i:s') }}</div>
                         </div>
                     </div>
                 @empty
-                    <div class="px-4 py-6 text-sm text-gray-500">Belum ada log aplikasi.</div>
+                    <div class="px-4 py-6 text-sm text-slate-500">Belum ada log aplikasi.</div>
                 @endforelse
             </div>
         </div>
 
-        <div class="rounded bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
-            <div class="border-b px-4 py-3 font-semibold dark:border-gray-800">INFORMASI LISENSI</div>
+        <div class="rounded-md border border-slate-200 bg-white shadow-sm">
+            <div class="border-b border-slate-200 px-4 py-3 font-semibold text-slate-900">INFORMASI LISENSI</div>
             <div class="space-y-4 p-4">
-                <h2 class="text-2xl font-semibold">{{ $licenseName }}</h2>
+                <h2 class="text-2xl font-semibold text-slate-950">{{ $licenseName }}</h2>
                 <div>
-                    <div class="font-medium">Total Sesi Online {{ number_format($totalOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-sky-500" style="width: {{ min(100, $totalOnline / max(1, $maxSessions) * 100) }}%"></div></div>
+                    <div class="font-medium text-slate-700">Total Sesi Online {{ number_format($totalOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded-full bg-slate-100"><div class="h-3 rounded-full bg-emerald-500" style="width: {{ min(100, $totalOnline / max(1, $maxSessions) * 100) }}%"></div></div>
                 </div>
                 <div>
-                    <div class="font-medium">Total Voucher {{ number_format($voucherOnline, 0, ',', '.') }}/{{ number_format($maxVouchers, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-emerald-500" style="width: {{ min(100, $voucherOnline / max(1, $maxVouchers) * 100) }}%"></div></div>
+                    <div class="font-medium text-slate-700">Total Voucher {{ number_format($voucherOnline, 0, ',', '.') }}/{{ number_format($maxVouchers, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded-full bg-slate-100"><div class="h-3 rounded-full bg-cyan-500" style="width: {{ min(100, $voucherOnline / max(1, $maxVouchers) * 100) }}%"></div></div>
                 </div>
                 <div>
-                    <div class="font-medium">Total Berlangganan {{ number_format($activeSubscriptions, 0, ',', '.') }}/{{ number_format($maxSubscriptions, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-rose-500" style="width: {{ min(100, $activeSubscriptions / max(1, $maxSubscriptions) * 100) }}%"></div></div>
+                    <div class="font-medium text-slate-700">Total Berlangganan {{ number_format($activeSubscriptions, 0, ',', '.') }}/{{ number_format($maxSubscriptions, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded-full bg-slate-100"><div class="h-3 rounded-full bg-sky-500" style="width: {{ min(100, $activeSubscriptions / max(1, $maxSubscriptions) * 100) }}%"></div></div>
                 </div>
                 <div>
-                    <div class="font-medium">Total Router {{ number_format($routerActive, 0, ',', '.') }}/{{ number_format($maxRouters, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-blue-500" style="width: {{ min(100, $routerActive / max(1, $maxRouters) * 100) }}%"></div></div>
+                    <div class="font-medium text-slate-700">Total Router {{ number_format($routerActive, 0, ',', '.') }}/{{ number_format($maxRouters, 0, ',', '.') }}</div>
+                    <div class="mt-2 h-3 rounded-full bg-slate-100"><div class="h-3 rounded-full bg-indigo-500" style="width: {{ min(100, $routerActive / max(1, $maxRouters) * 100) }}%"></div></div>
                 </div>
-                <div class="rounded bg-blue-600 p-5 font-semibold text-white">
+                <div class="rounded-md bg-emerald-600 p-5 font-semibold text-white">
                     {{ strtoupper($tenant?->name ?? 'NEX ISP PLATFORM') }}<br>
                     <span class="text-sm">TimeZone : {{ $timezone }}<br>Sisa Masa Aktif : Unlimited</span>
                 </div>
