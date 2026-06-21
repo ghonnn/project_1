@@ -13,14 +13,12 @@ use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
-use App\Models\Tenant;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\HtmlString;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 class AdminPanelProvider extends PanelProvider
@@ -31,9 +29,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->brandName('NEX ISP PLATFORM')
-            ->brandLogo(fn (): string => self::brandLogo())
-            ->brandLogoHeight('46px')
+            ->brandName('NEX ISP Platform')
             ->login()
             ->colors([
                 'primary' => Color::Violet,
@@ -75,10 +71,12 @@ class AdminPanelProvider extends PanelProvider
                             padding-inline: 14px !important;
                         }
 
-                        .fi-sidebar-header img {
-                            max-height: 46px !important;
-                            max-width: 200px !important;
-                            object-fit: contain;
+                        .fi-sidebar-header .fi-logo {
+                            color: #e5e7eb !important;
+                            font-size: 16px !important;
+                            font-weight: 800 !important;
+                            letter-spacing: 0 !important;
+                            white-space: normal !important;
                         }
 
                         .fi-main {
@@ -99,15 +97,16 @@ class AdminPanelProvider extends PanelProvider
                         .nex-topbar-brand {
                             display: flex;
                             align-items: center;
-                            gap: 28px;
-                            min-width: 340px;
+                            gap: 24px;
+                            min-width: 430px;
                             padding-left: 8px;
                         }
 
-                        .nex-topbar-brand img {
-                            width: 72px;
-                            height: 40px;
-                            object-fit: contain;
+                        .nex-brand-text {
+                            color: #f8fafc;
+                            font-size: 15px;
+                            font-weight: 800;
+                            white-space: nowrap;
                         }
 
                         .nex-server-time {
@@ -164,33 +163,13 @@ class AdminPanelProvider extends PanelProvider
             ]);
     }
 
-    private static function brandLogo(): string
-    {
-        $path = Tenant::query()->whereNotNull('logo_path')->value('logo_path');
-
-        if ($path) {
-            return Storage::disk('public')->url($path);
-        }
-
-        return 'data:image/svg+xml;base64,'.base64_encode(<<<'SVG'
-            <svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-                <rect width="200" height="200" rx="28" fill="#0f172a"/>
-                <circle cx="100" cy="62" r="31" fill="#0ea5e9"/>
-                <path d="M51 68c20-24 45 25 69 0 12-12 22-14 32-9" fill="none" stroke="#fff" stroke-width="10" stroke-linecap="round"/>
-                <text x="100" y="123" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="700" fill="#fff">NEX ISP</text>
-                <text x="100" y="149" text-anchor="middle" font-family="Arial, sans-serif" font-size="17" font-weight="700" fill="#38bdf8">PLATFORM</text>
-            </svg>
-        SVG);
-    }
-
     private static function topbarBrand(): string
     {
-        $logo = e(self::brandLogo());
-        $time = now('Asia/Jakarta')->format('d/m/Y H:i:s').' WIB';
+        $time = e(now('Asia/Jakarta')->format('d/m/Y H:i:s').' WIB');
 
         return <<<HTML
             <div class="nex-topbar-brand">
-                <img src="{$logo}" alt="NEX ISP PLATFORM">
+                <div class="nex-brand-text">NEX ISP Platform</div>
                 <div class="nex-server-time">WAKTU SERVER : {$time}</div>
             </div>
         HTML;

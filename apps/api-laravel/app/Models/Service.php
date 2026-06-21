@@ -6,6 +6,7 @@ use App\Models\Concerns\NexModel;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
 class Service extends NexModel
@@ -53,9 +54,21 @@ class Service extends NexModel
         return $this->hasMany(ServiceRouterMapping::class);
     }
 
+    public function primaryRouterMapping(): HasOne
+    {
+        return $this->hasOne(ServiceRouterMapping::class)
+            ->where('is_primary', true)
+            ->orderByDesc('created_at');
+    }
+
     public function radiusUsers(): HasMany
     {
         return $this->hasMany(RadiusUser::class);
+    }
+
+    public function primaryRadiusUser(): HasOne
+    {
+        return $this->hasOne(RadiusUser::class)->orderByDesc('created_at');
     }
 
     public function planChanges(): HasMany

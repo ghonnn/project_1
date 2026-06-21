@@ -23,7 +23,7 @@ services:
       FREERADIUS_AUTH_PORT: 1812
       FREERADIUS_ACCT_PORT: 1813
       FREERADIUS_TEST_SECRET: testing123
-      FREERADIUS_SYNC_MODE: simulated
+      FREERADIUS_SYNC_MODE: database
       MIKROTIK_TEST_PUBLIC_IP: 103.142.202.226
     depends_on:
       - postgres
@@ -54,7 +54,7 @@ services:
     ports:
       - "8080:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@nex.local
+      PGADMIN_DEFAULT_EMAIL: admin@nexbil.id
       PGADMIN_DEFAULT_PASSWORD: password
     depends_on:
       - postgres

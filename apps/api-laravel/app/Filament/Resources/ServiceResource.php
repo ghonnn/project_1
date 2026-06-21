@@ -57,6 +57,9 @@ class ServiceResource extends Resource
                             ->live()
                             ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state): void {
                                 $set('customer_id', null);
+                                $set('provision_router_id', null);
+                                $set('provision_interface_id', null);
+                                $set('provision_radius_server_id', null);
                                 self::refreshBillingDates($set, $state, $get('billing_active_date'));
                                 self::refreshPpnFromSettings($set, $state, $get('product_id'));
                             }),
@@ -94,7 +97,15 @@ class ServiceResource extends Resource
                         Forms\Components\TextInput::make('server_name')->label('Server')->maxLength(80),
                         Forms\Components\Select::make('connection_type')
                             ->label('Kategori Koneksi')
-                            ->options(['PPP' => 'PPP', 'DHCP' => 'DHCP', 'HOTSPOT' => 'HOTSPOT']),
+                            ->options([
+                                'PPPOE' => 'PPPoE',
+                                'HOTSPOT' => 'Hotspot / WiFi Voucher',
+                                'WIFI' => 'WiFi Radius',
+                                'DHCP' => 'DHCP / IP Static',
+                                'PPP' => 'PPP Legacy',
+                            ])
+                            ->default('PPPOE')
+                            ->required(),
                         Forms\Components\TextInput::make('internet_username')->label('Username Internet')->maxLength(64),
                         Forms\Components\TextInput::make('internet_password')->label('Password Internet')->password()->revealable()->maxLength(64),
                         Forms\Components\TextInput::make('ip_address')->label('IP Address')->placeholder('Kosongkan jika dynamic')->maxLength(45),
@@ -115,7 +126,11 @@ class ServiceResource extends Resource
                             ->options(fn (Forms\Get $get) => AdminOptions::routers($get('tenant_id')))
                             ->searchable()
                             ->live()
-                            ->afterStateUpdated(fn (Forms\Set $set) => $set('provision_interface_id', null))
+                            ->afterStateUpdated(function (Forms\Set $set, ?string $state): void {
+                                $set('provision_interface_id', null);
+                                $router = $state ? Router::query()->with('primaryNasDevice')->find($state) : null;
+                                $set('provision_radius_server_id', $router?->primaryNasDevice?->radius_server_id);
+                            })
                             ->default(fn (?Service $record): ?string => $record?->routerMappings()->where('is_primary', true)->value('router_id')),
                         Forms\Components\Select::make('provision_interface_id')
                             ->label('Interface Router')
@@ -130,6 +145,16 @@ class ServiceResource extends Resource
                             ->maxValue(4094)
                             ->maxLength(4)
                             ->default(fn (?Service $record): ?int => $record?->routerMappings()->where('is_primary', true)->value('vlan_id')),
+                        Forms\Components\Select::make('provision_radius_server_id')
+                            ->label('FreeRadius Server')
+                            ->options(fn (Forms\Get $get) => AdminOptions::radiusServers($get('tenant_id')))
+                            ->searchable()
+                            ->helperText('Dipakai untuk membuat NAS client dan sinkron akun PPPoE/Hotspot pelanggan.')
+                            ->default(function (?Service $record): ?string {
+                                $mapping = $record?->routerMappings()->where('is_primary', true)->with('router.primaryNasDevice')->first();
+
+                                return $mapping?->router?->primaryNasDevice?->radius_server_id;
+                            }),
                         Forms\Components\Toggle::make('provision_create_invoice')
                             ->label('Buat invoice awal')
                             ->default(fn (?Service $record): bool => ! $record?->exists),
@@ -205,10 +230,20 @@ class ServiceResource extends Resource
                 Tables\Columns\TextColumn::make('billing_cycle')->label('SIKLUS')->searchable(),
                 Tables\Columns\TextColumn::make('billing_active_date')->label('TGL AKTIF')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('billing_isolation_date')->label('TGL ISOLIR')->date('d/m/Y')->sortable(),
+                Tables\Columns\TextColumn::make('primaryRouterMapping.router.router_name')->label('ROUTER')->searchable()->toggleable(),
                 Tables\Columns\TextColumn::make('internet_username')->label('USERNAME')->searchable(),
                 Tables\Columns\TextColumn::make('internet_password')
                     ->label('PASSWORD')
                     ->formatStateUsing(fn (?string $state): string => $state ? str_repeat('*', min(strlen($state), 10)) : '-'),
+                Tables\Columns\TextColumn::make('primaryRadiusUser.status')
+                    ->label('RADIUS')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'active' => 'success',
+                        'pending' => 'warning',
+                        'suspended' => 'danger',
+                        default => 'gray',
+                    }),
                 Tables\Columns\TextColumn::make('status')->badge()->color(fn (string $state): string => match ($state) {
                     'active' => 'success',
                     'requested' => 'info',

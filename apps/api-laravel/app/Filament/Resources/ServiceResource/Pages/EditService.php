@@ -54,6 +54,7 @@ class EditService extends EditRecord
             'router_id' => $data['provision_router_id'] ?? null,
             'interface_id' => $data['provision_interface_id'] ?? null,
             'vlan_id' => $data['provision_vlan_id'] ?? null,
+            'radius_server_id' => $data['provision_radius_server_id'] ?? null,
             'username' => $data['internet_username'] ?? null,
             'password' => $data['internet_password'] ?? null,
             'create_invoice' => (bool) ($data['provision_create_invoice'] ?? false),

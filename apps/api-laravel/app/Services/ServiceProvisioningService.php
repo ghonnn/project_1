@@ -6,6 +6,7 @@ use App\Models\CustomerRouterMapping;
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
 use App\Models\RadiusProfile;
+use App\Models\RadiusServer;
 use App\Models\RadiusUser;
 use App\Models\Router;
 use App\Models\RouterInterface;
@@ -17,7 +18,10 @@ use Illuminate\Validation\ValidationException;
 
 class ServiceProvisioningService
 {
-    public function __construct(private readonly FreeRadiusService $freeRadius) {}
+    public function __construct(
+        private readonly FreeRadiusService $freeRadius,
+        private readonly RouterProvisioningService $routerProvisioning,
+    ) {}
 
     /**
      * @param array<string, mixed> $data
@@ -25,7 +29,7 @@ class ServiceProvisioningService
      */
     public function provision(Service $service, array $data): array
     {
-        $service->loadMissing(['customer', 'product', 'addons']);
+        $service->loadMissing(['customer', 'product', 'serviceCategory', 'addons']);
 
         if (! $service->product) {
             throw ValidationException::withMessages([
@@ -37,6 +41,19 @@ class ServiceProvisioningService
             $router = Router::query()
                 ->where('tenant_id', $service->tenant_id)
                 ->findOrFail($data['router_id']);
+
+            $radiusServer = ($data['radius_server_id'] ?? null)
+                ? RadiusServer::query()
+                    ->where('tenant_id', $service->tenant_id)
+                    ->where('status', 'active')
+                    ->findOrFail($data['radius_server_id'])
+                : $this->routerProvisioning->radiusServerForRouter($router);
+
+            if ($this->requiresRadius($service) && ! $radiusServer) {
+                throw ValidationException::withMessages([
+                    'provision_radius_server_id' => ['Radius server aktif wajib dipilih untuk layanan PPPoE/Hotspot/WiFi.'],
+                ]);
+            }
 
             $interfaceId = $data['interface_id'] ?? null;
             if ($interfaceId) {
@@ -66,6 +83,10 @@ class ServiceProvisioningService
                 'customer_id' => $service->customer_id,
                 'router_id' => $router->id,
             ]);
+
+            $nasDevice = $radiusServer
+                ? $this->routerProvisioning->ensureNasDevice($router, $radiusServer, $router->radius_secret)
+                : null;
 
             $username = trim((string) ($data['username'] ?: $service->internet_username ?: $service->cid));
             $password = trim((string) ($data['password'] ?: $service->internet_password ?: $this->defaultPassword()));
@@ -112,6 +133,7 @@ class ServiceProvisioningService
                 'mapping' => $mapping,
                 'radius_user' => $radiusUser->fresh(),
                 'radius_sync_log' => $syncLog,
+                'nas_device' => $nasDevice,
                 'invoice' => $invoice?->fresh('items'),
             ];
         });
@@ -187,5 +209,13 @@ class ServiceProvisioningService
     private function defaultPassword(): string
     {
         return strtoupper(substr(bin2hex(random_bytes(4)), 0, 8));
+    }
+
+    private function requiresRadius(Service $service): bool
+    {
+        $connectionType = strtoupper((string) $service->connection_type);
+
+        return (bool) $service->serviceCategory?->requires_radius
+            || in_array($connectionType, ['PPP', 'PPPOE', 'HOTSPOT', 'WIFI'], true);
     }
 }

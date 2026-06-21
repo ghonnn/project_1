@@ -39,11 +39,20 @@ class ProductResource extends Resource
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('service_category_id')->options(fn () => AdminOptions::serviceCategories())->searchable(),
                 Forms\Components\TextInput::make('name')->label('Nama profile')->required()->maxLength(80),
-                Forms\Components\TextInput::make('sku')->label('Kode profile')->required()->maxLength(50),
+                Forms\Components\TextInput::make('sku')
+                    ->label('Kode profile')
+                    ->required()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, mixed $state): void {
+                        if (blank($get('mikrotik_group')) || in_array($get('mikrotik_group'), ['RLRADIUS', 'NEX-PROFILE'], true)) {
+                            $set('mikrotik_group', self::radiusGroupName((string) $state));
+                        }
+                    })
+                    ->maxLength(50),
                 Forms\Components\TextInput::make('mikrotik_group')
                     ->label('Mikrotik group')
-                    ->default('RLRADIUS')
-                    ->helperText('Harus sama dengan nama profile di mikrotik')
+                    ->default('NEX-PROFILE')
+                    ->helperText('Dipakai sebagai group FreeRadius/MikroTik. Buat unik per paket agar rate limit tidak saling menimpa.')
                     ->required()
                     ->maxLength(50),
                 Forms\Components\TextInput::make('mikrotik_rate_limit')
@@ -202,5 +211,12 @@ class ProductResource extends Resource
         }
 
         return (float) str_replace('.', '', $value);
+    }
+
+    private static function radiusGroupName(string $value): string
+    {
+        $value = strtoupper(preg_replace('/[^A-Za-z0-9_-]+/', '-', trim($value)) ?: 'NEX-PROFILE');
+
+        return substr($value, 0, 50);
     }
 }

@@ -6,7 +6,9 @@ use App\Filament\Resources\RadiusServerResource\Pages;
 use App\Filament\Resources\RadiusServerResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
 use App\Models\RadiusServer;
+use App\Services\FreeRadiusService;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -76,6 +78,19 @@ class RadiusServerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('test')
+                    ->label('Test')
+                    ->icon('heroicon-o-signal')
+                    ->color('info')
+                    ->action(function (RadiusServer $record): void {
+                        $result = app(FreeRadiusService::class)->testServerConnection($record);
+
+                        Notification::make()
+                            ->title('Test Radius selesai')
+                            ->body($result['message'])
+                            ->color($result['status'] === 'failed' ? 'danger' : 'warning')
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

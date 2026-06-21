@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\Concerns\NexModel;
 use App\Models\Traits\BelongsToTenant;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Router extends NexModel
 {
@@ -26,5 +27,17 @@ class Router extends NexModel
     public function radiusUsers(): HasMany
     {
         return $this->hasMany(RadiusUser::class);
+    }
+
+    public function nasDevices(): HasMany
+    {
+        return $this->hasMany(NasDevice::class);
+    }
+
+    public function primaryNasDevice(): HasOne
+    {
+        return $this->hasOne(NasDevice::class)
+            ->where('status', 'active')
+            ->orderByDesc('created_at');
     }
 }

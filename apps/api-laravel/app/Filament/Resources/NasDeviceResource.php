@@ -5,7 +5,9 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\NasDeviceResource\Pages;
 use App\Filament\Support\AdminOptions;
 use App\Models\NasDevice;
+use App\Services\FreeRadiusService;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -94,6 +96,19 @@ class NasDeviceResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('sync')
+                    ->label('Sync NAS')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('info')
+                    ->action(function (NasDevice $record): void {
+                        $log = app(FreeRadiusService::class)->syncNas($record);
+
+                        Notification::make()
+                            ->title($log->status === 'synced' ? 'NAS tersinkron' : 'Sync NAS belum berhasil')
+                            ->body($log->message)
+                            ->color($log->status === 'synced' ? 'success' : 'warning')
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

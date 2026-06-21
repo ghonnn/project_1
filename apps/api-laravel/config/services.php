@@ -40,7 +40,7 @@ return [
         'auth_port' => env('FREERADIUS_AUTH_PORT', 1812),
         'acct_port' => env('FREERADIUS_ACCT_PORT', 1813),
         'test_secret' => env('FREERADIUS_TEST_SECRET', 'testing123'),
-        'sync_mode' => env('FREERADIUS_SYNC_MODE', 'simulated'),
+        'sync_mode' => env('FREERADIUS_SYNC_MODE', 'database'),
     ],
 
     'mikrotik' => [

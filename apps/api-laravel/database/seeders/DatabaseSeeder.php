@@ -10,6 +10,7 @@ use App\Models\Router;
 use App\Models\ServiceCategory;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\FreeRadiusService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -102,7 +103,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        NasDevice::updateOrCreate(
+        $nasDevice = NasDevice::updateOrCreate(
             ['tenant_id' => $tenant->id, 'nas_ip_address' => '103.142.202.226'],
             [
                 'radius_server_id' => $radiusServer->id,
@@ -113,5 +114,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+
+        app(FreeRadiusService::class)->syncNas($nasDevice);
     }
 }
