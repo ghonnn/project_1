@@ -85,15 +85,6 @@ class RouterResource extends Resource
                     ->options(['draft' => 'Draft', 'active' => 'Aktif', 'maintenance' => 'Maintenance', 'inactive' => 'Non Aktif'])
                     ->default('draft')
                     ->required(),
-                Forms\Components\Placeholder::make('snmp_status_display')
-                    ->label('Status SNMP')
-                    ->content(fn (?Router $record): string => self::snmpStatusLabel($record?->snmp_status)),
-                Forms\Components\Placeholder::make('pppoe_online_display')
-                    ->label('Langganan Online (PPPoE)')
-                    ->content(fn (?Router $record): string => number_format($record?->pppoeOnlineCount() ?? 0, 0, ',', '.')),
-                Forms\Components\Placeholder::make('hotspot_online_display')
-                    ->label('Voucher Online (Hotspot)')
-                    ->content(fn (?Router $record): string => number_format($record?->hotspotOnlineCount() ?? 0, 0, ',', '.')),
                 Forms\Components\Section::make('Script MikroTik')
                     ->columns(2)
                     ->schema([
