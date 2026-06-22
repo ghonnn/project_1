@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\NasDevice;
 use App\Models\RadiusServer;
 use App\Models\Router;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 class RouterProvisioningService
 {
@@ -187,6 +189,9 @@ class RouterProvisioningService
             'disk_detail' => '-',
             'pppoe_online' => $router->pppoeOnlineCount(),
             'hotspot_online' => $router->hotspotOnlineCount(),
+            'interfaces' => $this->routerInterfaces($router),
+            'pppoe_sessions' => $this->activeRadiusSessions($router, Router::PPP_CONNECTION_TYPES),
+            'hotspot_sessions' => $this->activeRadiusSessions($router, Router::HOTSPOT_CONNECTION_TYPES),
             'updated_at' => now('Asia/Jakarta')->format('H:i:s'),
         ];
 
@@ -201,8 +206,11 @@ class RouterProvisioningService
         $uptime = $this->snmpUptime($host, $community);
         $cpuLoad = $this->snmpCpuLoad($host, $community);
         $storage = $this->snmpStorage($host, $community);
+        $interfaces = $this->snmpInterfaces($host, $community) ?: $fallback['interfaces'];
 
-        $router->update(['snmp_status' => 'reachable']);
+        if ($router->snmp_status !== 'reachable') {
+            $router->update(['snmp_status' => 'reachable']);
+        }
 
         return [
             ...$fallback,
@@ -219,6 +227,9 @@ class RouterProvisioningService
             'memory_detail' => $storage['memory_detail'],
             'disk_used_percent' => $storage['disk_percent'],
             'disk_detail' => $storage['disk_detail'],
+            'interfaces' => $interfaces,
+            'pppoe_sessions' => $this->activeRadiusSessions($router, Router::PPP_CONNECTION_TYPES),
+            'hotspot_sessions' => $this->activeRadiusSessions($router, Router::HOTSPOT_CONNECTION_TYPES),
             'updated_at' => now('Asia/Jakarta')->format('H:i:s'),
         ];
     }
@@ -457,6 +468,45 @@ class RouterProvisioningService
     }
 
     /**
+     * @return array<int, array<string, string>>
+     */
+    private function snmpInterfaces(string $host, string $community): array
+    {
+        $names = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.2.2.1.2', 900000, 1);
+        $types = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.2.2.1.3', 900000, 1);
+        $mtus = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.2.2.1.4', 900000, 1);
+        $speeds = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.2.2.1.5', 900000, 1);
+        $adminStatuses = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.2.2.1.7', 900000, 1);
+        $operStatuses = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.2.2.1.8', 900000, 1);
+
+        if (! is_array($names) || $names === []) {
+            return [];
+        }
+
+        return collect($names)
+            ->map(function (mixed $name, mixed $oid) use ($types, $mtus, $speeds, $adminStatuses, $operStatuses): array {
+                $oid = (string) $oid;
+                $index = substr($oid, strrpos($oid, '.') + 1);
+                $speed = $this->snmpIntByIndex(is_array($speeds) ? $speeds : [], $index);
+                $adminStatus = $this->snmpStatusLabel($this->snmpIntByIndex(is_array($adminStatuses) ? $adminStatuses : [], $index));
+                $operStatus = $this->snmpStatusLabel($this->snmpIntByIndex(is_array($operStatuses) ? $operStatuses : [], $index));
+
+                return [
+                    'name' => $this->cleanSnmpValue((string) $name),
+                    'type' => $this->snmpInterfaceType($this->snmpIntByIndex(is_array($types) ? $types : [], $index)),
+                    'ip_address' => '-',
+                    'vlan' => '-',
+                    'speed' => $speed > 0 ? $this->formatInterfaceSpeed($speed) : '-',
+                    'mtu' => (string) ($this->snmpIntByIndex(is_array($mtus) ? $mtus : [], $index) ?: '-'),
+                    'admin_status' => $adminStatus,
+                    'status' => $operStatus,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
      * @param array<string, mixed> $values
      */
     private function snmpIntByIndex(array $values, string $index): int
@@ -473,6 +523,46 @@ class RouterProvisioningService
     private function cleanSnmpValue(string $value): string
     {
         return trim(preg_replace('/^(STRING|INTEGER|OID|Gauge32|Counter32|Counter64):\s*/', '', $value) ?: '', '" ');
+    }
+
+    private function snmpStatusLabel(int $status): string
+    {
+        return match ($status) {
+            1 => 'UP',
+            2 => 'DOWN',
+            3 => 'TESTING',
+            default => '-',
+        };
+    }
+
+    private function snmpInterfaceType(int $type): string
+    {
+        return match ($type) {
+            6 => 'ethernet',
+            23 => 'ppp',
+            24 => 'softwareLoopback',
+            53 => 'propVirtual',
+            135 => 'l2vlan',
+            161 => 'ieee8023adLag',
+            default => $type > 0 ? 'type '.$type : '-',
+        };
+    }
+
+    private function formatInterfaceSpeed(int $bitsPerSecond): string
+    {
+        if ($bitsPerSecond >= 1000000000) {
+            return rtrim(rtrim(number_format($bitsPerSecond / 1000000000, 2), '0'), '.').' Gbps';
+        }
+
+        if ($bitsPerSecond >= 1000000) {
+            return rtrim(rtrim(number_format($bitsPerSecond / 1000000, 2), '0'), '.').' Mbps';
+        }
+
+        if ($bitsPerSecond >= 1000) {
+            return rtrim(rtrim(number_format($bitsPerSecond / 1000, 2), '0'), '.').' Kbps';
+        }
+
+        return $bitsPerSecond.' bps';
     }
 
     private function versionFromDescription(string $description): string
@@ -530,5 +620,70 @@ class RouterProvisioningService
         }
 
         return number_format($bytes, $index === 0 ? 0 : 2).' '.$units[$index];
+    }
+
+    /**
+     * @return array<int, array<string, string>>
+     */
+    private function routerInterfaces(Router $router): array
+    {
+        return $router->interfaces()
+            ->orderBy('interface_name')
+            ->get()
+            ->map(fn ($interface): array => [
+                'name' => (string) $interface->interface_name,
+                'type' => (string) ($interface->interface_type ?: '-'),
+                'ip_address' => (string) ($interface->ip_address ?: '-'),
+                'vlan' => $interface->vlan_id ? (string) $interface->vlan_id : '-',
+                'speed' => $interface->speed_mbps ? $interface->speed_mbps.' Mbps' : '-',
+                'status' => strtoupper((string) $interface->status),
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param array<int, string> $connectionTypes
+     * @return array<int, array<string, string>>
+     */
+    private function activeRadiusSessions(Router $router, array $connectionTypes): array
+    {
+        if (! Schema::hasTable('radacct')) {
+            return [];
+        }
+
+        $users = $router->radiusUsers()
+            ->with(['service.customer'])
+            ->where('status', 'active')
+            ->whereHas('service', fn ($query) => $query->whereIn(DB::raw('upper(connection_type)'), $connectionTypes))
+            ->get()
+            ->keyBy('username');
+
+        if ($users->isEmpty()) {
+            return [];
+        }
+
+        return DB::table('radacct')
+            ->whereNull('acctstoptime')
+            ->whereIn('username', $users->keys())
+            ->orderByDesc('acctstarttime')
+            ->get()
+            ->map(function ($session) use ($users): array {
+                $user = $users->get($session->username);
+                $service = $user?->service;
+                $start = $session->acctstarttime ? strtotime((string) $session->acctstarttime) : false;
+
+                return [
+                    'username' => (string) $session->username,
+                    'customer' => (string) ($service?->customer?->name ?: '-'),
+                    'cid' => (string) ($service?->cid ?: '-'),
+                    'profile' => (string) ($service?->billing_profile_name ?: '-'),
+                    'ip_address' => (string) ($session->framedipaddress ?: '-'),
+                    'nas_port' => (string) ($session->nasportid ?: '-'),
+                    'uptime' => $start ? $this->formatDuration(max(0, time() - $start)) : '-',
+                ];
+            })
+            ->values()
+            ->all();
     }
 }

@@ -8,12 +8,16 @@
     x-data="{
         endpoint: @js($endpoint),
         timer: null,
+        activeTab: 'dashboard',
         statusText: 'Loading...',
         statusState: '',
         data: {
             cpu_load: 0,
             memory_used_percent: 0,
             disk_used_percent: 0,
+            interfaces: [],
+            pppoe_sessions: [],
+            hotspot_sessions: [],
             identity: '-',
             model: '-',
             uptime: '-',
@@ -89,7 +93,17 @@
             text-transform: uppercase;
         }
 
-        #{{ $domId }} .snmp-tabs span:first-child {
+        #{{ $domId }} .snmp-tab {
+            border: 0;
+            background: transparent;
+            color: #94a3b8;
+            padding: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        #{{ $domId }} .snmp-tab:hover,
+        #{{ $domId }} .snmp-tab.is-active {
             color: #ffffff;
         }
 
@@ -214,6 +228,79 @@
             color: #f87171;
         }
 
+        #{{ $domId }} .snmp-section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        #{{ $domId }} .snmp-section-count {
+            color: #94a3b8;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        #{{ $domId }} .snmp-table-wrap {
+            overflow-x: auto;
+            border: 1px solid rgba(148, 163, 184, .2);
+            border-radius: 6px;
+        }
+
+        #{{ $domId }} .snmp-table {
+            width: 100%;
+            min-width: 820px;
+            border-collapse: collapse;
+            color: #e5e7eb;
+            font-size: 14px;
+        }
+
+        #{{ $domId }} .snmp-table th,
+        #{{ $domId }} .snmp-table td {
+            border-bottom: 1px solid rgba(148, 163, 184, .16);
+            padding: 12px 14px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        #{{ $domId }} .snmp-table th {
+            background: rgba(15, 23, 42, .35);
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        #{{ $domId }} .snmp-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        #{{ $domId }} .snmp-empty {
+            border: 1px dashed rgba(148, 163, 184, .28);
+            border-radius: 6px;
+            padding: 22px;
+            color: #cbd5e1;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        #{{ $domId }} .snmp-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, .16);
+            color: #6ee7b7;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
         @media (max-width: 980px) {
             #{{ $domId }} .snmp-gauges,
             #{{ $domId }} .snmp-info-grid {
@@ -232,10 +319,10 @@
         <div class="snmp-brand">
             <h2>MikroTik</h2>
             <div class="snmp-tabs">
-                <span>Dashboard</span>
-                <span>Interface</span>
-                <span>PPPoE</span>
-                <span>Hotspot</span>
+                <button type="button" class="snmp-tab" x-bind:class="{ 'is-active': activeTab === 'dashboard' }" x-on:click="activeTab = 'dashboard'">Dashboard</button>
+                <button type="button" class="snmp-tab" x-bind:class="{ 'is-active': activeTab === 'interface' }" x-on:click="activeTab = 'interface'">Interface</button>
+                <button type="button" class="snmp-tab" x-bind:class="{ 'is-active': activeTab === 'pppoe' }" x-on:click="activeTab = 'pppoe'">PPPoE</button>
+                <button type="button" class="snmp-tab" x-bind:class="{ 'is-active': activeTab === 'hotspot' }" x-on:click="activeTab = 'hotspot'">Hotspot</button>
             </div>
         </div>
         <div class="flex items-center gap-3">
@@ -244,7 +331,7 @@
         </div>
     </div>
 
-    <section class="snmp-panel">
+    <section class="snmp-panel" x-show="activeTab === 'dashboard'">
         <div class="snmp-gauges">
             <div class="snmp-gauge-card">
                 <div class="snmp-gauge" x-bind:style="`--value: ${Math.max(0, Math.min(100, Number(data.cpu_load || 0)))}`"><div class="snmp-gauge-value" x-text="`${Math.round(Number(data.cpu_load || 0))}%`">0%</div></div>
@@ -271,5 +358,121 @@
             <div class="snmp-info-card"><div class="snmp-info-value" x-text="data.memory_detail">-</div><div class="snmp-info-label">Memory terpakai/total</div></div>
             <div class="snmp-info-card"><div class="snmp-info-value" x-text="data.disk_detail">-</div><div class="snmp-info-label">Disk terpakai/total</div></div>
         </div>
+    </section>
+
+    <section class="snmp-panel" x-show="activeTab === 'interface'" x-cloak>
+        <div class="snmp-section-head">
+            <span>Interface Router</span>
+            <span class="snmp-section-count" x-text="`${data.interfaces?.length || 0} interface`">0 interface</span>
+        </div>
+        <template x-if="data.interfaces?.length">
+            <div class="snmp-table-wrap">
+                <table class="snmp-table">
+                    <thead>
+                        <tr>
+                            <th>Interface</th>
+                            <th>Type</th>
+                            <th>IP Address</th>
+                            <th>VLAN</th>
+                            <th>Speed</th>
+                            <th>MTU</th>
+                            <th>Admin</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in data.interfaces" x-bind:key="`${item.name}-${item.vlan}`">
+                            <tr>
+                                <td x-text="item.name || '-'">-</td>
+                                <td x-text="item.type || '-'">-</td>
+                                <td x-text="item.ip_address || '-'">-</td>
+                                <td x-text="item.vlan || '-'">-</td>
+                                <td x-text="item.speed || '-'">-</td>
+                                <td x-text="item.mtu || '-'">-</td>
+                                <td><span class="snmp-badge" x-text="item.admin_status || '-'">-</span></td>
+                                <td><span class="snmp-badge" x-text="item.status || '-'">-</span></td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+        <div class="snmp-empty" x-show="!data.interfaces?.length">Belum ada data interface router.</div>
+    </section>
+
+    <section class="snmp-panel" x-show="activeTab === 'pppoe'" x-cloak>
+        <div class="snmp-section-head">
+            <span>PPPoE Online</span>
+            <span class="snmp-section-count" x-text="`${data.pppoe_sessions?.length || 0} sesi aktif`">0 sesi aktif</span>
+        </div>
+        <template x-if="data.pppoe_sessions?.length">
+            <div class="snmp-table-wrap">
+                <table class="snmp-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Pelanggan</th>
+                            <th>CID</th>
+                            <th>Profile</th>
+                            <th>IP Address</th>
+                            <th>NAS Port</th>
+                            <th>Uptime</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in data.pppoe_sessions" x-bind:key="`${item.username}-${item.nas_port}`">
+                            <tr>
+                                <td x-text="item.username || '-'">-</td>
+                                <td x-text="item.customer || '-'">-</td>
+                                <td x-text="item.cid || '-'">-</td>
+                                <td x-text="item.profile || '-'">-</td>
+                                <td x-text="item.ip_address || '-'">-</td>
+                                <td x-text="item.nas_port || '-'">-</td>
+                                <td x-text="item.uptime || '-'">-</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+        <div class="snmp-empty" x-show="!data.pppoe_sessions?.length">Belum ada sesi PPPoE aktif dari radacct.</div>
+    </section>
+
+    <section class="snmp-panel" x-show="activeTab === 'hotspot'" x-cloak>
+        <div class="snmp-section-head">
+            <span>Hotspot Online</span>
+            <span class="snmp-section-count" x-text="`${data.hotspot_sessions?.length || 0} sesi aktif`">0 sesi aktif</span>
+        </div>
+        <template x-if="data.hotspot_sessions?.length">
+            <div class="snmp-table-wrap">
+                <table class="snmp-table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Pelanggan</th>
+                            <th>CID</th>
+                            <th>Profile</th>
+                            <th>IP Address</th>
+                            <th>NAS Port</th>
+                            <th>Uptime</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <template x-for="item in data.hotspot_sessions" x-bind:key="`${item.username}-${item.nas_port}`">
+                            <tr>
+                                <td x-text="item.username || '-'">-</td>
+                                <td x-text="item.customer || '-'">-</td>
+                                <td x-text="item.cid || '-'">-</td>
+                                <td x-text="item.profile || '-'">-</td>
+                                <td x-text="item.ip_address || '-'">-</td>
+                                <td x-text="item.nas_port || '-'">-</td>
+                                <td x-text="item.uptime || '-'">-</td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </template>
+        <div class="snmp-empty" x-show="!data.hotspot_sessions?.length">Belum ada sesi Hotspot aktif dari radacct.</div>
     </section>
 </div>

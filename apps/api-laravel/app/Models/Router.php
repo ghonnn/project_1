@@ -64,7 +64,7 @@ class Router extends NexModel
     {
         return $this->radiusUsers()
             ->where('status', 'active')
-            ->whereHas('service', fn ($query) => $query->whereIn('connection_type', $connectionTypes));
+            ->whereHas('service', fn ($query) => $query->whereIn(DB::raw('upper(connection_type)'), $connectionTypes));
     }
 
     /**
