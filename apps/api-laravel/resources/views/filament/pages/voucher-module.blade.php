@@ -27,7 +27,7 @@
                             size="sm"
                             :color="$action['color']"
                             :icon="$action['icon'] ?? null"
-                            @if ($action['modal'] ?? null) x-on:click="modal = '{{ $action['modal'] }}'" @endif
+                            x-on:click="{{ ($action['modal'] ?? null) ? "modal = '".$action['modal']."'" : '' }}"
                         >
                             {{ $action['label'] }}
                         </x-filament::button>
