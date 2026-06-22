@@ -57,33 +57,33 @@ abstract class VoucherPage extends Page
         };
     }
 
-    /** @return array<int, array{label: string, color: string, modal?: string}> */
+    /** @return array<int, array{label: string, color: string, icon?: string, modal?: string}> */
     public function toolbarActions(): array
     {
         return match ($this->pageType) {
             'profile' => [
-                ['label' => 'Menu', 'color' => '#0ea5e9', 'modal' => 'profile-menu'],
-                ['label' => 'Tambah', 'color' => '#22c55e', 'modal' => 'profile-form'],
+                ['label' => 'Menu', 'color' => 'info', 'icon' => 'heroicon-m-bars-3', 'modal' => 'profile-menu'],
+                ['label' => 'Tambah', 'color' => 'success', 'icon' => 'heroicon-m-plus', 'modal' => 'profile-form'],
             ],
             'stock' => [
-                ['label' => 'Menu', 'color' => '#0ea5e9', 'modal' => 'stock-menu'],
-                ['label' => 'Print', 'color' => '#64748b', 'modal' => 'print-voucher'],
-                ['label' => 'Buat User', 'color' => '#22c55e', 'modal' => 'create-user'],
-                ['label' => 'Buat Voucher', 'color' => '#0ea5e9', 'modal' => 'create-user'],
-                ['label' => 'Outlet', 'color' => '#64748b', 'modal' => 'outlet'],
-                ['label' => 'Setting', 'color' => '#ef4444', 'modal' => 'hotspot-setting'],
-                ['label' => 'Import', 'color' => '#0ea5e9', 'modal' => 'import-voucher'],
-                ['label' => 'Export', 'color' => '#22c55e', 'modal' => 'export-voucher'],
+                ['label' => 'Menu', 'color' => 'info', 'icon' => 'heroicon-m-bars-3', 'modal' => 'stock-menu'],
+                ['label' => 'Print', 'color' => 'gray', 'icon' => 'heroicon-m-printer', 'modal' => 'print-voucher'],
+                ['label' => 'Buat User', 'color' => 'success', 'icon' => 'heroicon-m-user-plus', 'modal' => 'create-user'],
+                ['label' => 'Buat Voucher', 'color' => 'info', 'icon' => 'heroicon-m-ticket', 'modal' => 'create-user'],
+                ['label' => 'Outlet', 'color' => 'gray', 'icon' => 'heroicon-m-building-storefront', 'modal' => 'outlet'],
+                ['label' => 'Setting', 'color' => 'danger', 'icon' => 'heroicon-m-cog-6-tooth', 'modal' => 'hotspot-setting'],
+                ['label' => 'Import', 'color' => 'info', 'icon' => 'heroicon-m-arrow-down-tray', 'modal' => 'import-voucher'],
+                ['label' => 'Export', 'color' => 'success', 'icon' => 'heroicon-m-arrow-up-tray', 'modal' => 'export-voucher'],
             ],
             'sold' => [
-                ['label' => 'Menu', 'color' => '#0ea5e9', 'modal' => 'sold-menu'],
-                ['label' => 'Export', 'color' => '#06b6d4', 'modal' => 'export-data'],
-                ['label' => 'Rekapitulasi', 'color' => '#22c55e', 'modal' => 'recap-sale'],
-                ['label' => 'Hapus Expired', 'color' => '#ef4444', 'modal' => 'delete-expired'],
+                ['label' => 'Menu', 'color' => 'info', 'icon' => 'heroicon-m-bars-3', 'modal' => 'sold-menu'],
+                ['label' => 'Export', 'color' => 'info', 'icon' => 'heroicon-m-arrow-up-tray', 'modal' => 'export-data'],
+                ['label' => 'Rekapitulasi', 'color' => 'success', 'icon' => 'heroicon-m-document-chart-bar', 'modal' => 'recap-sale'],
+                ['label' => 'Hapus Expired', 'color' => 'danger', 'icon' => 'heroicon-m-trash', 'modal' => 'delete-expired'],
             ],
             default => [
-                ['label' => 'Menu', 'color' => '#0ea5e9'],
-                ['label' => 'Export', 'color' => '#22c55e'],
+                ['label' => 'Menu', 'color' => 'info', 'icon' => 'heroicon-m-bars-3'],
+                ['label' => 'Export', 'color' => 'success', 'icon' => 'heroicon-m-arrow-up-tray'],
             ],
         };
     }
