@@ -152,11 +152,74 @@ class RouterProvisioningService
             ];
         }
 
-        $router->update(['snmp_status' => 'reachable']);
+        if ($router->snmp_status !== 'reachable') {
+            $router->update(['snmp_status' => 'reachable']);
+        }
 
         return [
             'status' => 'reachable',
             'message' => 'SNMP reachable: '.trim((string) $sysName, '"'),
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function liveSnmpSnapshot(Router $router): array
+    {
+        $config = self::mergeDefaultSnmpProfile($router->snmp_profile ?? [], $router);
+        $community = $this->config($config, 'snmp_community', 'NEXRADIUS');
+        $host = $router->management_ip ?: $router->public_ip;
+
+        $fallback = [
+            'status' => 'unreachable',
+            'identity' => $router->hostname ?: $router->router_name,
+            'model' => $router->model ?: '-',
+            'uptime' => '-',
+            'version' => '-',
+            'license' => '-',
+            'temperature' => '0C / 0V',
+            'cpu_load' => 0,
+            'cpu_detail' => '-',
+            'memory_used_percent' => 0,
+            'memory_detail' => '-',
+            'disk_used_percent' => 0,
+            'disk_detail' => '-',
+            'pppoe_online' => $router->pppoeOnlineCount(),
+            'hotspot_online' => $router->hotspotOnlineCount(),
+            'updated_at' => now('Asia/Jakarta')->format('H:i:s'),
+        ];
+
+        if (blank($host) || blank($community) || ! function_exists('snmp2_get')) {
+            return $fallback;
+        }
+
+        @snmp_set_quick_print(true);
+
+        $identity = $this->snmpString($host, $community, '1.3.6.1.2.1.1.5.0') ?: $fallback['identity'];
+        $description = $this->snmpString($host, $community, '1.3.6.1.2.1.1.1.0') ?: '';
+        $uptime = $this->snmpUptime($host, $community);
+        $cpuLoad = $this->snmpCpuLoad($host, $community);
+        $storage = $this->snmpStorage($host, $community);
+
+        $router->update(['snmp_status' => 'reachable']);
+
+        return [
+            ...$fallback,
+            'status' => 'reachable',
+            'identity' => $identity,
+            'model' => $router->model ?: $this->modelFromDescription($description),
+            'uptime' => $uptime,
+            'version' => $this->versionFromDescription($description),
+            'license' => $this->snmpString($host, $community, '1.3.6.1.4.1.14988.1.1.4.3.0') ?: '-',
+            'temperature' => $this->temperatureVoltage($host, $community),
+            'cpu_load' => $cpuLoad,
+            'cpu_detail' => $cpuLoad > 0 ? $cpuLoad.'% average' : '-',
+            'memory_used_percent' => $storage['memory_percent'],
+            'memory_detail' => $storage['memory_detail'],
+            'disk_used_percent' => $storage['disk_percent'],
+            'disk_detail' => $storage['disk_detail'],
+            'updated_at' => now('Asia/Jakarta')->format('H:i:s'),
         ];
     }
 
@@ -297,5 +360,175 @@ class RouterProvisioningService
         }
 
         return (string) ($router->public_ip ?: $router->management_ip);
+    }
+
+    private function snmpString(string $host, string $community, string $oid): ?string
+    {
+        $value = @snmp2_get($host, $community, $oid, 900000, 1);
+
+        if ($value === false) {
+            return null;
+        }
+
+        return trim(preg_replace('/^(STRING|INTEGER|OID|Gauge32|Counter32|Counter64):\s*/', '', (string) $value) ?: '', '" ');
+    }
+
+    private function snmpUptime(string $host, string $community): string
+    {
+        $value = (string) (@snmp2_get($host, $community, '1.3.6.1.2.1.1.3.0', 900000, 1) ?: '');
+
+        if (preg_match('/\((\d+)\)/', $value, $matches)) {
+            $seconds = (int) floor(((int) $matches[1]) / 100);
+
+            return $this->formatDuration($seconds);
+        }
+
+        return trim(str_replace('Timeticks:', '', $value)) ?: '-';
+    }
+
+    private function snmpCpuLoad(string $host, string $community): int
+    {
+        $values = @snmp2_walk($host, $community, '1.3.6.1.2.1.25.3.3.1.2', 900000, 1);
+
+        if (! is_array($values) || $values === []) {
+            return (int) ($this->snmpString($host, $community, '1.3.6.1.4.1.14988.1.1.3.14.0') ?: 0);
+        }
+
+        $loads = collect($values)
+            ->map(fn (mixed $value): int => (int) preg_replace('/\D+/', '', (string) $value))
+            ->filter(fn (int $value): bool => $value >= 0 && $value <= 100);
+
+        return $loads->isEmpty() ? 0 : (int) round($loads->avg());
+    }
+
+    /**
+     * @return array{memory_percent:int,memory_detail:string,disk_percent:int,disk_detail:string}
+     */
+    private function snmpStorage(string $host, string $community): array
+    {
+        $descriptions = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.25.2.3.1.3', 900000, 1);
+        $units = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.25.2.3.1.4', 900000, 1);
+        $sizes = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.25.2.3.1.5', 900000, 1);
+        $used = @snmp2_real_walk($host, $community, '1.3.6.1.2.1.25.2.3.1.6', 900000, 1);
+
+        $memory = ['percent' => 0, 'detail' => '-'];
+        $disk = ['percent' => 0, 'detail' => '-'];
+
+        if (! is_array($descriptions) || ! is_array($units) || ! is_array($sizes) || ! is_array($used)) {
+            return [
+                'memory_percent' => 0,
+                'memory_detail' => '-',
+                'disk_percent' => 0,
+                'disk_detail' => '-',
+            ];
+        }
+
+        foreach ($descriptions as $oid => $description) {
+            $index = substr((string) $oid, strrpos((string) $oid, '.') + 1);
+            $label = strtolower($this->cleanSnmpValue((string) $description));
+            $unit = $this->snmpIntByIndex($units, $index);
+            $size = $this->snmpIntByIndex($sizes, $index);
+            $usedValue = $this->snmpIntByIndex($used, $index);
+
+            if ($unit <= 0 || $size <= 0) {
+                continue;
+            }
+
+            $totalBytes = $size * $unit;
+            $usedBytes = $usedValue * $unit;
+            $percent = (int) min(100, round(($usedBytes / max(1, $totalBytes)) * 100));
+            $detail = $this->formatBytes($usedBytes).' / '.$this->formatBytes($totalBytes);
+
+            if ($memory['percent'] === 0 && str_contains($label, 'memory')) {
+                $memory = ['percent' => $percent, 'detail' => $detail];
+            }
+
+            if ($disk['percent'] === 0 && (str_contains($label, 'disk') || str_contains($label, 'flash') || str_contains($label, 'storage'))) {
+                $disk = ['percent' => $percent, 'detail' => $detail];
+            }
+        }
+
+        return [
+            'memory_percent' => $memory['percent'],
+            'memory_detail' => $memory['detail'],
+            'disk_percent' => $disk['percent'],
+            'disk_detail' => $disk['detail'],
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $values
+     */
+    private function snmpIntByIndex(array $values, string $index): int
+    {
+        foreach ($values as $oid => $value) {
+            if (str_ends_with((string) $oid, '.'.$index)) {
+                return (int) preg_replace('/\D+/', '', (string) $value);
+            }
+        }
+
+        return 0;
+    }
+
+    private function cleanSnmpValue(string $value): string
+    {
+        return trim(preg_replace('/^(STRING|INTEGER|OID|Gauge32|Counter32|Counter64):\s*/', '', $value) ?: '', '" ');
+    }
+
+    private function versionFromDescription(string $description): string
+    {
+        if (preg_match('/RouterOS\s+([^\s]+)/i', $description, $matches)) {
+            return 'RouterOS '.$matches[1];
+        }
+
+        if (preg_match('/\b(\d+\.\d+(?:\.\d+)?)\b/', $description, $matches)) {
+            return 'RouterOS '.$matches[1];
+        }
+
+        return '-';
+    }
+
+    private function modelFromDescription(string $description): string
+    {
+        if (preg_match('/\(([^)]+)\)/', $description, $matches)) {
+            return $matches[1];
+        }
+
+        return '-';
+    }
+
+    private function temperatureVoltage(string $host, string $community): string
+    {
+        $temperature = (int) ($this->snmpString($host, $community, '1.3.6.1.4.1.14988.1.1.3.10.0') ?: 0);
+        $voltage = (int) ($this->snmpString($host, $community, '1.3.6.1.4.1.14988.1.1.3.8.0') ?: 0);
+
+        $voltageText = $voltage > 100 ? number_format($voltage / 10, 1).'V' : $voltage.'V';
+
+        return $temperature.'C / '.$voltageText;
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        $days = intdiv($seconds, 86400);
+        $seconds %= 86400;
+        $hours = intdiv($seconds, 3600);
+        $seconds %= 3600;
+        $minutes = intdiv($seconds, 60);
+        $seconds %= 60;
+
+        return sprintf('%dd:%02d:%02d:%02d', $days, $hours, $minutes, $seconds);
+    }
+
+    private function formatBytes(float $bytes): string
+    {
+        $units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+        $index = 0;
+
+        while ($bytes >= 1024 && $index < count($units) - 1) {
+            $bytes /= 1024;
+            $index++;
+        }
+
+        return number_format($bytes, $index === 0 ? 0 : 2).' '.$units[$index];
     }
 }

@@ -290,9 +290,13 @@ class RouterResource extends Resource
                     ->icon('heroicon-o-signal')
                     ->color(fn (Router $record): string => $record->snmp_status === 'reachable' ? 'success' : 'gray')
                     ->modalHeading(fn (Router $record): string => 'SNMP Monitoring - '.$record->router_name)
+                    ->modalWidth('7xl')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup')
-                    ->modalContent(fn (Router $record): HtmlString => self::snmpMonitoringContent($record)),
+                    ->modalContent(fn (Router $record) => view('filament.resources.router-resource.snmp-dashboard', [
+                        'router' => $record,
+                        'endpoint' => route('routers.snmp.live', $record),
+                    ])),
                 Tables\Actions\Action::make('test_snmp')
                     ->label('Test SNMP')
                     ->icon('heroicon-o-arrow-path')

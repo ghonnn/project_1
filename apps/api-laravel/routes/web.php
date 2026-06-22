@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\Invoice;
+use App\Http\Controllers\RouterSnmpController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -15,3 +16,7 @@ Route::get('/invoice/print/{invoice}', function (Invoice $invoice) {
         'paper' => request('paper', 'roll'),
     ]);
 })->name('invoice.print');
+
+Route::get('/admin/routers/{router}/snmp/live', [RouterSnmpController::class, 'show'])
+    ->middleware('auth')
+    ->name('routers.snmp.live');
