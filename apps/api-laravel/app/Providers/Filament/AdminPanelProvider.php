@@ -60,7 +60,7 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         html {
-                            font-size: 13px;
+                            font-size: 14px;
                         }
 
                         body,
@@ -86,14 +86,14 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-sidebar-group-label,
                         .fi-sidebar-item-label {
-                            font-size: 14px !important;
-                            line-height: 1.2 !important;
+                            font-size: 15px !important;
+                            line-height: 1.35 !important;
                             letter-spacing: 0 !important;
                         }
 
                         .fi-sidebar-group-label {
                             color: #64748b !important;
-                            font-size: 11px !important;
+                            font-size: 12px !important;
                             font-weight: 700 !important;
                             text-transform: uppercase;
                         }
@@ -104,8 +104,9 @@ class AdminPanelProvider extends PanelProvider
                         }
 
                         .fi-sidebar-item-button {
-                            min-height: 32px !important;
-                            padding-block: 4px !important;
+                            min-height: 40px !important;
+                            padding-block: 8px !important;
+                            padding-inline: 10px !important;
                             border-radius: 6px !important;
                         }
 
@@ -128,7 +129,7 @@ class AdminPanelProvider extends PanelProvider
 
                         .fi-sidebar-group,
                         .fi-sidebar-group-items {
-                            row-gap: 3px !important;
+                            row-gap: 5px !important;
                         }
 
                         .fi-sidebar-header {
@@ -292,6 +293,25 @@ class AdminPanelProvider extends PanelProvider
                             letter-spacing: 0 !important;
                         }
 
+                        .fi-btn,
+                        .fi-ac-btn-action,
+                        .fi-ta-actions .fi-link,
+                        .fi-dropdown-list-item,
+                        .nex-action-button,
+                        .nex-toolbar-button {
+                            display: inline-flex !important;
+                            align-items: center !important;
+                            justify-content: center !important;
+                            min-height: 38px !important;
+                            min-width: 92px !important;
+                            padding: 9px 14px !important;
+                            border-radius: 7px !important;
+                            font-size: 14px !important;
+                            font-weight: 700 !important;
+                            line-height: 1.1 !important;
+                            white-space: nowrap !important;
+                        }
+
                         .fi-input,
                         .fi-select-input,
                         .fi-textarea {
@@ -342,6 +362,168 @@ class AdminPanelProvider extends PanelProvider
                             border-radius: 6px !important;
                             font-weight: 600 !important;
                             box-shadow: none !important;
+                        }
+
+                        .nex-dashboard-grid {
+                            display: grid;
+                            grid-template-columns: repeat(3, minmax(0, 1fr));
+                            gap: 16px;
+                        }
+
+                        .nex-metric-card,
+                        .nex-panel-card {
+                            border: 1px solid #dbe3ef;
+                            border-radius: 10px;
+                            background: #ffffff;
+                            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+                        }
+
+                        .nex-metric-card {
+                            position: relative;
+                            overflow: hidden;
+                            padding: 18px;
+                            min-height: 138px;
+                        }
+
+                        .nex-metric-card::after {
+                            content: "";
+                            position: absolute;
+                            right: -24px;
+                            bottom: -28px;
+                            width: 120px;
+                            height: 120px;
+                            border-radius: 999px;
+                            background: var(--metric-soft, #ecfdf5);
+                        }
+
+                        .nex-metric-head,
+                        .nex-metric-body,
+                        .nex-metric-foot {
+                            position: relative;
+                            z-index: 1;
+                        }
+
+                        .nex-metric-head {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 12px;
+                        }
+
+                        .nex-metric-icon {
+                            display: inline-flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 42px;
+                            height: 42px;
+                            border-radius: 9px;
+                            background: var(--metric-soft, #ecfdf5);
+                            color: var(--metric-color, #059669);
+                        }
+
+                        .nex-metric-label {
+                            color: #64748b;
+                            font-size: 14px;
+                            font-weight: 700;
+                        }
+
+                        .nex-metric-value {
+                            margin-top: 18px;
+                            color: #0f172a;
+                            font-size: 28px;
+                            font-weight: 800;
+                            line-height: 1;
+                        }
+
+                        .nex-metric-foot {
+                            margin-top: 14px;
+                            color: #64748b;
+                            font-size: 13px;
+                            font-weight: 650;
+                        }
+
+                        .nex-panel-card {
+                            overflow: hidden;
+                        }
+
+                        .nex-panel-header {
+                            display: flex;
+                            align-items: center;
+                            justify-content: space-between;
+                            gap: 12px;
+                            padding: 16px 18px;
+                            border-bottom: 1px solid #e2e8f0;
+                        }
+
+                        .nex-panel-title {
+                            color: #0f172a;
+                            font-size: 15px;
+                            font-weight: 800;
+                        }
+
+                        .nex-panel-subtitle {
+                            color: #64748b;
+                            font-size: 13px;
+                            font-weight: 600;
+                        }
+
+                        .nex-progress-row {
+                            display: grid;
+                            gap: 8px;
+                        }
+
+                        .nex-progress-label {
+                            display: flex;
+                            justify-content: space-between;
+                            gap: 12px;
+                            color: #334155;
+                            font-size: 14px;
+                            font-weight: 700;
+                        }
+
+                        .nex-progress-track {
+                            height: 9px;
+                            overflow: hidden;
+                            border-radius: 999px;
+                            background: #e2e8f0;
+                        }
+
+                        .nex-progress-fill {
+                            height: 100%;
+                            border-radius: inherit;
+                            background: var(--progress-color, #059669);
+                        }
+
+                        .nex-finance-card,
+                        .nex-finance-table {
+                            border: 1px solid #dbe3ef;
+                            border-radius: 10px;
+                            background: #ffffff;
+                            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.04);
+                        }
+
+                        .nex-finance-table table {
+                            border-collapse: separate;
+                            border-spacing: 0;
+                        }
+
+                        .nex-finance-table th,
+                        .nex-finance-table td {
+                            border-bottom: 1px solid #e2e8f0;
+                            color: #0f172a;
+                            font-size: 14px;
+                        }
+
+                        @media (max-width: 1180px) {
+                            .nex-dashboard-grid {
+                                grid-template-columns: repeat(2, minmax(0, 1fr));
+                            }
+                        }
+
+                        @media (max-width: 760px) {
+                            .nex-dashboard-grid {
+                                grid-template-columns: 1fr;
+                            }
                         }
 
                         .fi-badge {
@@ -543,9 +725,9 @@ class AdminPanelProvider extends PanelProvider
                         .fi-sidebar { border-right: 1px solid var(--nex-border) !important; }
                         .fi-sidebar-header { border-bottom: 1px solid var(--nex-border) !important; }
                         .fi-sidebar-header .fi-logo { color: #0f172a !important; font-size: 16px !important; font-weight: 800 !important; }
-                        .fi-sidebar-item-label, .fi-sidebar-item-icon { color: #334155 !important; font-size: 14px !important; }
+                        .fi-sidebar-item-label, .fi-sidebar-item-icon { color: #334155 !important; font-size: 15px !important; }
                         .fi-sidebar-group-label { color: #64748b !important; font-size: 12px !important; font-weight: 800 !important; text-transform: uppercase; }
-                        .fi-sidebar-item-button { border-radius: 6px !important; }
+                        .fi-sidebar-item-button { border-radius: 6px !important; min-height: 40px !important; padding-block: 8px !important; padding-inline: 10px !important; }
                         .fi-sidebar-item-button:hover, .fi-sidebar-item-active > .fi-sidebar-item-button, .fi-sidebar-item-button[aria-current="page"] {
                             background: var(--nex-emerald-soft) !important;
                             color: var(--nex-emerald-dark) !important;
@@ -567,7 +749,7 @@ class AdminPanelProvider extends PanelProvider
                         .fi-ta-header-cell, .fi-ta-cell { border-color: #dbe3ef !important; border-bottom-width: 1px !important; }
                         .fi-ta-row:nth-child(even) { background: #fbfdff !important; }
                         .fi-ta-row:hover { background: #f0fdf4 !important; }
-                        .fi-btn { border-radius: 6px !important; box-shadow: none !important; }
+                        .fi-btn, .nex-action-button, .nex-toolbar-button { display: inline-flex !important; align-items: center !important; justify-content: center !important; min-height: 38px !important; min-width: 92px !important; padding: 9px 14px !important; border-radius: 7px !important; box-shadow: none !important; font-size: 14px !important; font-weight: 700 !important; white-space: nowrap !important; }
                         .nex-topbar-brand { display: flex; align-items: center; gap: 24px; min-width: 430px; padding-left: 8px; }
                         .nex-app-logo { display: inline-flex; align-items: center; gap: 10px; color: #0f172a; font-size: 15px; font-weight: 800; white-space: nowrap; }
                         .nex-logo-mark { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 28px; border-radius: 6px; background: var(--nex-emerald); color: #ffffff; font-size: 11px; font-weight: 900; }

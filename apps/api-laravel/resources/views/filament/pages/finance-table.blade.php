@@ -13,25 +13,25 @@
                         ];
                         $color = $colors[$stat['color']] ?? '#0ea5e9';
                     @endphp
-                    <div class="flex items-center gap-4 border border-slate-700 bg-slate-900/70 p-4">
-                        <div class="flex h-16 w-16 items-center justify-center text-white" style="background: {{ $color }}">
-                            <x-dynamic-component :component="$stat['icon']" class="h-9 w-9" />
+                    <div class="nex-finance-card flex items-center gap-4 p-4">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-lg text-white" style="background: {{ $color }}">
+                            <x-dynamic-component :component="$stat['icon']" class="h-7 w-7" />
                         </div>
                         <div>
-                            <div class="text-xs font-semibold uppercase text-slate-400">{{ $stat['label'] }}</div>
-                            <div class="mt-2 text-xl font-semibold text-white">{{ $stat['value'] }}</div>
+                            <div class="text-sm font-bold text-slate-500">{{ $stat['label'] }}</div>
+                            <div class="mt-2 text-2xl font-bold text-slate-950">{{ $stat['value'] }}</div>
                         </div>
                     </div>
                 @endforeach
             </div>
         @endif
 
-        <section class="overflow-hidden border border-slate-700 bg-slate-900/80">
-            <div class="bg-slate-700/70 px-4 py-3 text-sm font-bold uppercase text-white">
+        <section class="nex-finance-table overflow-hidden">
+            <div class="border-b border-slate-200 bg-white px-5 py-4 text-base font-bold text-slate-950">
                 {{ $this->tableTitle() }}
             </div>
 
-            <div class="space-y-3 p-4">
+            <div class="space-y-4 p-5">
                 @if (count($this->toolbarActions()))
                     <div class="flex flex-wrap gap-2">
                         @foreach ($this->toolbarActions() as $action)
@@ -45,7 +45,7 @@
                                 ];
                                 $color = $colors[$action['color']] ?? '#0ea5e9';
                             @endphp
-                            <button type="button" class="rounded px-3 py-1.5 text-xs font-bold uppercase text-white" style="background: {{ $color }}">
+                            <button type="button" class="nex-toolbar-button text-white" style="background: {{ $color }}">
                                 {{ $action['label'] }}
                             </button>
                         @endforeach
@@ -53,17 +53,17 @@
                 @endif
 
                 <div class="flex flex-wrap gap-2">
-                    <select class="rounded border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-200">
+                    <select class="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-700">
                         <option>10</option>
                         <option>25</option>
                         <option>50</option>
                     </select>
-                    <input class="min-w-64 flex-1 rounded border-slate-700 bg-slate-800 px-3 py-1.5 text-xs text-slate-200" placeholder="Search..." />
+                    <input class="h-10 min-w-64 flex-1 rounded-md border border-slate-300 bg-white px-3 text-sm text-slate-700" placeholder="Search..." />
                 </div>
 
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[1100px] text-left text-xs text-slate-300">
-                        <thead class="border-y border-slate-700 uppercase text-slate-200">
+                    <table class="w-full min-w-[1100px] text-left">
+                        <thead class="bg-slate-50 text-slate-600">
                             <tr>
                                 <th class="w-8 px-3 py-3"><input type="checkbox" /></th>
                                 @foreach ($this->columns() as $column)
@@ -73,7 +73,7 @@
                         </thead>
                         <tbody>
                             @forelse ($this->rows() as $row)
-                                <tr class="border-b border-slate-800">
+                                <tr class="hover:bg-emerald-50/60">
                                     <td class="px-3 py-3"><input type="checkbox" /></td>
                                     @foreach ($row as $cell)
                                         <td class="whitespace-nowrap px-3 py-3">{{ $cell }}</td>
@@ -81,7 +81,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="{{ count($this->columns()) + 1 }}" class="px-3 py-8 text-center text-slate-400">
+                                    <td colspan="{{ count($this->columns()) + 1 }}" class="px-3 py-10 text-center font-medium text-slate-500">
                                         {{ $this->emptyText() }}
                                     </td>
                                 </tr>
@@ -90,12 +90,12 @@
                     </table>
                 </div>
 
-                <div class="flex items-center justify-between text-xs text-slate-400">
+                <div class="flex items-center justify-between text-sm font-medium text-slate-500">
                     <span>Showing {{ count($this->rows()) ? '1 to '.count($this->rows()) : '0 to 0' }} of {{ count($this->rows()) }} entries</span>
                     <div class="flex gap-1">
-                        <button class="rounded border border-slate-700 px-3 py-1">Previous</button>
-                        <button class="rounded bg-primary-600 px-3 py-1 text-white">1</button>
-                        <button class="rounded border border-slate-700 px-3 py-1">Next</button>
+                        <button class="nex-action-button min-w-0 border border-slate-300 bg-white text-slate-700">Previous</button>
+                        <button class="nex-action-button min-w-0 bg-emerald-600 text-white">1</button>
+                        <button class="nex-action-button min-w-0 border border-slate-300 bg-white text-slate-700">Next</button>
                     </div>
                 </div>
             </div>
