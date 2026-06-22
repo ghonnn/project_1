@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RouterResource\Pages;
 use App\Filament\Resources\RouterResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
-use App\Models\RadiusServer;
 use App\Models\Router;
 use App\Services\RouterProvisioningService;
 use Filament\Forms;
@@ -161,6 +160,21 @@ class RouterResource extends Resource
         };
     }
 
+    private static function routerOperationalStatus(Router $record): string
+    {
+        if ($record->status === 'inactive') {
+            return 'Inactive';
+        }
+
+        if ($record->status === 'maintenance') {
+            return 'Maintenance';
+        }
+
+        return $record->primaryNasDevice !== null
+            ? 'Active / Radius Terhubung'
+            : 'Active / Radius Belum';
+    }
+
     private static function scriptProfileInput(
         string $key,
         string $label,
@@ -194,7 +208,13 @@ class RouterResource extends Resource
         return $table
             ->heading('Router dan Server')
             ->columns([
-                Tables\Columns\TextColumn::make('router_name')->label('Nama Router')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('router_name')
+                    ->label('Nama Router')
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Router $record): string => static::getUrl('edit', ['record' => $record]))
+                    ->color('primary')
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('connection_type')
                     ->label('Tipe Koneksi')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
@@ -228,7 +248,6 @@ class RouterResource extends Resource
                     ->alignCenter()
                     ->color('info')
                     ->weight('bold'),
-                Tables\Columns\TextColumn::make('script_download')->label('Script')->state('Download')->badge()->color('info'),
                 Tables\Columns\TextColumn::make('snmp_status')
                     ->label('SNMP Monitoring')
                     ->formatStateUsing(fn (?string $state): string => self::snmpStatusLabel($state))
@@ -238,53 +257,21 @@ class RouterResource extends Resource
                         'unreachable' => 'danger',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('status')->label('Status')->badge()->color(fn (string $state): string => match ($state) {
-                    'active' => 'success',
-                    'maintenance' => 'warning',
-                    'inactive' => 'danger',
-                    default => 'gray',
-                }),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->state(fn (Router $record): string => self::routerOperationalStatus($record))
+                    ->badge()
+                    ->color(fn (Router $record): string => match (true) {
+                        $record->status === 'inactive' => 'danger',
+                        $record->status === 'maintenance' => 'warning',
+                        $record->primaryNasDevice !== null => 'success',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\Action::make('connect_radius')
-                    ->label('Hubungkan Radius')
-                    ->icon('heroicon-o-link')
-                    ->color('success')
-                    ->modalHeading(fn (Router $record): string => 'Hubungkan Radius - '.$record->router_name)
-                    ->form([
-                        Forms\Components\Select::make('radius_server_id')
-                            ->label('FreeRadius Server')
-                            ->options(fn (Router $record): array => AdminOptions::radiusServers($record->tenant_id))
-                            ->default(fn (Router $record): ?string => $record->primaryNasDevice?->radius_server_id)
-                            ->searchable()
-                            ->required(),
-                        Forms\Components\TextInput::make('secret')
-                            ->label('NAS Secret')
-                            ->password()
-                            ->revealable()
-                            ->default(fn (Router $record): ?string => $record->radius_secret ?: $record->primaryNasDevice?->secret)
-                            ->helperText('Harus sama dengan secret di menu /radius MikroTik.')
-                            ->required()
-                            ->maxLength(80),
-                    ])
-                    ->action(function (Router $record, array $data): void {
-                        $server = RadiusServer::query()
-                            ->where('tenant_id', $record->tenant_id)
-                            ->where('status', 'active')
-                            ->findOrFail($data['radius_server_id']);
-
-                        app(RouterProvisioningService::class)->ensureNasDevice($record, $server, $data['secret']);
-
-                        Notification::make()
-                            ->title('Router terhubung ke FreeRadius')
-                            ->body('NAS client dibuat/diupdate dan siap dipakai oleh PPPoE/Hotspot.')
-                            ->success()
-                            ->send();
-                    }),
                 Tables\Actions\Action::make('snmp_monitoring')
                     ->label('SNMP')
                     ->icon('heroicon-o-signal')
@@ -313,15 +300,6 @@ class RouterResource extends Resource
                             ->body($result['message'])
                             ->color($result['status'] === 'reachable' ? 'success' : 'warning')
                             ->send();
-                    }),
-                Tables\Actions\Action::make('download_script')
-                    ->label('Download Script')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('info')
-                    ->action(function (Router $record) {
-                        $script = app(RouterProvisioningService::class)->buildRouterScript($record);
-
-                        return response()->streamDownload(fn () => print($script), $record->hostname.'-script.rsc');
                     }),
             ])
             ->bulkActions([
