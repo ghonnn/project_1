@@ -93,7 +93,7 @@ class RouterResource extends Resource
                         self::scriptProfileInput('time_zone', 'Time Zone', 50),
                         self::scriptProfileInput('dns_servers', 'DNS Server', 120),
                         self::scriptProfileInput('ntp_servers', 'NTP Server', 120),
-                        self::scriptProfileInput('radius_src_address', 'Radius Src Address', 45),
+                        self::scriptProfileInput('radius_src_address', 'Radius Src Address', 45, false, 'Isi IP source/NAS yang muncul di log MikroTik, contoh 10.142.10.50'),
                         self::scriptProfileInput('radius_incoming_port', 'Radius Incoming Port', 5, true),
                         self::scriptProfileInput('radius_timeout', 'Radius Timeout', 8, false, '3s'),
                         self::scriptProfileInput('pool_name', 'Nama IP Pool', 50),

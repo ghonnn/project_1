@@ -18,7 +18,10 @@ class RouterProvisioningService
     {
         $publicIp = (string) ($routerData['public_ip'] ?? $router?->public_ip ?? '');
         $managementIp = (string) ($routerData['management_ip'] ?? $router?->management_ip ?? '');
-        $routerIp = $publicIp !== '' ? $publicIp : $managementIp;
+        $connectionType = (string) ($routerData['connection_type'] ?? $router?->connection_type ?? 'ip_public');
+        $routerIp = $connectionType === 'vpn_radius'
+            ? $managementIp
+            : ($publicIp !== '' ? $publicIp : $managementIp);
 
         return [
             'snmp_community' => 'NEXRADIUS',
@@ -82,6 +85,7 @@ class RouterProvisioningService
     public function ensureNasDevice(Router $router, RadiusServer $server, ?string $secret = null): NasDevice
     {
         $secret = trim((string) ($secret ?: $router->radius_secret ?: $server->shared_secret));
+        $nasIpAddress = self::radiusNasAddress($router);
 
         $device = NasDevice::query()->updateOrCreate(
             [
@@ -91,7 +95,7 @@ class RouterProvisioningService
             [
                 'radius_server_id' => $server->id,
                 'hostname' => $router->hostname,
-                'nas_ip_address' => $router->public_ip ?: $router->management_ip,
+                'nas_ip_address' => $nasIpAddress,
                 'vendor_type' => $router->vendor ?: 'MikroTik',
                 'secret' => $secret,
                 'status' => 'active',
@@ -166,7 +170,7 @@ class RouterProvisioningService
         $timeZone = $this->config($config, 'time_zone', 'Asia/Jakarta');
         $dnsServers = $this->config($config, 'dns_servers', '8.8.8.8,1.1.1.1');
         $ntpServers = $this->config($config, 'ntp_servers', '162.159.200.1,162.159.200.123');
-        $radiusSrcAddress = $this->config($config, 'radius_src_address', $router->public_ip ?: $router->management_ip);
+        $radiusSrcAddress = $this->config($config, 'radius_src_address', self::radiusNasAddress($router));
         $incomingPort = $this->config($config, 'radius_incoming_port', '3799');
         $radiusTimeout = $this->config($config, 'radius_timeout', '3s');
         $poolName = $this->config($config, 'pool_name', 'NEXPOOL');
@@ -188,8 +192,9 @@ class RouterProvisioningService
         $hotspotProfile = $this->config($config, 'hotspot_profile_name', 'NEXHOTSPOT');
         $radiusSecret = $router->radius_secret ?: $server?->shared_secret;
 
+        $srcAddressOption = blank($radiusSrcAddress) ? '' : ' src-address='.$radiusSrcAddress;
         $radiusLine = $server && $radiusSecret
-            ? '/radius add address='.$server->host.' comment="NEXBIL FreeRadius" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' secret="'.$radiusSecret.'" service=ppp,login,hotspot src-address='.$radiusSrcAddress.' timeout='.$radiusTimeout
+            ? '/radius add address='.$server->host.' comment="NEXBIL FreeRadius" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' secret="'.$radiusSecret.'" service=ppp,login,hotspot'.$srcAddressOption.' timeout='.$radiusTimeout
             : '# Radius server belum terhubung. Jalankan action Hubungkan Radius di aplikasi.';
 
         $pppoeServerLines = blank($pppoeInterface) ? [
@@ -276,5 +281,21 @@ class RouterProvisioningService
         $value = $config[$key] ?? null;
 
         return blank($value) ? $default : (string) $value;
+    }
+
+    public static function radiusNasAddress(Router $router): string
+    {
+        $profile = self::mergeDefaultSnmpProfile($router->snmp_profile ?? [], $router);
+        $radiusSrcAddress = trim((string) ($profile['radius_src_address'] ?? ''));
+
+        if ($radiusSrcAddress !== '') {
+            return $radiusSrcAddress;
+        }
+
+        if ($router->connection_type === 'vpn_radius') {
+            return (string) $router->management_ip;
+        }
+
+        return (string) ($router->public_ip ?: $router->management_ip);
     }
 }
