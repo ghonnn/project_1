@@ -353,7 +353,7 @@ class FreeRadiusService
 
     private function ensureRadiusTables(): void
     {
-        foreach (['nas', 'radcheck', 'radreply', 'radusergroup', 'radgroupreply'] as $table) {
+        foreach (['nas', 'radcheck', 'radreply', 'radusergroup', 'radgroupreply', 'radpostauth'] as $table) {
             if (! Schema::hasTable($table)) {
                 throw new \RuntimeException('FreeRadius table '.$table.' is missing. Run php artisan migrate.');
             }
