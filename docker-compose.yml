@@ -28,7 +28,10 @@ services:
     depends_on:
       - postgres
       - redis
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command: >
+      sh -c "mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data bootstrap/cache
+      && chmod -R 775 storage bootstrap/cache
+      && php artisan serve --host=0.0.0.0 --port=8000"
 
   postgres:
     image: postgres:16-alpine
