@@ -295,7 +295,7 @@ class RouterResource extends Resource
                     ->modalCancelActionLabel('Tutup')
                     ->modalContent(fn (Router $record) => view('filament.resources.router-resource.snmp-dashboard', [
                         'router' => $record,
-                        'endpoint' => route('routers.snmp.live', $record),
+                        'endpoint' => route('routers.snmp.live', $record, false),
                     ])),
                 Tables\Actions\Action::make('test_snmp')
                     ->label('Test SNMP')
