@@ -95,6 +95,7 @@ class RouterResource extends Resource
                         self::scriptProfileInput('ntp_servers', 'NTP Server', 120),
                         self::scriptProfileInput('radius_src_address', 'Radius Src Address', 45),
                         self::scriptProfileInput('radius_incoming_port', 'Radius Incoming Port', 5, true),
+                        self::scriptProfileInput('radius_timeout', 'Radius Timeout', 8, false, '5s'),
                         self::scriptProfileInput('pool_name', 'Nama IP Pool', 50),
                         self::scriptProfileInput('pool_comment', 'Comment IP Pool', 120),
                         self::scriptProfileInput('pool_ranges', 'Range IP Pool', 120),

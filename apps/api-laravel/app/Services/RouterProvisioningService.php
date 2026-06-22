@@ -28,6 +28,7 @@ class RouterProvisioningService
             'ntp_servers' => '162.159.200.1,162.159.200.123',
             'radius_src_address' => $routerIp,
             'radius_incoming_port' => '3799',
+            'radius_timeout' => '5s',
             'pool_name' => 'NEXPOOL',
             'pool_comment' => 'Network : 10.200.192.0/20',
             'pool_ranges' => '10.200.192.100-10.200.207.254',
@@ -167,6 +168,7 @@ class RouterProvisioningService
         $ntpServers = $this->config($config, 'ntp_servers', '162.159.200.1,162.159.200.123');
         $radiusSrcAddress = $this->config($config, 'radius_src_address', $router->public_ip ?: $router->management_ip);
         $incomingPort = $this->config($config, 'radius_incoming_port', '3799');
+        $radiusTimeout = $this->config($config, 'radius_timeout', '5s');
         $poolName = $this->config($config, 'pool_name', 'NEXPOOL');
         $poolComment = $this->config($config, 'pool_comment', 'Network : 10.200.192.0/20');
         $poolRanges = $this->config($config, 'pool_ranges', '10.200.192.100-10.200.207.254');
@@ -187,7 +189,7 @@ class RouterProvisioningService
         $radiusSecret = $router->radius_secret ?: $server?->shared_secret;
 
         $radiusLine = $server && $radiusSecret
-            ? '/radius add address='.$server->host.' comment="NEXBIL FreeRadius" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' secret="'.$radiusSecret.'" service=ppp,login,hotspot src-address='.$radiusSrcAddress.' timeout=3s'
+            ? '/radius add address='.$server->host.' comment="NEXBIL FreeRadius" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' secret="'.$radiusSecret.'" service=ppp,login,hotspot src-address='.$radiusSrcAddress.' timeout='.$radiusTimeout
             : '# Radius server belum terhubung. Jalankan action Hubungkan Radius di aplikasi.';
 
         $pppoeServerLines = blank($pppoeInterface) ? [
@@ -230,7 +232,7 @@ class RouterProvisioningService
             '/radius',
             'remove [find]',
             $radiusLine,
-            '/radius set require-message-auth=no num=0',
+            '/radius set [find comment="NEXBIL FreeRadius"] require-message-auth=no timeout='.$radiusTimeout,
             '',
             '/ip pool',
             'remove [find name='.$poolName.']',

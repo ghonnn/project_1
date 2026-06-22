@@ -41,7 +41,8 @@ class RouterScriptTemplate extends NexModel
         return implode("\n", [
             '# NEX OSS/BSS MikroTik {{script_type}} {{os_version}} RADIUS script',
             '# Router: {{router_name}} / {{router_hostname}}',
-            '/radius add service='.$service.' address={{radius_server_ip}} secret="{{radius_secret}}" authentication-port={{auth_port}} accounting-port={{acct_port}} timeout=300ms',
+            '/radius add service='.$service.' address={{radius_server_ip}} secret="{{radius_secret}}" authentication-port={{auth_port}} accounting-port={{acct_port}} timeout=5s',
+            '/radius set [find address={{radius_server_ip}}] require-message-auth=no timeout=5s',
             $aaaLine,
             '/system identity set name="{{router_hostname}}"',
         ]);
