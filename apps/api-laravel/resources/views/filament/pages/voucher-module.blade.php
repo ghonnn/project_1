@@ -31,9 +31,13 @@
                         <x-voucher-input label="Kuota MB" model="profileForm.quota_mb" type="number" />
                         <x-voucher-input label="Durasi Menit" model="profileForm.duration_minutes" type="number" />
                         <x-voucher-input label="Masa Aktif Hari" model="profileForm.active_days" type="number" />
-                        <x-voucher-input label="HPP" model="profileForm.hpp" type="number" />
-                        <x-voucher-input label="Komisi" model="profileForm.commission" type="number" />
-                        <x-voucher-input label="Harga" model="profileForm.price" type="number" />
+                        <x-voucher-money-input label="HPP Belum PPN 11%" model="profileForm.hpp" />
+                        <x-voucher-money-input label="Komisi" model="profileForm.commission" />
+                        <x-voucher-money-input label="Harga Jual" model="profileForm.price" />
+                        <x-voucher-select label="Harga inc PPN 11%?" model="profileForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" />
+                        <div class="md:col-span-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-600/20">
+                            HPP dicatat sebelum PPN. Jika Harga inc PPN = Ya, sistem menghitung DPP = Harga / 1,11 dan PPN = Harga - DPP.
+                        </div>
                         <div class="md:col-span-4 flex justify-end">
                             <x-filament::button type="submit" icon="heroicon-m-plus" color="success">Simpan Profile</x-filament::button>
                         </div>
@@ -52,9 +56,10 @@
                         <x-voucher-input label="Batch Code" model="voucherForm.batch_code" placeholder="Auto" />
                         <x-voucher-input label="Partner" model="voucherForm.partner_name" />
                         <x-voucher-input label="Outlet/Hotel Area" model="voucherForm.outlet_name" />
-                        <x-voucher-input label="HPP" model="voucherForm.hpp" type="number" />
-                        <x-voucher-input label="Harga" model="voucherForm.price" type="number" />
-                        <x-voucher-input label="Komisi" model="voucherForm.commission" type="number" />
+                        <x-voucher-money-input label="HPP Belum PPN 11%" model="voucherForm.hpp" />
+                        <x-voucher-money-input label="Harga Jual" model="voucherForm.price" />
+                        <x-voucher-money-input label="Komisi" model="voucherForm.commission" />
+                        <x-voucher-select label="Harga inc PPN 11%?" model="voucherForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" />
                         <div class="md:col-span-3 flex flex-wrap justify-end gap-2">
                             <x-filament::button type="submit" icon="heroicon-m-ticket" color="success">Generate Voucher</x-filament::button>
                             <x-filament::button type="button" wire:click="downloadPrintHtml" icon="heroicon-m-printer" color="gray">Print HTML</x-filament::button>
@@ -103,11 +108,14 @@
                                         <td class="px-4 py-3">{{ $profile->attributes['Shared-Users'] ?? '-' }}</td>
                                         <td class="px-4 py-3">{{ $profile->attributes['Quota-MB'] ?? 'Unlimited' }}</td>
                                         <td class="px-4 py-3">{{ $profile->attributes['Duration-Minutes'] ?? '-' }} menit</td>
+                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['HPP'] ?? 0)) }}</td>
+                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['DPP'] ?? 0)) }}</td>
+                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['PPN'] ?? 0)) }}</td>
                                         <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['Price'] ?? 0)) }}</td>
                                         <td class="px-4 py-3"><span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{{ $profile->attributes['Status'] ?? 'active' }}</span></td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">Belum ada profile voucher.</td></tr>
+                                    <tr><td colspan="11" class="px-4 py-10 text-center text-gray-500">Belum ada profile voucher.</td></tr>
                                 @endforelse
                             @elseif (in_array($pageType, ['stock', 'sold'], true))
                                 @forelse ($this->voucherRows() as $voucher)
