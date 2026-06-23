@@ -20,7 +20,7 @@
 
             <p class="text-xs text-slate-500">
                 Menu ini sudah terdaftar di navigasi sebagai placeholder. Detail kebutuhan ada di
-                docs/PRD_NEX_OSS_BSS_Voucher_Mitra_NetworkOps_Addendum.md.
+                dokumen PRD voucher partner dan network operations.
             </p>
         </div>
     </section>

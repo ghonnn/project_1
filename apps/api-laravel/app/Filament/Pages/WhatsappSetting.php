@@ -16,7 +16,7 @@ class WhatsappSetting extends ComingSoonPage
 
     protected static ?int $navigationSort = 10;
 
-    protected string $description = 'Pengaturan gateway WhatsApp untuk notifikasi otomatis ke pelanggan/mitra (invoice, jatuh tempo, isolir, voucher terjual).';
+    protected string $description = 'Pengaturan gateway WhatsApp untuk notifikasi otomatis ke pelanggan/partner (invoice, jatuh tempo, isolir, voucher terjual).';
 
     /** @var array<int, string> */
     protected array $plannedFeatures = [

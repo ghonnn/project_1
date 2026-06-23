@@ -49,7 +49,6 @@ abstract class VoucherPage extends Page
             'quota_mb' => 0,
             'duration_minutes' => 60,
             'active_days' => 1,
-            'hpp' => 0,
             'commission' => 0,
             'dpp' => 5000,
             'status' => 'active',
@@ -66,7 +65,6 @@ abstract class VoucherPage extends Page
             'batch_code' => '',
             'partner_name' => '',
             'outlet_name' => '',
-            'hpp' => 0,
             'commission' => 0,
             'dpp' => 5000,
         ];
@@ -116,8 +114,8 @@ abstract class VoucherPage extends Page
         return match ($this->pageType) {
             'stock' => [
                 ['label' => 'Total Stok', 'value' => (string) $stock->count(), 'icon' => 'heroicon-o-ticket', 'color' => '#0ea5e9'],
-                ['label' => 'Nilai Stok', 'value' => $this->rupiah((float) $stock->sum('price')), 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
-                ['label' => 'Batch Terakhir', 'value' => $this->lastBatchCode ?: '-', 'icon' => 'heroicon-o-queue-list', 'color' => '#f59e0b'],
+                ['label' => 'Total Komisi', 'value' => $this->rupiah((float) $stock->sum('commission')), 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
+                ['label' => 'Total Harga', 'value' => $this->rupiah((float) $stock->sum('price')), 'icon' => 'heroicon-o-circle-stack', 'color' => '#06b6d4'],
                 ['label' => 'Synced Radius', 'value' => (string) HotspotVoucher::where('tenant_id', $tenantId)->whereNotNull('synced_at')->count(), 'icon' => 'heroicon-o-signal', 'color' => '#06b6d4'],
             ],
             'sold' => [
@@ -137,7 +135,6 @@ abstract class VoucherPage extends Page
     public function saveProfile(): void
     {
         $data = $this->profileForm;
-        $hpp = $this->parseMoney($data['hpp'] ?? 0);
         $commission = $this->parseMoney($data['commission'] ?? 0);
         $dpp = $this->parseMoney($data['dpp'] ?? 0);
         $tax = $this->taxBreakdown($dpp);
@@ -164,8 +161,6 @@ abstract class VoucherPage extends Page
                     'Quota-MB' => $data['quota_mb'],
                     'Duration-Minutes' => $data['duration_minutes'],
                     'Active-Days' => $data['active_days'],
-                    'HPP' => $hpp,
-                    'HPP-Includes-PPN' => 'no',
                     'Commission' => $commission,
                 'Price' => $tax['total'],
                 'Price-Includes-PPN' => 'yes',
@@ -200,7 +195,6 @@ abstract class VoucherPage extends Page
             'quota_mb' => $attributes['Quota-MB'] ?? 0,
             'duration_minutes' => $attributes['Duration-Minutes'] ?? 60,
             'active_days' => $attributes['Active-Days'] ?? 1,
-            'hpp' => $this->rupiahInput((float) ($attributes['HPP'] ?? 0)),
             'commission' => $this->rupiahInput((float) ($attributes['Commission'] ?? 0)),
             'dpp' => $this->rupiahInput((float) ($attributes['DPP'] ?? 0)),
             'status' => $attributes['Status'] ?? 'active',
@@ -221,7 +215,6 @@ abstract class VoucherPage extends Page
             'quota_mb' => 0,
             'duration_minutes' => 60,
             'active_days' => 1,
-            'hpp' => 0,
             'commission' => 0,
             'dpp' => 0,
             'status' => 'active',
@@ -232,7 +225,7 @@ abstract class VoucherPage extends Page
     {
         $data = $this->voucherForm;
         $data['batch_code'] = $data['batch_code'] ?: now('Asia/Jakarta')->format('YmdHis');
-        $data['hpp'] = $this->parseMoney($data['hpp'] ?? 0);
+        $data['hpp'] = 0;
         $data['commission'] = $this->parseMoney($data['commission'] ?? 0);
         $data['dpp'] = $this->parseMoney($data['dpp'] ?? 0);
         $data['price'] = $this->taxBreakdown($data['dpp'])['total'];
@@ -386,7 +379,7 @@ abstract class VoucherPage extends Page
         return HotspotVoucher::query()
             ->where('tenant_id', $this->selectedTenantId())
             ->where('status', 'sold')
-            ->selectRaw('date(activated_at) as sale_date, partner_name, outlet_name, profile_id, count(*) as qty, sum(hpp) as hpp, sum(commission) as commission, sum(price) as price')
+            ->selectRaw('date(activated_at) as sale_date, partner_name, outlet_name, profile_id, count(*) as qty, sum(commission) as commission, sum(price) as price')
             ->groupByRaw('date(activated_at), partner_name, outlet_name, profile_id')
             ->latest('sale_date')
             ->limit(100)
@@ -397,11 +390,11 @@ abstract class VoucherPage extends Page
     public function columns(): array
     {
         return match ($this->pageType) {
-            'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'HPP', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
+            'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
             'stock' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga Jual', 'Status', 'Sync'],
             'sold' => ['Username', 'Profile', 'Partner', 'Outlet', 'Harga Jual', 'Aktif', 'Expired', 'MAC'],
             'online' => ['Username', 'IP Address', 'MAC Address', 'Uptime', 'Profile'],
-            'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'HPP', 'Komisi', 'Harga Jual'],
+            'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'Komisi', 'Harga Jual'],
             default => ['Nama Template', 'Hotspot', 'DNS', 'Phone', 'Status'],
         };
     }

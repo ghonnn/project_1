@@ -40,7 +40,7 @@ class HotspotVoucherService
                     'batch_code' => $batchCode,
                     'partner_name' => $data['partner_name'] ?: null,
                     'outlet_name' => $data['outlet_name'] ?: null,
-                    'hpp' => (float) ($data['hpp'] ?? ($profile->attributes['HPP'] ?? 0)),
+                    'hpp' => 0,
                     'commission' => (float) ($data['commission'] ?? ($profile->attributes['Commission'] ?? 0)),
                     'price' => (float) ($data['price'] ?? ($profile->attributes['Price'] ?? 0)),
                     'status' => 'stock',
