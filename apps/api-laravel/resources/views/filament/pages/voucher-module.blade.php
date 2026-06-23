@@ -86,16 +86,16 @@
                 x-transition
                 @click.outside="modal = null"
                 x-on:keydown.escape.window="modal = null"
-                class="w-full max-w-2xl rounded-xl bg-white shadow-2xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10"
+                class="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-xl bg-white shadow-2xl ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10"
             >
-                <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-white/10">
+                <div class="flex shrink-0 items-center justify-between border-b border-gray-200 px-5 py-4 dark:border-white/10">
                     <h2 class="text-base font-semibold text-gray-950 dark:text-white" x-text="modalTitle(modal)"></h2>
                     <button type="button" x-on:click="modal = null" class="rounded-full p-1 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-200">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
 
-                <div class="space-y-4 p-5">
+                <div class="flex-1 space-y-4 overflow-y-auto p-5">
                     <template x-if="modal === 'profile-menu' || modal === 'stock-menu' || modal === 'sold-menu'">
                         <div class="grid gap-1 text-sm">
                             <button class="rounded-lg px-3 py-2 text-left font-medium text-success-600 transition hover:bg-gray-50 dark:text-success-400 dark:hover:bg-white/5">Set Aktif</button>
@@ -190,9 +190,11 @@
                     </template>
                 </div>
 
-                <div class="flex justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-white/10">
+                <div class="flex shrink-0 items-center justify-end gap-2 border-t border-gray-200 px-5 py-4 dark:border-white/10">
                     <x-filament::button tag="button" color="gray" x-on:click="modal = null">Tutup</x-filament::button>
-                    <x-filament::button tag="button" color="warning" x-show="modal === 'create-user'">Reset</x-filament::button>
+                    <span x-cloak x-show="modal === 'create-user'">
+                        <x-filament::button tag="button" color="warning">Reset</x-filament::button>
+                    </span>
                     <x-filament::button tag="button" color="primary" x-on:click="modal = null" x-text="modalSubmit(modal)"></x-filament::button>
                 </div>
             </div>
