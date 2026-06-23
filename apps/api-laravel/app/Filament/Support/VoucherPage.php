@@ -352,7 +352,7 @@ abstract class VoucherPage extends Page
 
     public function rupiah(float $value): string
     {
-        return 'Rp'.number_format($value, 0, ',', '.');
+        return 'Rp '.number_format($value, 0, ',', '.');
     }
 
     /**
@@ -374,12 +374,25 @@ abstract class VoucherPage extends Page
 
     public function parseMoney(mixed $value): float
     {
-        if (is_numeric($value)) {
+        if (is_int($value) || is_float($value)) {
             return (float) $value;
         }
 
-        $normalized = preg_replace('/[^\d,]/', '', (string) $value) ?: '0';
-        $normalized = str_replace(',', '.', str_replace('.', '', $normalized));
+        $value = trim((string) $value);
+
+        if ($value === '') {
+            return 0;
+        }
+
+        $hasDecimalComma = preg_match('/,\d{1,2}$/', $value) === 1;
+        $normalized = preg_replace('/[^\d,.]/', '', $value) ?: '0';
+
+        if ($hasDecimalComma) {
+            $normalized = str_replace('.', '', $normalized);
+            $normalized = str_replace(',', '.', $normalized);
+        } else {
+            $normalized = str_replace(['.', ','], '', $normalized);
+        }
 
         return (float) $normalized;
     }

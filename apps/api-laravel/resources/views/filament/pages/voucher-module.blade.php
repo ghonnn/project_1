@@ -35,6 +35,26 @@
                         <x-voucher-money-input label="Komisi" model="profileForm.commission" />
                         <x-voucher-money-input label="Harga Jual" model="profileForm.price" />
                         <x-voucher-select label="Inc PPN 11%" model="profileForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" :placeholder="false" />
+                        @php
+                            $profileTax = $this->taxBreakdown(
+                                $this->parseMoney($profileForm['price'] ?? 0),
+                                ($profileForm['price_includes_ppn'] ?? 'yes') === 'yes'
+                            );
+                        @endphp
+                        <div class="md:col-span-4 grid gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:grid-cols-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-semibold uppercase text-gray-500">DPP</span>
+                                <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($profileTax['dpp']) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-semibold uppercase text-gray-500">PPN 11%</span>
+                                <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($profileTax['ppn']) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-semibold uppercase text-gray-500">Total</span>
+                                <span class="text-sm font-bold tabular-nums text-emerald-700">{{ $this->rupiah($profileTax['total']) }}</span>
+                            </div>
+                        </div>
                         <div class="md:col-span-4 flex justify-end">
                             <x-filament::button type="submit" icon="heroicon-m-plus" color="success">Simpan Profile</x-filament::button>
                         </div>
@@ -57,6 +77,26 @@
                         <x-voucher-money-input label="Harga Jual" model="voucherForm.price" />
                         <x-voucher-money-input label="Komisi" model="voucherForm.commission" />
                         <x-voucher-select label="Inc PPN 11%" model="voucherForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" :placeholder="false" />
+                        @php
+                            $voucherTax = $this->taxBreakdown(
+                                $this->parseMoney($voucherForm['price'] ?? 0),
+                                ($voucherForm['price_includes_ppn'] ?? 'yes') === 'yes'
+                            );
+                        @endphp
+                        <div class="md:col-span-4 grid gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:grid-cols-3">
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-semibold uppercase text-gray-500">DPP</span>
+                                <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($voucherTax['dpp']) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-semibold uppercase text-gray-500">PPN 11%</span>
+                                <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($voucherTax['ppn']) }}</span>
+                            </div>
+                            <div class="flex items-center justify-between gap-3">
+                                <span class="text-xs font-semibold uppercase text-gray-500">Total</span>
+                                <span class="text-sm font-bold tabular-nums text-emerald-700">{{ $this->rupiah($voucherTax['total']) }}</span>
+                            </div>
+                        </div>
                         <div class="md:col-span-3 flex flex-wrap justify-end gap-2">
                             <x-filament::button type="submit" icon="heroicon-m-ticket" color="success">Generate Voucher</x-filament::button>
                             <x-filament::button type="button" wire:click="downloadPrintHtml" icon="heroicon-m-printer" color="gray">Print HTML</x-filament::button>
@@ -105,10 +145,10 @@
                                         <td class="px-4 py-3">{{ $profile->attributes['Shared-Users'] ?? '-' }}</td>
                                         <td class="px-4 py-3">{{ $profile->attributes['Quota-MB'] ?? 'Unlimited' }}</td>
                                         <td class="px-4 py-3">{{ $profile->attributes['Duration-Minutes'] ?? '-' }} menit</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['HPP'] ?? 0)) }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['DPP'] ?? 0)) }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['PPN'] ?? 0)) }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) ($profile->attributes['Price'] ?? 0)) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) ($profile->attributes['HPP'] ?? 0)) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) ($profile->attributes['DPP'] ?? 0)) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) ($profile->attributes['PPN'] ?? 0)) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) ($profile->attributes['Price'] ?? 0)) }}</td>
                                         <td class="px-4 py-3"><span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{{ $profile->attributes['Status'] ?? 'active' }}</span></td>
                                     </tr>
                                 @empty
@@ -128,7 +168,7 @@
                                         @endif
                                         <td class="px-4 py-3">{{ $voucher->partner_name ?? '-' }}</td>
                                         <td class="px-4 py-3">{{ $voucher->outlet_name ?? '-' }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) $voucher->price) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) $voucher->price) }}</td>
                                         @if ($pageType === 'stock')
                                             <td class="px-4 py-3">{{ $voucher->status }}</td>
                                             <td class="px-4 py-3">{{ $voucher->synced_at ? 'Synced' : 'Pending' }}</td>
@@ -164,9 +204,9 @@
                                         <td class="px-4 py-3">{{ $row->outlet_name ?: '-' }}</td>
                                         <td class="px-4 py-3">{{ $row->profile_id ?: '-' }}</td>
                                         <td class="px-4 py-3">{{ $row->qty }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) $row->hpp) }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) $row->commission) }}</td>
-                                        <td class="px-4 py-3">{{ $this->rupiah((float) $row->price) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) $row->hpp) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) $row->commission) }}</td>
+                                        <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) $row->price) }}</td>
                                     </tr>
                                 @empty
                                     <tr><td colspan="8" class="px-4 py-10 text-center text-gray-500">Belum ada rekap voucher.</td></tr>
