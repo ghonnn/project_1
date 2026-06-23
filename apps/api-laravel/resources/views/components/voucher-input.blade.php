@@ -3,6 +3,7 @@
     'model',
     'type' => 'text',
     'placeholder' => null,
+    'maxlength' => 32,
 ])
 
 <label class="block">
@@ -11,6 +12,7 @@
         type="{{ $type }}"
         wire:model="{{ $model }}"
         placeholder="{{ $placeholder }}"
+        maxlength="{{ $maxlength }}"
         class="w-full rounded-lg border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500"
     />
 </label>

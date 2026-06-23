@@ -21,7 +21,7 @@
 
             <div class="space-y-5">
                 @if ($pageType === 'profile')
-                    <form wire:submit="saveProfile" class="grid gap-4 rounded-lg bg-gray-50 p-4 ring-1 ring-gray-950/10 md:grid-cols-4">
+                    <form wire:submit="saveProfile" class="grid gap-4 rounded-lg bg-gray-50 p-4 ring-1 ring-gray-950/10" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
                         <x-voucher-select label="Tenant" model="profileForm.tenant_id" :options="$this->tenantOptions()" />
                         <x-voucher-input label="Nama Profile" model="profileForm.name" />
                         <x-voucher-input label="MikroTik Group" model="profileForm.group" />
@@ -33,17 +33,15 @@
                         <x-voucher-input label="Masa Aktif Hari" model="profileForm.active_days" type="number" />
                         <x-voucher-money-input label="HPP Belum PPN 11%" model="profileForm.hpp" />
                         <x-voucher-money-input label="Komisi" model="profileForm.commission" />
-                        <x-voucher-money-input label="Harga Jual" model="profileForm.price" />
-                        <x-voucher-select label="Inc PPN 11%" model="profileForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" :placeholder="false" />
+                        <x-voucher-money-input label="Harga DPP" model="profileForm.dpp" />
                         @php
                             $profileTax = $this->taxBreakdown(
-                                $this->parseMoney($profileForm['price'] ?? 0),
-                                ($profileForm['price_includes_ppn'] ?? 'yes') === 'yes'
+                                $this->parseMoney($profileForm['dpp'] ?? 0)
                             );
                         @endphp
-                        <div class="md:col-span-4 grid gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:grid-cols-3">
+                        <div class="grid gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:grid-cols-3" style="grid-column: 1 / -1;">
                             <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-semibold uppercase text-gray-500">DPP</span>
+                                <span class="text-xs font-semibold uppercase text-gray-500">Harga DPP</span>
                                 <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($profileTax['dpp']) }}</span>
                             </div>
                             <div class="flex items-center justify-between gap-3">
@@ -51,18 +49,21 @@
                                 <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($profileTax['ppn']) }}</span>
                             </div>
                             <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-semibold uppercase text-gray-500">Total</span>
+                                <span class="text-xs font-semibold uppercase text-gray-500">Harga Jual</span>
                                 <span class="text-sm font-bold tabular-nums text-emerald-700">{{ $this->rupiah($profileTax['total']) }}</span>
                             </div>
                         </div>
-                        <div class="md:col-span-4 flex justify-end">
-                            <x-filament::button type="submit" icon="heroicon-m-plus" color="success">Simpan Profile</x-filament::button>
+                        <div class="flex justify-end gap-2" style="grid-column: 1 / -1;">
+                            @if ($editingProfileId)
+                                <x-filament::button type="button" wire:click="resetProfileForm" color="gray">Batal Edit</x-filament::button>
+                            @endif
+                            <x-filament::button type="submit" icon="heroicon-m-plus" color="success">{{ $editingProfileId ? 'Update Profile' : 'Simpan Profile' }}</x-filament::button>
                         </div>
                     </form>
                 @endif
 
                 @if ($pageType === 'stock')
-                    <form wire:submit="generateVouchers" class="grid gap-4 rounded-lg bg-gray-50 p-4 ring-1 ring-gray-950/10 md:grid-cols-4">
+                    <form wire:submit="generateVouchers" class="grid gap-4 rounded-lg bg-gray-50 p-4 ring-1 ring-gray-950/10" style="grid-template-columns: repeat(2, minmax(0, 1fr));">
                         <x-voucher-select label="Tenant" model="voucherForm.tenant_id" :options="$this->tenantOptions()" />
                         <x-voucher-select label="Profile" model="voucherForm.profile_id" :options="$this->profileOptions()" />
                         <x-voucher-select label="Router" model="voucherForm.router_id" :options="$this->routerOptions()" />
@@ -74,18 +75,16 @@
                         <x-voucher-input label="Partner" model="voucherForm.partner_name" />
                         <x-voucher-input label="Outlet/Hotel Area" model="voucherForm.outlet_name" />
                         <x-voucher-money-input label="HPP Belum PPN 11%" model="voucherForm.hpp" />
-                        <x-voucher-money-input label="Harga Jual" model="voucherForm.price" />
+                        <x-voucher-money-input label="Harga DPP" model="voucherForm.dpp" />
                         <x-voucher-money-input label="Komisi" model="voucherForm.commission" />
-                        <x-voucher-select label="Inc PPN 11%" model="voucherForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" :placeholder="false" />
                         @php
                             $voucherTax = $this->taxBreakdown(
-                                $this->parseMoney($voucherForm['price'] ?? 0),
-                                ($voucherForm['price_includes_ppn'] ?? 'yes') === 'yes'
+                                $this->parseMoney($voucherForm['dpp'] ?? 0)
                             );
                         @endphp
-                        <div class="md:col-span-4 grid gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:grid-cols-3">
+                        <div class="grid gap-3 rounded-lg border border-gray-200 bg-white p-3 sm:grid-cols-3" style="grid-column: 1 / -1;">
                             <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-semibold uppercase text-gray-500">DPP</span>
+                                <span class="text-xs font-semibold uppercase text-gray-500">Harga DPP</span>
                                 <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($voucherTax['dpp']) }}</span>
                             </div>
                             <div class="flex items-center justify-between gap-3">
@@ -93,11 +92,11 @@
                                 <span class="text-sm font-bold tabular-nums text-gray-950">{{ $this->rupiah($voucherTax['ppn']) }}</span>
                             </div>
                             <div class="flex items-center justify-between gap-3">
-                                <span class="text-xs font-semibold uppercase text-gray-500">Total</span>
+                                <span class="text-xs font-semibold uppercase text-gray-500">Harga Jual</span>
                                 <span class="text-sm font-bold tabular-nums text-emerald-700">{{ $this->rupiah($voucherTax['total']) }}</span>
                             </div>
                         </div>
-                        <div class="md:col-span-3 flex flex-wrap justify-end gap-2">
+                        <div class="flex flex-wrap justify-end gap-2" style="grid-column: 1 / -1;">
                             <x-filament::button type="submit" icon="heroicon-m-ticket" color="success">Generate Voucher</x-filament::button>
                             <x-filament::button type="button" wire:click="downloadPrintHtml" icon="heroicon-m-printer" color="gray">Print HTML</x-filament::button>
                             <x-filament::button type="button" wire:click="exportCsv" icon="heroicon-m-arrow-down-tray" color="info">Export CSV</x-filament::button>
@@ -130,7 +129,7 @@
                                 @foreach ($this->columns() as $column)
                                     <th class="whitespace-nowrap px-4 py-3 text-xs font-bold uppercase text-gray-600">{{ $column }}</th>
                                 @endforeach
-                                @if (in_array($pageType, ['stock'], true))
+                                @if (in_array($pageType, ['profile', 'stock'], true))
                                     <th class="px-4 py-3 text-xs font-bold uppercase text-gray-600">Action</th>
                                 @endif
                             </tr>
@@ -150,9 +149,12 @@
                                         <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) ($profile->attributes['PPN'] ?? 0)) }}</td>
                                         <td class="px-4 py-3 text-right tabular-nums">{{ $this->rupiah((float) ($profile->attributes['Price'] ?? 0)) }}</td>
                                         <td class="px-4 py-3"><span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-bold text-emerald-700">{{ $profile->attributes['Status'] ?? 'active' }}</span></td>
+                                        <td class="px-4 py-3 text-right">
+                                            <x-filament::button type="button" size="xs" color="info" wire:click="editProfile('{{ $profile->id }}')">Edit</x-filament::button>
+                                        </td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="11" class="px-4 py-10 text-center text-gray-500">Belum ada profile voucher.</td></tr>
+                                    <tr><td colspan="12" class="px-4 py-10 text-center text-gray-500">Belum ada profile voucher.</td></tr>
                                 @endforelse
                             @elseif (in_array($pageType, ['stock', 'sold'], true))
                                 @forelse ($this->voucherRows() as $voucher)

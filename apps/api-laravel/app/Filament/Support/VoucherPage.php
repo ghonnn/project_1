@@ -31,6 +31,8 @@ abstract class VoucherPage extends Page
 
     public array $templateForm = [];
 
+    public ?string $editingProfileId = null;
+
     public ?string $lastBatchCode = null;
 
     public function mount(): void
@@ -49,8 +51,7 @@ abstract class VoucherPage extends Page
             'active_days' => 1,
             'hpp' => 0,
             'commission' => 0,
-            'price' => 5000,
-            'price_includes_ppn' => 'yes',
+            'dpp' => 5000,
             'status' => 'active',
         ];
 
@@ -67,8 +68,7 @@ abstract class VoucherPage extends Page
             'outlet_name' => '',
             'hpp' => 0,
             'commission' => 0,
-            'price' => 5000,
-            'price_includes_ppn' => 'yes',
+            'dpp' => 5000,
         ];
 
         $this->templateForm = [
@@ -139,18 +139,27 @@ abstract class VoucherPage extends Page
         $data = $this->profileForm;
         $hpp = $this->parseMoney($data['hpp'] ?? 0);
         $commission = $this->parseMoney($data['commission'] ?? 0);
-        $price = $this->parseMoney($data['price'] ?? 0);
-        $priceIncludesPpn = ($data['price_includes_ppn'] ?? 'yes') === 'yes';
-        $tax = $this->taxBreakdown($price, $priceIncludesPpn);
+        $dpp = $this->parseMoney($data['dpp'] ?? 0);
+        $tax = $this->taxBreakdown($dpp);
+        $isCreating = blank($this->editingProfileId);
 
-        $profile = RadiusProfile::updateOrCreate(
-            ['tenant_id' => $data['tenant_id'], 'name' => $data['name']],
-            [
+        if ($isCreating && $this->voucherProfileQuery()->count() >= 100) {
+            Notification::make()
+                ->title('Maksimal 100 profile voucher per tenant')
+                ->warning()
+                ->send();
+
+            return;
+        }
+
+        $payload = [
+            'tenant_id' => $data['tenant_id'],
+            'name' => substr((string) $data['name'], 0, 32),
                 'attributes' => [
                     'Profile-Type' => 'hotspot_voucher',
-                    'Mikrotik-Group' => $data['group'],
-                    'Mikrotik-Address-List' => $data['address_list'],
-                    'Mikrotik-Rate-Limit' => $data['rate_limit'],
+                'Mikrotik-Group' => substr((string) $data['group'], 0, 32),
+                'Mikrotik-Address-List' => substr((string) $data['address_list'], 0, 32),
+                'Mikrotik-Rate-Limit' => substr((string) $data['rate_limit'], 0, 32),
                     'Shared-Users' => $data['shared_users'],
                     'Quota-MB' => $data['quota_mb'],
                     'Duration-Minutes' => $data['duration_minutes'],
@@ -158,18 +167,65 @@ abstract class VoucherPage extends Page
                     'HPP' => $hpp,
                     'HPP-Includes-PPN' => 'no',
                     'Commission' => $commission,
-                    'Price' => $price,
-                    'Price-Includes-PPN' => $priceIncludesPpn ? 'yes' : 'no',
+                'Price' => $tax['total'],
+                'Price-Includes-PPN' => 'yes',
                     'DPP' => $tax['dpp'],
                     'PPN' => $tax['ppn'],
                     'Status' => $data['status'],
                 ],
-            ]
-        );
+        ];
+
+        $profile = $isCreating
+            ? RadiusProfile::create($payload)
+            : tap($this->voucherProfileQuery()->findOrFail($this->editingProfileId))->update($payload);
 
         app(HotspotVoucherService::class)->syncProfile($profile);
 
         Notification::make()->title('Profile voucher tersimpan dan disync ke FreeRadius')->success()->send();
+    }
+
+    public function editProfile(string $profileId): void
+    {
+        $profile = $this->voucherProfileQuery()->findOrFail($profileId);
+        $attributes = $profile->attributes ?? [];
+
+        $this->editingProfileId = $profile->id;
+        $this->profileForm = [
+            'tenant_id' => $profile->tenant_id,
+            'name' => $profile->name,
+            'group' => $attributes['Mikrotik-Group'] ?? '',
+            'address_list' => $attributes['Mikrotik-Address-List'] ?? '',
+            'rate_limit' => $attributes['Mikrotik-Rate-Limit'] ?? '',
+            'shared_users' => $attributes['Shared-Users'] ?? 1,
+            'quota_mb' => $attributes['Quota-MB'] ?? 0,
+            'duration_minutes' => $attributes['Duration-Minutes'] ?? 60,
+            'active_days' => $attributes['Active-Days'] ?? 1,
+            'hpp' => $this->rupiahInput((float) ($attributes['HPP'] ?? 0)),
+            'commission' => $this->rupiahInput((float) ($attributes['Commission'] ?? 0)),
+            'dpp' => $this->rupiahInput((float) ($attributes['DPP'] ?? 0)),
+            'status' => $attributes['Status'] ?? 'active',
+        ];
+    }
+
+    public function resetProfileForm(): void
+    {
+        $tenantId = $this->selectedTenantId();
+        $this->editingProfileId = null;
+        $this->profileForm = [
+            'tenant_id' => $tenantId,
+            'name' => '',
+            'group' => '',
+            'address_list' => 'HOTSPOT-ACTIVE',
+            'rate_limit' => '5M/5M',
+            'shared_users' => 1,
+            'quota_mb' => 0,
+            'duration_minutes' => 60,
+            'active_days' => 1,
+            'hpp' => 0,
+            'commission' => 0,
+            'dpp' => 0,
+            'status' => 'active',
+        ];
     }
 
     public function generateVouchers(): void
@@ -178,8 +234,8 @@ abstract class VoucherPage extends Page
         $data['batch_code'] = $data['batch_code'] ?: now('Asia/Jakarta')->format('YmdHis');
         $data['hpp'] = $this->parseMoney($data['hpp'] ?? 0);
         $data['commission'] = $this->parseMoney($data['commission'] ?? 0);
-        $data['price'] = $this->parseMoney($data['price'] ?? 0);
-        $data['price_includes_ppn'] = $data['price_includes_ppn'] ?? 'yes';
+        $data['dpp'] = $this->parseMoney($data['dpp'] ?? 0);
+        $data['price'] = $this->taxBreakdown($data['dpp'])['total'];
 
         $vouchers = app(HotspotVoucherService::class)->generate($data);
         $this->lastBatchCode = $data['batch_code'];
@@ -341,11 +397,11 @@ abstract class VoucherPage extends Page
     public function columns(): array
     {
         return match ($this->pageType) {
-            'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'HPP', 'DPP', 'PPN', 'Harga', 'Status'],
-            'stock' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga', 'Status', 'Sync'],
-            'sold' => ['Username', 'Profile', 'Partner', 'Outlet', 'Harga', 'Aktif', 'Expired', 'MAC'],
+            'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'HPP', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
+            'stock' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga Jual', 'Status', 'Sync'],
+            'sold' => ['Username', 'Profile', 'Partner', 'Outlet', 'Harga Jual', 'Aktif', 'Expired', 'MAC'],
             'online' => ['Username', 'IP Address', 'MAC Address', 'Uptime', 'Profile'],
-            'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'HPP', 'Komisi', 'Harga'],
+            'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'HPP', 'Komisi', 'Harga Jual'],
             default => ['Nama Template', 'Hotspot', 'DNS', 'Phone', 'Status'],
         };
     }
@@ -358,18 +414,12 @@ abstract class VoucherPage extends Page
     /**
      * @return array{dpp: float, ppn: float, total: float}
      */
-    public function taxBreakdown(float $price, bool $priceIncludesPpn = true): array
+    public function taxBreakdown(float $dpp): array
     {
-        if ($priceIncludesPpn) {
-            $dpp = round($price / 1.11, 2);
-            $ppn = round($price - $dpp, 2);
+        $dpp = max(0, $dpp);
+        $ppn = round($dpp * 0.11, 2);
 
-            return ['dpp' => $dpp, 'ppn' => $ppn, 'total' => $price];
-        }
-
-        $ppn = round($price * 0.11, 2);
-
-        return ['dpp' => $price, 'ppn' => $ppn, 'total' => round($price + $ppn, 2)];
+        return ['dpp' => $dpp, 'ppn' => $ppn, 'total' => round($dpp + $ppn, 2)];
     }
 
     public function parseMoney(mixed $value): float
@@ -395,6 +445,11 @@ abstract class VoucherPage extends Page
         }
 
         return (float) $normalized;
+    }
+
+    public function rupiahInput(float $value): string
+    {
+        return number_format($value, 0, ',', '.');
     }
 
     private function voucherProfileQuery()
