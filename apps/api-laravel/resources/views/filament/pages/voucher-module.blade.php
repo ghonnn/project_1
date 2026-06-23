@@ -34,10 +34,7 @@
                         <x-voucher-money-input label="HPP Belum PPN 11%" model="profileForm.hpp" />
                         <x-voucher-money-input label="Komisi" model="profileForm.commission" />
                         <x-voucher-money-input label="Harga Jual" model="profileForm.price" />
-                        <x-voucher-select label="Harga inc PPN 11%?" model="profileForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" />
-                        <div class="md:col-span-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-emerald-600/20">
-                            HPP dicatat sebelum PPN. Jika Harga inc PPN = Ya, sistem menghitung DPP = Harga / 1,11 dan PPN = Harga - DPP.
-                        </div>
+                        <x-voucher-select label="Inc PPN 11%" model="profileForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" :placeholder="false" />
                         <div class="md:col-span-4 flex justify-end">
                             <x-filament::button type="submit" icon="heroicon-m-plus" color="success">Simpan Profile</x-filament::button>
                         </div>
@@ -59,7 +56,7 @@
                         <x-voucher-money-input label="HPP Belum PPN 11%" model="voucherForm.hpp" />
                         <x-voucher-money-input label="Harga Jual" model="voucherForm.price" />
                         <x-voucher-money-input label="Komisi" model="voucherForm.commission" />
-                        <x-voucher-select label="Harga inc PPN 11%?" model="voucherForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" />
+                        <x-voucher-select label="Inc PPN 11%" model="voucherForm.price_includes_ppn" :options="['yes' => 'Ya', 'no' => 'Tidak']" :placeholder="false" />
                         <div class="md:col-span-3 flex flex-wrap justify-end gap-2">
                             <x-filament::button type="submit" icon="heroicon-m-ticket" color="success">Generate Voucher</x-filament::button>
                             <x-filament::button type="button" wire:click="downloadPrintHtml" icon="heroicon-m-printer" color="gray">Print HTML</x-filament::button>
