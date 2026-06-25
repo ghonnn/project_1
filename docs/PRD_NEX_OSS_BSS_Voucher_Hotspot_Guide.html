@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PRD &amp; Panduan Penggunaan — Menu Voucher Hotspot | NEX ISP Platform</title>
+<style>
+  :root{
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --soft:#f8fafc;
+    --brand:#059669; --brand-d:#047857; --accent:#0ea5e9; --warn:#f59e0b; --danger:#ef4444;
+    --code:#1e293b;
+    font-family:"Segoe UI",Inter,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{margin:0;color:var(--ink);background:#fff;font-size:14px;line-height:1.6;}
+  .page{max-width:920px;margin:0 auto;padding:48px 56px;}
+
+  /* Cover */
+  .cover{min-height:92vh;display:flex;flex-direction:column;justify-content:center;
+    background:linear-gradient(135deg,#ecfdf5 0%,#f0f9ff 100%);padding:64px 56px;}
+  .brandmark{display:flex;align-items:center;gap:14px;font-weight:800;font-size:20px;}
+  .brandmark .mk{display:grid;place-items:center;width:46px;height:46px;border-radius:12px;background:var(--brand);color:#fff;font-size:16px;}
+  .cover h1{font-size:40px;line-height:1.15;margin:40px 0 8px;letter-spacing:-.5px;}
+  .cover h2{font-size:20px;font-weight:600;color:var(--brand-d);margin:0 0 28px;}
+  .cover .lede{font-size:16px;color:var(--muted);max-width:600px;}
+  .meta{margin-top:48px;display:grid;grid-template-columns:repeat(2,1fr);gap:10px 32px;max-width:620px;}
+  .meta div{font-size:13px;}
+  .meta b{display:block;text-transform:uppercase;letter-spacing:.06em;font-size:11px;color:var(--muted);font-weight:700;}
+
+  h2.sec{font-size:24px;margin:0 0 6px;padding-top:8px;letter-spacing:-.3px;}
+  h3{font-size:18px;margin:30px 0 8px;color:var(--brand-d);}
+  h4{font-size:15px;margin:20px 0 6px;}
+  p{margin:8px 0;}
+  .kicker{text-transform:uppercase;letter-spacing:.1em;font-size:11px;font-weight:800;color:var(--brand);}
+  .rule{height:3px;width:64px;background:var(--brand);border-radius:3px;margin:10px 0 22px;}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px;}
+  th,td{text-align:left;padding:9px 12px;border:1px solid var(--line);vertical-align:top;}
+  th{background:var(--soft);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#475569;}
+  td code,p code,li code{background:#f1f5f9;color:#0f172a;padding:1px 6px;border-radius:5px;font-family:Consolas,monospace;font-size:12.5px;}
+  tr{break-inside:avoid;}
+
+  .card{border:1px solid var(--line);border-radius:12px;padding:18px 20px;margin:16px 0;background:#fff;break-inside:avoid;}
+  .step{border-left:4px solid var(--brand);background:#f6fdfa;}
+  .note{border-left:4px solid var(--accent);background:#f0f9ff;}
+  .warn{border-left:4px solid var(--warn);background:#fffbeb;}
+  .danger{border-left:4px solid var(--danger);background:#fef2f2;}
+  .card .h{font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+  .pill{display:inline-block;background:var(--brand);color:#fff;border-radius:999px;width:26px;height:26px;text-align:center;line-height:26px;font-weight:800;font-size:13px;}
+
+  pre{background:var(--code);color:#e2e8f0;border-radius:10px;padding:14px 16px;overflow:auto;font-family:Consolas,monospace;font-size:12.5px;line-height:1.5;break-inside:avoid;}
+  pre .c{color:#7dd3fc;}
+
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:18px 0;}
+  .flow .b{flex:1;min-width:120px;border:1px solid var(--line);border-radius:10px;padding:12px;text-align:center;background:var(--soft);font-size:12.5px;}
+  .flow .b b{display:block;font-size:13px;margin-bottom:2px;color:var(--brand-d);}
+  .flow .arr{display:grid;place-items:center;color:var(--muted);font-weight:800;}
+
+  ul,ol{margin:8px 0 8px 4px;padding-left:22px;}
+  li{margin:5px 0;}
+  .muted{color:var(--muted);}
+  .toc{columns:2;column-gap:40px;font-size:13.5px;}
+  .toc a{color:var(--ink);text-decoration:none;}
+  .toc li{break-inside:avoid;}
+
+  footer{margin-top:48px;border-top:1px solid var(--line);padding-top:14px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;}
+
+  @page{size:A4;margin:16mm 14mm;}
+  @media print{
+    .page{padding:0;max-width:none;}
+    .cover{min-height:auto;height:100vh;padding:0;display:flex;justify-content:center;}
+    .page-break{break-before:page;}
+    h2.sec{break-before:page;}
+    h2.sec.first{break-before:avoid;}
+    a{color:inherit;text-decoration:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== COVER ===================== -->
+<section class="cover">
+  <div class="brandmark"><span class="mk">NEX</span> NEX ISP Platform</div>
+  <h1>Menu Voucher Hotspot</h1>
+  <h2>PRD &amp; Panduan Penggunaan (Best Practices)</h2>
+  <p class="lede">Panduan lengkap membuat paket harga voucher hingga menghasilkan kode login hotspot yang langsung tersinkron ke FreeRadius — disertai rekomendasi penyederhanaan alur untuk admin operasional.</p>
+  <div class="meta">
+    <div><b>Dokumen</b>PRD-VCH-001 · Voucher Hotspot User Guide</div>
+    <div><b>Versi</b>1.0</div>
+    <div><b>Status</b>Aktif — menggantikan mockup voucher sebelumnya</div>
+    <div><b>Tanggal</b>24 Juni 2026</div>
+    <div><b>Pemilik</b>Product Manager — NEX OSS/BSS</div>
+    <div><b>Audiens</b>Admin Tenant, Operator NOC, Reseller/Partner</div>
+    <div><b>Modul</b>Filament Admin → grup <i>Voucher</i></div>
+    <div><b>Backend</b>Laravel 12 · Livewire · FreeRadius SQL</div>
+  </div>
+</section>
+
+<div class="page">
+
+<!-- ===================== RINGKASAN ===================== -->
+<h2 class="sec first" id="ringkasan">1. Ringkasan Eksekutif</h2>
+<div class="rule"></div>
+<p>Menu <b>Voucher</b> adalah alat self-service bagi admin ISP untuk menjual akses internet hotspot berbasis kuota/waktu (model voucher MikroTik + FreeRadius). Seluruh alur—dari mendefinisikan <b>paket harga</b> sampai mencetak <b>kode login</b>—dilakukan dari satu grup menu, tanpa perlu masuk ke Winbox/terminal MikroTik untuk membuat user satu per satu.</p>
+
+<p>Inti nilai produk:</p>
+<ul>
+  <li><b>Sekali setup, ribuan voucher.</b> Definisikan profil paket satu kali, lalu generate voucher massal (s.d. 500 per batch).</li>
+  <li><b>Otomatis tersinkron ke FreeRadius.</b> Profil → tabel <code>radgroupreply</code>; voucher → <code>radcheck</code> + <code>radusergroup</code>. Tidak ada input manual di sisi RADIUS.</li>
+  <li><b>Siap jual.</b> Voucher bisa langsung dicetak (HTML grid) atau diekspor (CSV) untuk reseller/outlet.</li>
+  <li><b>Terlacak.</b> Status stok → terjual → expired, plus pemantauan sesi online dan rekap komisi.</li>
+</ul>
+
+<div class="card note">
+  <div class="h">🎯 Tujuan dokumen</div>
+  Menjadi PRD terbaru sekaligus SOP penggunaan menu Voucher: (1) cara membuat paket harga, (2) cara menghasilkan kode login hotspot, (3) apa yang terjadi di balik layar, dan (4) rekomendasi penyederhanaan untuk iterasi berikutnya.
+</div>
+
+<!-- ===================== DAFTAR ISI ===================== -->
+<h3>Daftar Isi</h3>
+<ol class="toc">
+  <li><a href="#ringkasan">Ringkasan Eksekutif</a></li>
+  <li><a href="#konsep">Konsep &amp; Istilah</a></li>
+  <li><a href="#alur">Alur End-to-End</a></li>
+  <li><a href="#prasyarat">Prasyarat Sebelum Mulai</a></li>
+  <li><a href="#langkah1">Langkah 1 — Buat Paket Harga (Profile Voucher)</a></li>
+  <li><a href="#langkah2">Langkah 2 — Generate Kode Login (Stok Voucher)</a></li>
+  <li><a href="#langkah3">Langkah 3 — Cetak &amp; Distribusi Voucher</a></li>
+  <li><a href="#langkah4">Langkah 4 — Template Halaman Login Hotspot</a></li>
+  <li><a href="#langkah5">Langkah 5 — Penjualan, Online &amp; Rekap</a></li>
+  <li><a href="#belakang">Di Balik Layar: Pemetaan FreeRadius</a></li>
+  <li><a href="#bestpractice">Best Practices Operasional</a></li>
+  <li><a href="#rekomendasi">Rekomendasi Penyederhanaan (Roadmap)</a></li>
+  <li><a href="#troubleshoot">Troubleshooting &amp; FAQ</a></li>
+</ol>
+
+<!-- ===================== KONSEP ===================== -->
+<h2 class="sec" id="konsep">2. Konsep &amp; Istilah</h2>
+<div class="rule"></div>
+<table>
+  <tr><th style="width:170px">Istilah</th><th>Penjelasan</th></tr>
+  <tr><td><b>Profile Voucher</b><br><span class="muted">= Paket Harga</span></td><td>Template komersial + teknis sebuah paket (mis. "Voucher 1 Jam"). Menyimpan rate limit, kuota, durasi, masa aktif, dan harga. Secara teknis disimpan sebagai <code>RadiusProfile</code> dan dipetakan ke <i>group</i> FreeRadius.</td></tr>
+  <tr><td><b>Voucher / Kode Login</b></td><td>Satu pasang <code>username</code> + <code>password</code> yang dipakai pelanggan untuk login di captive portal. Disimpan sebagai <code>HotspotVoucher</code> dengan status <code>stock → sold → expired</code>.</td></tr>
+  <tr><td><b>Batch Code</b></td><td>Penanda satu kali proses generate (mis. <code>20260624011846</code>). Memudahkan cetak ulang &amp; rekonsiliasi per gelombang.</td></tr>
+  <tr><td><b>Template Hotspot</b></td><td>Berkas <code>login.html</code> halaman captive portal MikroTik (branding ISP) yang menerima username/password voucher.</td></tr>
+  <tr><td><b>Tenant</b></td><td>Entitas ISP/cabang. Semua data voucher tersekat per tenant (multi-tenant).</td></tr>
+  <tr><td><b>Router &amp; Radius Server</b></td><td>NAS MikroTik dan server FreeRadius tujuan. Dipilih saat generate agar voucher terikat ke perangkat yang benar.</td></tr>
+  <tr><td><b>FreeRadius SQL</b></td><td>Skema standar FreeRadius (<code>radcheck</code>, <code>radreply</code>, <code>radusergroup</code>, <code>radgroupreply</code>, <code>radacct</code>) tempat kredensial &amp; kebijakan disimpan.</td></tr>
+</table>
+
+<!-- ===================== ALUR ===================== -->
+<h2 class="sec" id="alur">3. Alur End-to-End</h2>
+<div class="rule"></div>
+<p>Empat menu inti dijalankan berurutan; dua menu terakhir untuk monitoring.</p>
+<div class="flow">
+  <div class="b"><b>1. Profile</b>Buat paket harga</div>
+  <div class="arr">→</div>
+  <div class="b"><b>2. Stok</b>Generate kode login</div>
+  <div class="arr">→</div>
+  <div class="b"><b>3. Cetak/Export</b>Bagikan ke outlet</div>
+  <div class="arr">→</div>
+  <div class="b"><b>4. Template</b>login.html MikroTik</div>
+</div>
+<div class="flow">
+  <div class="b" style="background:#f0f9ff"><b>Terjual</b>Tandai &amp; lacak masa aktif</div>
+  <div class="arr">·</div>
+  <div class="b" style="background:#f0f9ff"><b>Online</b>Sesi aktif (radacct)</div>
+  <div class="arr">·</div>
+  <div class="b" style="background:#f0f9ff"><b>Rekap</b>Omzet &amp; komisi</div>
+</div>
+<p class="muted">Setiap aksi <i>Simpan/Generate</i> otomatis menulis ke FreeRadius SQL bila tabel RADIUS tersedia. Bila belum, sistem tetap menyimpan data lokal dan menandai <code>sync_message</code> agar bisa disinkron ulang.</p>
+
+<!-- ===================== PRASYARAT ===================== -->
+<h2 class="sec" id="prasyarat">4. Prasyarat Sebelum Mulai</h2>
+<div class="rule"></div>
+<ol>
+  <li><b>Tenant aktif.</b> Pastikan tenant Anda terpilih (mis. <i>NEX Demo ISP</i>).</li>
+  <li><b>Router terdaftar</b> di menu <i>Jaringan → Router</i>. Diperlukan saat generate voucher.</li>
+  <li><b>Radius Server terdaftar</b> (FreeRadius RND: <code>10.20.1.19</code>). Diperlukan agar voucher tahu server tujuan.</li>
+  <li><b>Tabel FreeRadius SQL sudah dimigrasi.</b> Jika belum, voucher tetap dibuat namun belum bisa login sampai sync ulang.</li>
+  <li><b>MikroTik hotspot</b> sudah mengarah ke FreeRadius (RADIUS client/NAS) dan memakai <code>login.html</code> dari menu Template.</li>
+</ol>
+<div class="card warn">
+  <div class="h">⚠️ Penting</div>
+  Nilai <b>MikroTik Group</b> pada Profile harus identik dengan <i>group</i> yang dikenali konfigurasi MikroTik Anda. Ketidakcocokan group = voucher valid di RADIUS tetapi tidak mendapat rate-limit/address-list yang benar.
+</div>
+
+<!-- ===================== LANGKAH 1 ===================== -->
+<h2 class="sec" id="langkah1">5. Langkah 1 — Buat Paket Harga (Profile Voucher)</h2>
+<div class="rule"></div>
+<p>Menu: <b>Voucher → Profile voucher</b> (<code>/admin/voucher-profiles</code>).</p>
+
+<div class="card step">
+  <div class="h"><span class="pill">1</span> Isi form &amp; klik <b>Simpan Profile</b></div>
+  Satu profil = satu paket jual. Contoh siap pakai sudah terisi otomatis ("Voucher 1 Jam").
+</div>
+
+<table>
+  <tr><th style="width:150px">Field</th><th>Fungsi</th><th style="width:150px">Contoh</th></tr>
+  <tr><td>Tenant</td><td>ISP/cabang pemilik paket.</td><td>NEX Demo ISP</td></tr>
+  <tr><td>Nama Profile</td><td>Nama paket yang tampil di daftar &amp; saat generate.</td><td><code>Voucher 1 Jam</code></td></tr>
+  <tr><td>MikroTik Group</td><td>Nama group RADIUS = group MikroTik. Jadi <code>groupname</code> di <code>radgroupreply</code>.</td><td><code>NEX-HOTSPOT-1J</code></td></tr>
+  <tr><td>Address List</td><td>Address-list MikroTik untuk user aktif (firewall/bypass).</td><td><code>HOTSPOT-ACTIVE</code></td></tr>
+  <tr><td>Rate Limit</td><td>Kecepatan <code>rx/tx</code> (boleh format burst MikroTik).</td><td><code>5M/5M</code></td></tr>
+  <tr><td>Shared</td><td>Jumlah perangkat simultan (<code>Simultaneous-Use</code>).</td><td><code>1</code></td></tr>
+  <tr><td>Kuota MB</td><td>Batas volume; <code>0</code> = unlimited. Dikonversi ke byte (<code>Mikrotik-Total-Limit</code>).</td><td><code>0</code></td></tr>
+  <tr><td>Durasi Menit</td><td>Lama sesi; dikonversi ke detik (<code>Session-Timeout</code>).</td><td><code>60</code></td></tr>
+  <tr><td>Masa Aktif Hari</td><td>Umur voucher setelah <b>ditandai terjual</b> (bukan sejak dibuat).</td><td><code>1</code></td></tr>
+  <tr><td>HPP / Komisi / Harga</td><td>Data komersial untuk margin &amp; rekap.</td><td>0 / 0 / <code>5000</code></td></tr>
+</table>
+
+<div class="card note">
+  <div class="h">ℹ️ Yang terjadi saat disimpan</div>
+  Sistem memanggil <code>saveProfile()</code> → membuat/meng-update <code>RadiusProfile</code>, lalu <code>syncProfile()</code> menulis baris ke <code>radgroupreply</code> (rate limit, address list, kuota byte, session-timeout). Profil yang tersimpan langsung muncul di tabel bawah dan siap dipakai di Langkah 2.
+</div>
+
+<!-- ===================== LANGKAH 2 ===================== -->
+<h2 class="sec" id="langkah2">6. Langkah 2 — Generate Kode Login (Stok Voucher)</h2>
+<div class="rule"></div>
+<p>Menu: <b>Voucher → Stok voucher</b> (<code>/admin/voucher-stock</code>). Inilah langkah yang <b>menghasilkan kode login hotspot</b>.</p>
+
+<div class="card step">
+  <div class="h"><span class="pill">2</span> Pilih paket, tentukan jumlah, klik <b>Generate Voucher</b></div>
+  Setiap voucher mendapat <b>username unik</b> = <code>PREFIX</code> + 6 karakter acak, dan <b>password</b> acak dari karakter non-ambigu (tanpa <code>0/O/1/I</code>) agar mudah dibaca pelanggan.
+</div>
+
+<table>
+  <tr><th style="width:160px">Field</th><th>Fungsi</th><th style="width:130px">Contoh</th></tr>
+  <tr><td>Tenant / Profile</td><td>Paket harga (Langkah 1) yang akan dicetak menjadi voucher.</td><td>Voucher 1 Jam</td></tr>
+  <tr><td>Router</td><td>NAS MikroTik tujuan voucher.</td><td>Router-Hotspot-01</td></tr>
+  <tr><td>Radius Server</td><td>Server FreeRadius tujuan sync.</td><td>FR-RND</td></tr>
+  <tr><td>Jumlah</td><td>Banyak voucher (1–500 per batch).</td><td><code>50</code></td></tr>
+  <tr><td>Prefix Username</td><td>Awalan username (huruf/angka).</td><td><code>NEX</code> → <code>NEXA7K2QD</code></td></tr>
+  <tr><td>Panjang Password</td><td>4–12 karakter.</td><td><code>6</code></td></tr>
+  <tr><td>Batch Code</td><td>Kosongkan = otomatis timestamp.</td><td><code>Auto</code></td></tr>
+  <tr><td>Partner / Outlet</td><td>Penanda distribusi (reseller/lokasi).</td><td>Outlet Pasar</td></tr>
+  <tr><td>HPP / Harga / Komisi</td><td>Default mengikuti Profile; bisa di-override per batch.</td><td>0 / 5000 / 0</td></tr>
+</table>
+
+<div class="card note">
+  <div class="h">ℹ️ Yang terjadi saat generate</div>
+  <code>generateVouchers()</code> → <code>HotspotVoucherService::generate()</code> membuat N baris <code>HotspotVoucher</code> (status <code>stock</code>) dalam satu transaksi, lalu tiap voucher disinkron: <code>radcheck</code> (Cleartext-Password + Simultaneous-Use) dan <code>radusergroup</code> (user → group paket). Kolom <b>Sync</b> berubah menjadi <i>Synced</i> bila berhasil.
+</div>
+
+<div class="card warn">
+  <div class="h">⏱️ Kapan voucher kedaluwarsa?</div>
+  <b>Masa Aktif Hari</b> mulai dihitung saat voucher <b>ditandai terjual</b> (tombol <i>Terjual</i> atau penjualan), bukan saat dibuat. Jadi stok bisa disimpan lama tanpa hangus.
+</div>
+
+<!-- ===================== LANGKAH 3 ===================== -->
+<h2 class="sec" id="langkah3">7. Langkah 3 — Cetak &amp; Distribusi Voucher</h2>
+<div class="rule"></div>
+<p>Di menu <b>Stok voucher</b>, setelah generate tersedia dua aksi:</p>
+<ul>
+  <li><b>Print HTML</b> — mengunduh <code>nex-voucher-print.html</code>: grid kartu voucher 3 kolom (username, password, batch, outlet, harga) yang otomatis membuka dialog cetak. Cocok untuk dipotong &amp; dijual fisik.</li>
+  <li><b>Export CSV</b> — mengunduh <code>nex-hotspot-vouchers-*.csv</code> (username, password, profile, router, server, partner, outlet, harga, status, batch) untuk reseller atau impor ke sistem lain.</li>
+</ul>
+<div class="card note">
+  <div class="h">💡 Best practice distribusi</div>
+  Generate per <b>outlet/partner</b> terpisah (isi field Outlet) agar rekap komisi &amp; rekonsiliasi stok per lokasi rapi. Gunakan satu <b>Batch Code</b> per gelombang cetak.
+</div>
+
+<!-- ===================== LANGKAH 4 ===================== -->
+<h2 class="sec" id="langkah4">8. Langkah 4 — Template Halaman Login Hotspot</h2>
+<div class="rule"></div>
+<p>Menu: <b>Voucher → Template</b> (<code>/admin/voucher-template</code>). Mengatur tampilan captive portal MikroTik.</p>
+<table>
+  <tr><th style="width:150px">Field</th><th>Fungsi</th></tr>
+  <tr><td>Nama Template</td><td>Identitas template (boleh beberapa per tenant).</td></tr>
+  <tr><td>Nama Hotspot</td><td>Branding yang tampil di halaman login → placeholder <code>{{hotspot_name}}</code>.</td></tr>
+  <tr><td>DNS Name</td><td>Domain captive portal → <code>{{dns_name}}</code>.</td></tr>
+  <tr><td>CS Phone</td><td>Kontak bantuan → <code>{{support_phone}}</code>.</td></tr>
+  <tr><td>HTML Login MikroTik</td><td>Isi penuh <code>login.html</code> (sudah ada template default responsif).</td></tr>
+</table>
+<p>Klik <b>Download login.html</b> untuk mengunduh berkas final (placeholder sudah diganti). Unggah ke direktori <i>hotspot</i> MikroTik. Form login default sudah memuat variabel MikroTik <code>$(link-login-only)</code> dan <code>$(link-orig)</code>.</p>
+<pre><span class="c">&lt;!-- inti form yang harus ada di login.html --&gt;</span>
+&lt;form name="login" action="$(link-login-only)" method="post"&gt;
+  &lt;input type="hidden" name="dst" value="$(link-orig)"&gt;
+  &lt;input name="username" required&gt;
+  &lt;input name="password" type="password" required&gt;
+  &lt;button type="submit"&gt;Connect&lt;/button&gt;
+&lt;/form&gt;</pre>
+
+<!-- ===================== LANGKAH 5 ===================== -->
+<h2 class="sec" id="langkah5">9. Langkah 5 — Penjualan, Online &amp; Rekap</h2>
+<div class="rule"></div>
+<table>
+  <tr><th style="width:160px">Menu</th><th>Gunakan untuk</th></tr>
+  <tr><td>Stok voucher</td><td>Melihat stok belum terjual; tombol <b>Terjual</b> menandai voucher terjual &amp; mulai menghitung masa aktif.</td></tr>
+  <tr><td>Voucher terjual</td><td>Daftar voucher <code>sold</code>/<code>expired</code> lengkap dengan waktu aktif &amp; kedaluwarsa.</td></tr>
+  <tr><td>Voucher online</td><td>Sesi aktif real-time dari tabel <code>radacct</code> (IP, MAC, mulai sesi).</td></tr>
+  <tr><td>Rekap voucher</td><td>Agregasi penjualan per tanggal/partner/outlet/profil: Qty, HPP, Komisi, Harga.</td></tr>
+</table>
+
+<!-- ===================== DI BALIK LAYAR ===================== -->
+<h2 class="sec" id="belakang">10. Di Balik Layar: Pemetaan FreeRadius</h2>
+<div class="rule"></div>
+<p>Memahami pemetaan ini membantu troubleshooting saat voucher "tidak bisa login".</p>
+<h4>Profile → <code>radgroupreply</code> (kebijakan group)</h4>
+<table>
+  <tr><th>Field aplikasi</th><th>Atribut RADIUS</th><th>Catatan</th></tr>
+  <tr><td>MikroTik Group</td><td><code>groupname</code></td><td>Kunci penghubung user → kebijakan.</td></tr>
+  <tr><td>Rate Limit</td><td><code>Mikrotik-Rate-Limit</code></td><td>Apa adanya (mis. <code>5M/5M</code>).</td></tr>
+  <tr><td>Address List</td><td><code>Mikrotik-Address-List</code></td><td>—</td></tr>
+  <tr><td>Kuota MB</td><td><code>Mikrotik-Total-Limit</code></td><td>MB × 1.048.576 → byte (0 = dilewati).</td></tr>
+  <tr><td>Durasi Menit</td><td><code>Session-Timeout</code></td><td>Menit × 60 → detik (0 = dilewati).</td></tr>
+</table>
+<h4>Voucher → <code>radcheck</code> + <code>radusergroup</code> (kredensial)</h4>
+<table>
+  <tr><th>Field aplikasi</th><th>Tabel / Atribut</th><th>Catatan</th></tr>
+  <tr><td>Password</td><td><code>radcheck</code> / <code>Cleartext-Password</code></td><td>Per username.</td></tr>
+  <tr><td>Shared (profil)</td><td><code>radcheck</code> / <code>Simultaneous-Use</code></td><td>Dari profil, bila diisi.</td></tr>
+  <tr><td>Username → Group</td><td><code>radusergroup</code></td><td>Menautkan voucher ke kebijakan paket.</td></tr>
+</table>
+<div class="card danger">
+  <div class="h">🛟 Jika tabel RADIUS belum siap</div>
+  <code>syncVoucher()</code> tidak gagal total — voucher tetap dibuat dengan <code>sync_message = "FreeRadius SQL tables belum siap"</code> dan kolom Sync = <i>Pending</i>. Jalankan migrasi RADIUS lalu generate ulang/sinkron ulang.
+</div>
+
+<!-- ===================== BEST PRACTICES ===================== -->
+<h2 class="sec" id="bestpractice">11. Best Practices Operasional</h2>
+<div class="rule"></div>
+<ul>
+  <li><b>Konvensi penamaan profil &amp; group.</b> Selaraskan, mis. paket "1 Jam" → group <code>NEX-HOTSPOT-1J</code>. Konsisten memudahkan audit di MikroTik.</li>
+  <li><b>Prefix bermakna.</b> Pakai prefix per lokasi/promo (mis. <code>PASAR</code>, <code>EVENT</code>) agar asal voucher terbaca dari username.</li>
+  <li><b>Password 6 karakter</b> adalah sweet spot: cukup aman, mudah diketik. Hindari &gt;8 untuk voucher cetak.</li>
+  <li><b>Generate per outlet.</b> Isi Partner/Outlet saat generate demi rekap komisi otomatis.</li>
+  <li><b>Kuota vs Durasi.</b> Paket berbasis waktu → set Durasi, Kuota = 0. Paket berbasis volume → set Kuota, Durasi besar/0.</li>
+  <li><b>Uji 1 voucher dulu</b> sebelum cetak massal: generate 1, login di MikroTik, pastikan rate-limit &amp; timeout benar.</li>
+  <li><b>Simpan stok, jual baru tandai.</b> Karena masa aktif dihitung saat terjual, aman menumpuk stok.</li>
+</ul>
+
+<!-- ===================== REKOMENDASI ===================== -->
+<h2 class="sec" id="rekomendasi">12. Rekomendasi Penyederhanaan (Roadmap)</h2>
+<div class="rule"></div>
+<p>Sebagai PM, berikut usulan agar alur makin simpel &amp; minim kesalahan. Prioritas dari dampak tertinggi.</p>
+<table>
+  <tr><th style="width:40px">#</th><th>Usulan</th><th>Alasan / Dampak</th><th style="width:80px">Prioritas</th></tr>
+  <tr><td>1</td><td><b>Auto-isi MikroTik Group</b> dari Nama Profile (slug) dengan opsi override.</td><td>Menghilangkan sumber error #1 (group mismatch).</td><td>Tinggi</td></tr>
+  <tr><td>2</td><td><b>Wajibkan Router &amp; Radius Server</b> + validasi saat generate (kini nullable).</td><td>Mencegah voucher "yatim" tanpa NAS tujuan.</td><td>Tinggi</td></tr>
+  <tr><td>3</td><td><b>Pindahkan Harga/HPP/Komisi ke kolom tabel</b> tersendiri (kini disimpan dalam JSON <code>attributes</code> profil).</td><td>Mempermudah query rekap &amp; laporan margin yang akurat.</td><td>Sedang</td></tr>
+  <tr><td>4</td><td><b>Helper text in-form</b>: "Kuota 0 = unlimited", contoh format Rate Limit.</td><td>Mengurangi salah isi tanpa pelatihan.</td><td>Sedang</td></tr>
+  <tr><td>5</td><td><b>Tombol "Generate &amp; Print"</b> satu klik.</td><td>Memangkas langkah untuk operator outlet.</td><td>Sedang</td></tr>
+  <tr><td>6</td><td><b>Filter &amp; pencarian</b> pada tabel stok/terjual (status, batch, outlet).</td><td>Skala ribuan voucher butuh pencarian.</td><td>Sedang</td></tr>
+  <tr><td>7</td><td><b>Aksi massal "Sinkron ulang"</b> untuk voucher Pending.</td><td>Pemulihan cepat saat RADIUS sempat down.</td><td>Rendah</td></tr>
+</table>
+<p class="muted">Catatan: alur saat ini sudah fungsional &amp; koheren; usulan di atas bersifat penyempurnaan, bukan perbaikan bug.</p>
+
+<!-- ===================== TROUBLESHOOTING ===================== -->
+<h2 class="sec" id="troubleshoot">13. Troubleshooting &amp; FAQ</h2>
+<div class="rule"></div>
+<table>
+  <tr><th style="width:280px">Gejala</th><th>Penyebab &amp; Solusi</th></tr>
+  <tr><td>Voucher dibuat tapi kolom Sync = <i>Pending</i></td><td>Tabel FreeRadius belum dimigrasi. Jalankan migrasi RADIUS, lalu generate ulang/sinkron.</td></tr>
+  <tr><td>Login diterima tapi kecepatan/limit salah</td><td>MikroTik Group di profil tidak cocok dengan konfigurasi MikroTik. Samakan nama group.</td></tr>
+  <tr><td>Login ditolak terus</td><td>Username/password salah ketik, atau NAS (Router) belum terdaftar sebagai RADIUS client di FreeRadius.</td></tr>
+  <tr><td>Halaman login polos/tanpa branding</td><td><code>login.html</code> dari menu Template belum diunggah ke MikroTik.</td></tr>
+  <tr><td>Voucher cepat hangus</td><td>Cek <b>Masa Aktif Hari</b>; ingat penghitungan mulai saat ditandai terjual.</td></tr>
+  <tr><td>Tidak bisa &gt;500 voucher sekali generate</td><td>Batas aman per batch = 500. Pecah menjadi beberapa batch.</td></tr>
+</table>
+
+<footer>
+  <span>NEX ISP Platform — PRD Menu Voucher Hotspot v1.0</span>
+  <span>Rahasia &amp; Internal · 24 Juni 2026</span>
+</footer>
+
+</div>
+</body>
+</html>

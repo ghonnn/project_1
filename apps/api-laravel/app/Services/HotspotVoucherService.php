@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Models\HotspotTemplate;
 use App\Models\HotspotVoucher;
 use App\Models\RadiusProfile;
+use App\Models\Mitra;
+use App\Models\HotspotOutlet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -26,28 +28,60 @@ class HotspotVoucherService
         $this->syncProfile($profile);
 
         DB::transaction(function () use ($data, $profile, $qty, $prefix, $batchCode, &$vouchers): void {
-            for ($i = 0; $i < $qty; $i++) {
-                $username = $this->uniqueUsername((string) $data['tenant_id'], $prefix);
-                $password = $this->randomPassword((int) ($data['password_length'] ?? 6));
+            // Lock partner balance if needed
+            $partner = null;
+            if (!empty($data['partner_id'])) {
+                $partner = Mitra::find($data['partner_id']);
+            } elseif (!empty($data['partner_name'])) {
+                $partner = Mitra::where('tenant_id', $data['tenant_id'])->where('name', $data['partner_name'])->first();
+            }
+
+            if ($partner && ($data['potong_saldo'] ?? 'no') === 'yes') {
+                $price = (float) ($data['price'] ?? ($profile->attributes['Price'] ?? 0));
+                $commission = (float) ($data['commission'] ?? ($profile->attributes['Commission'] ?? 0));
+                $singleNet = max(0.0, $price - $commission);
+                
+                $isImportOrIndividual = !empty($data['username']);
+                $totalDeduct = $isImportOrIndividual ? $singleNet : ($singleNet * $qty);
+
+                if ($partner->balance < $totalDeduct) {
+                    throw new \Exception("Saldo partner tidak mencukupi. Saldo saat ini: " . number_format($partner->balance, 0, ',', '.') . ", dibutuhkan: " . number_format($totalDeduct, 0, ',', '.'));
+                }
+
+                $partner->decrement('balance', $totalDeduct);
+            }
+
+            $isImportOrIndividual = !empty($data['username']);
+            $loopCount = $isImportOrIndividual ? 1 : $qty;
+
+            for ($i = 0; $i < $loopCount; $i++) {
+                $username = $isImportOrIndividual ? $data['username'] : $this->uniqueUsername((string) $data['tenant_id'], $prefix);
+                $password = $isImportOrIndividual ? $data['password'] : $this->randomPassword((int) ($data['password_length'] ?? 6));
+
+                if ($isImportOrIndividual && HotspotVoucher::where('tenant_id', $data['tenant_id'])->where('username', $username)->exists()) {
+                    continue; // Skip existing usernames in imports
+                }
 
                 $voucher = HotspotVoucher::create([
                     'tenant_id' => $data['tenant_id'],
                     'profile_id' => $profile->id,
                     'router_id' => $data['router_id'] ?: null,
                     'radius_server_id' => $data['radius_server_id'] ?: null,
+                    'outlet_id' => $data['outlet_id'] ?: null,
                     'username' => $username,
                     'password' => $password,
                     'batch_code' => $batchCode,
-                    'partner_name' => $data['partner_name'] ?: null,
+                    'partner_name' => $partner ? $partner->name : ($data['partner_name'] ?? null),
                     'outlet_name' => $data['outlet_name'] ?: null,
-                    'hpp' => 0,
+                    'hpp' => (float) ($data['hpp'] ?? 0),
                     'commission' => (float) ($data['commission'] ?? ($profile->attributes['Commission'] ?? 0)),
                     'price' => (float) ($data['price'] ?? ($profile->attributes['Price'] ?? 0)),
+                    'mac_address' => !empty($data['mac_address']) ? $data['mac_address'] : null,
                     'status' => 'stock',
                 ]);
 
                 $this->syncVoucher($voucher);
-                $vouchers[] = $voucher->fresh(['profile', 'router', 'radiusServer']);
+                $vouchers[] = $voucher->fresh(['profile', 'router', 'radiusServer', 'outlet']);
             }
         });
 
@@ -97,6 +131,11 @@ class HotspotVoucherService
             DB::table('radreply')->where('username', $username)->delete();
             DB::table('radusergroup')->where('username', $username)->delete();
 
+            // If the voucher is inactive, do not recreate checking/reply rows
+            if ($voucher->status === 'inactive') {
+                return;
+            }
+
             DB::table('radcheck')->insert([
                 'username' => $username,
                 'attribute' => 'Cleartext-Password',
@@ -113,6 +152,15 @@ class HotspotVoucherService
                 ]);
             }
 
+            if (! blank($voucher->mac_address)) {
+                DB::table('radcheck')->insert([
+                    'username' => $username,
+                    'attribute' => 'Calling-Station-Id',
+                    'op' => '==',
+                    'value' => $voucher->mac_address,
+                ]);
+            }
+
             DB::table('radusergroup')->insert([
                 'username' => $username,
                 'groupname' => $groupName,
@@ -122,7 +170,7 @@ class HotspotVoucherService
 
         $voucher->update([
             'synced_at' => now(),
-            'sync_message' => 'Synced to FreeRadius SQL.',
+            'sync_message' => $voucher->status === 'inactive' ? 'Deactivated in FreeRadius SQL.' : 'Synced to FreeRadius SQL.',
         ]);
     }
 

@@ -8,15 +8,21 @@ use App\Models\RadiusProfile;
 use App\Models\RadiusServer;
 use App\Models\Router;
 use App\Models\Tenant;
+use App\Models\Mitra;
+use App\Models\HotspotOutlet;
 use App\Services\HotspotVoucherService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\DB;
 
 abstract class VoucherPage extends Page
 {
+    use WithFileUploads;
+
     protected static ?string $navigationGroup = 'Voucher';
 
     protected static ?string $navigationIcon = 'heroicon-o-wifi';
@@ -30,6 +36,24 @@ abstract class VoucherPage extends Page
     public array $voucherForm = [];
 
     public array $templateForm = [];
+
+    public array $userForm = [];
+
+    public array $outletForm = [];
+
+    public array $importForm = [];
+
+    public array $exportForm = [];
+
+    public $importFile = null;
+
+    public $hotspotLogo = null;
+
+    public array $selectedVouchers = [];
+
+    public bool $selectAllVouchers = false;
+
+    public ?string $targetRouterId = null;
 
     public ?string $editingProfileId = null;
 
@@ -52,6 +76,7 @@ abstract class VoucherPage extends Page
             'commission' => 0,
             'dpp' => 5000,
             'status' => 'active',
+            'color' => '#059669',
         ];
 
         $this->voucherForm = [
@@ -59,6 +84,7 @@ abstract class VoucherPage extends Page
             'profile_id' => null,
             'router_id' => null,
             'radius_server_id' => null,
+            'outlet_id' => null,
             'qty' => 10,
             'prefix' => 'NEX',
             'password_length' => 6,
@@ -69,14 +95,64 @@ abstract class VoucherPage extends Page
             'dpp' => 5000,
         ];
 
+        $template = HotspotTemplate::where('tenant_id', $tenantId)->latest()->first();
         $this->templateForm = [
             'tenant_id' => $tenantId,
-            'name' => 'NEX Default Login',
-            'hotspot_name' => 'NEX ISP Hotspot',
-            'dns_name' => 'wifi.nex.local',
-            'support_phone' => '082170000000',
+            'name' => $template ? $template->name : 'NEX Default Login',
+            'hotspot_name' => $template ? $template->hotspot_name : 'NEX ISP Hotspot',
+            'dns_name' => $template ? $template->dns_name : 'wifi.nex.local',
+            'support_phone' => $template ? $template->support_phone : '082170000000',
+            'status' => $template ? $template->status : 'active',
+            'html_body' => $template ? $template->html_body : app(HotspotVoucherService::class)->defaultTemplate(),
+        ];
+
+        $this->userForm = [
+            'tenant_id' => $tenantId,
+            'profile_id' => null,
+            'router_id' => null,
+            'radius_server_id' => null,
+            'outlet_id' => null,
+            'partner_id' => null,
+            'potong_saldo' => 'no',
+            'username' => '',
+            'password' => '',
+            'lock_mac' => 'no',
+            'mac_address' => '',
+            'hpp' => 0,
+            'price' => 0,
+            'commission' => 0,
+        ];
+
+        $this->outletForm = [
+            'tenant_id' => $tenantId,
+            'mitra_id' => null,
+            'name' => '',
+            'owner_name' => '',
+            'phone' => '',
+            'address' => '',
+            'joined_at' => now()->format('Y-m-d'),
             'status' => 'active',
-            'html_body' => app(HotspotVoucherService::class)->defaultTemplate(),
+        ];
+
+        $this->importForm = [
+            'tenant_id' => $tenantId,
+            'partner_id' => null,
+            'potong_saldo' => 'no',
+            'router_id' => null,
+            'radius_server_id' => null,
+            'outlet_id' => null,
+            'lock_mac' => 'no',
+            'profile_id' => null,
+            'hpp' => 0,
+            'price' => 0,
+            'commission' => 0,
+        ];
+
+        $this->exportForm = [
+            'tenant_id' => $tenantId,
+            'partner_id' => null,
+            'outlet_id' => null,
+            'profile_id' => null,
         ];
     }
 
@@ -113,10 +189,10 @@ abstract class VoucherPage extends Page
 
         return match ($this->pageType) {
             'stock' => [
-                ['label' => 'Total Stok', 'value' => (string) $stock->count(), 'icon' => 'heroicon-o-ticket', 'color' => '#0ea5e9'],
+                ['label' => 'Total Stok Voucher', 'value' => (string) $stock->count(), 'icon' => 'heroicon-o-ticket', 'color' => '#0ea5e9'],
+                ['label' => 'Total HPP', 'value' => $this->rupiah((float) $stock->sum('hpp')), 'icon' => 'heroicon-o-calculator', 'color' => '#f59e0b'],
                 ['label' => 'Total Komisi', 'value' => $this->rupiah((float) $stock->sum('commission')), 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
                 ['label' => 'Total Harga', 'value' => $this->rupiah((float) $stock->sum('price')), 'icon' => 'heroicon-o-circle-stack', 'color' => '#06b6d4'],
-                ['label' => 'Synced Radius', 'value' => (string) HotspotVoucher::where('tenant_id', $tenantId)->whereNotNull('synced_at')->count(), 'icon' => 'heroicon-o-signal', 'color' => '#06b6d4'],
             ],
             'sold' => [
                 ['label' => 'Jumlah Terjual', 'value' => (string) $sold->count(), 'icon' => 'heroicon-o-shopping-cart', 'color' => '#0ea5e9'],
@@ -152,22 +228,23 @@ abstract class VoucherPage extends Page
         $payload = [
             'tenant_id' => $data['tenant_id'],
             'name' => substr((string) $data['name'], 0, 32),
-                'attributes' => [
-                    'Profile-Type' => 'hotspot_voucher',
+            'attributes' => [
+                'Profile-Type' => 'hotspot_voucher',
                 'Mikrotik-Group' => substr((string) $data['group'], 0, 32),
                 'Mikrotik-Address-List' => substr((string) $data['address_list'], 0, 32),
                 'Mikrotik-Rate-Limit' => substr((string) $data['rate_limit'], 0, 32),
-                    'Shared-Users' => $data['shared_users'],
-                    'Quota-MB' => $data['quota_mb'],
-                    'Duration-Minutes' => $data['duration_minutes'],
-                    'Active-Days' => $data['active_days'],
-                    'Commission' => $commission,
+                'Shared-Users' => $data['shared_users'],
+                'Quota-MB' => $data['quota_mb'],
+                'Duration-Minutes' => $data['duration_minutes'],
+                'Active-Days' => $data['active_days'],
+                'Commission' => $commission,
                 'Price' => $tax['total'],
                 'Price-Includes-PPN' => 'yes',
-                    'DPP' => $tax['dpp'],
-                    'PPN' => $tax['ppn'],
-                    'Status' => $data['status'],
-                ],
+                'DPP' => $tax['dpp'],
+                'PPN' => $tax['ppn'],
+                'Status' => $data['status'],
+                'Color' => $data['color'] ?? '#059669',
+            ],
         ];
 
         $profile = $isCreating
@@ -177,6 +254,7 @@ abstract class VoucherPage extends Page
         app(HotspotVoucherService::class)->syncProfile($profile);
 
         Notification::make()->title('Profile voucher tersimpan dan disync ke FreeRadius')->success()->send();
+        $this->resetProfileForm();
     }
 
     public function editProfile(string $profileId): void
@@ -198,6 +276,7 @@ abstract class VoucherPage extends Page
             'commission' => $this->rupiahInput((float) ($attributes['Commission'] ?? 0)),
             'dpp' => $this->rupiahInput((float) ($attributes['DPP'] ?? 0)),
             'status' => $attributes['Status'] ?? 'active',
+            'color' => $attributes['Color'] ?? '#059669',
         ];
     }
 
@@ -218,6 +297,7 @@ abstract class VoucherPage extends Page
             'commission' => 0,
             'dpp' => 0,
             'status' => 'active',
+            'color' => '#059669',
         ];
     }
 
@@ -443,6 +523,504 @@ abstract class VoucherPage extends Page
     public function rupiahInput(float $value): string
     {
         return number_format($value, 0, ',', '.');
+    }
+
+    public function activateProfile(string $profileId): void
+    {
+        $profile = RadiusProfile::findOrFail($profileId);
+        $attributes = $profile->attributes;
+        $attributes['Status'] = 'active';
+        $profile->update(['attributes' => $attributes]);
+        app(HotspotVoucherService::class)->syncProfile($profile);
+        Notification::make()->title('Profile diaktifkan')->success()->send();
+    }
+
+    public function deactivateProfile(string $profileId): void
+    {
+        $profile = RadiusProfile::findOrFail($profileId);
+        $attributes = $profile->attributes;
+        $attributes['Status'] = 'inactive';
+        $profile->update(['attributes' => $attributes]);
+        app(HotspotVoucherService::class)->syncProfile($profile);
+        Notification::make()->title('Profile dinonaktifkan')->success()->send();
+    }
+
+    public function deleteProfile(string $profileId): void
+    {
+        if (HotspotVoucher::where('profile_id', $profileId)->exists()) {
+            Notification::make()->title('Profile tidak dapat dihapus karena masih digunakan oleh voucher')->danger()->send();
+            return;
+        }
+
+        $profile = RadiusProfile::findOrFail($profileId);
+        if (Schema::hasTable('radgroupreply')) {
+            $groupName = $profile->attributes['Mikrotik-Group'] ?? $profile->name;
+            DB::table('radgroupreply')->where('groupname', $groupName)->delete();
+        }
+        $profile->delete();
+        Notification::make()->title('Profile dihapus')->success()->send();
+    }
+
+    public function updatedSelectAllVouchers($value): void
+    {
+        if ($value) {
+            $this->selectedVouchers = $this->voucherRows()->pluck('id')->map(fn($id) => (string)$id)->toArray();
+        } else {
+            $this->selectedVouchers = [];
+        }
+    }
+
+    public function lockMacForSelected(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher terlebih dahulu')->warning()->send();
+            return;
+        }
+
+        $count = 0;
+        foreach ($this->selectedVouchers as $id) {
+            $voucher = HotspotVoucher::find($id);
+            if ($voucher) {
+                $lastMac = null;
+                if (Schema::hasTable('radacct')) {
+                    $lastMac = DB::table('radacct')
+                        ->where('username', $voucher->username)
+                        ->whereNotNull('callingstationid')
+                        ->latest('acctstarttime')
+                        ->value('callingstationid');
+                }
+
+                $macToLock = $lastMac ?: 'LOCK-PENDING';
+                $voucher->update(['mac_address' => $macToLock]);
+                app(HotspotVoucherService::class)->syncVoucher($voucher);
+                $count++;
+            }
+        }
+
+        Notification::make()->title("$count voucher berhasil di-lock MAC address-nya")->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+    }
+
+    public function unlockMacForSelected(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher terlebih dahulu')->warning()->send();
+            return;
+        }
+
+        foreach ($this->selectedVouchers as $id) {
+            $voucher = HotspotVoucher::find($id);
+            if ($voucher) {
+                $voucher->update(['mac_address' => null]);
+                app(HotspotVoucherService::class)->syncVoucher($voucher);
+            }
+        }
+
+        Notification::make()->title("MAC address terpilih berhasil di-unlock")->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+    }
+
+    public function setActiveForSelected(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher terlebih dahulu')->warning()->send();
+            return;
+        }
+
+        foreach ($this->selectedVouchers as $id) {
+            $voucher = HotspotVoucher::find($id);
+            if ($voucher) {
+                $voucher->update(['status' => 'stock']);
+                app(HotspotVoucherService::class)->syncVoucher($voucher);
+            }
+        }
+
+        Notification::make()->title("Voucher terpilih diaktifkan")->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+    }
+
+    public function setInactiveForSelected(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher terlebih dahulu')->warning()->send();
+            return;
+        }
+
+        foreach ($this->selectedVouchers as $id) {
+            $voucher = HotspotVoucher::find($id);
+            if ($voucher) {
+                $voucher->update(['status' => 'inactive']);
+                app(HotspotVoucherService::class)->syncVoucher($voucher);
+            }
+        }
+
+        Notification::make()->title("Voucher terpilih dinonaktifkan")->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+    }
+
+    public function changeRouterForSelected(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher terlebih dahulu')->warning()->send();
+            return;
+        }
+        if (!$this->targetRouterId) {
+            Notification::make()->title('Pilih router tujuan terlebih dahulu')->warning()->send();
+            return;
+        }
+
+        foreach ($this->selectedVouchers as $id) {
+            $voucher = HotspotVoucher::find($id);
+            if ($voucher) {
+                $voucher->update(['router_id' => $this->targetRouterId]);
+                app(HotspotVoucherService::class)->syncVoucher($voucher);
+            }
+        }
+
+        Notification::make()->title("Router terpilih berhasil diubah")->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+        $this->targetRouterId = null;
+    }
+
+    public function deleteSelectedVouchers(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher terlebih dahulu')->warning()->send();
+            return;
+        }
+
+        foreach ($this->selectedVouchers as $id) {
+            $voucher = HotspotVoucher::find($id);
+            if ($voucher) {
+                if (Schema::hasTable('radcheck')) {
+                    DB::table('radcheck')->where('username', $voucher->username)->delete();
+                    DB::table('radreply')->where('username', $voucher->username)->delete();
+                    DB::table('radusergroup')->where('username', $voucher->username)->delete();
+                }
+                $voucher->delete();
+            }
+        }
+
+        Notification::make()->title("Voucher terpilih berhasil dihapus")->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+    }
+
+    public function updatedUserFormProfileId($value): void
+    {
+        if ($value) {
+            $profile = RadiusProfile::find($value);
+            if ($profile) {
+                $attributes = $profile->attributes ?? [];
+                $this->userForm['hpp'] = $attributes['HPP'] ?? 0;
+                $this->userForm['price'] = $attributes['Price'] ?? 0;
+                $this->userForm['commission'] = $attributes['Commission'] ?? 0;
+            }
+        }
+    }
+
+    public function updatedImportFormProfileId($value): void
+    {
+        if ($value) {
+            $profile = RadiusProfile::find($value);
+            if ($profile) {
+                $attributes = $profile->attributes ?? [];
+                $this->importForm['hpp'] = $attributes['HPP'] ?? 0;
+                $this->importForm['price'] = $attributes['Price'] ?? 0;
+                $this->importForm['commission'] = $attributes['Commission'] ?? 0;
+            }
+        }
+    }
+
+    public function createUser(): void
+    {
+        $data = $this->userForm;
+        $data['tenant_id'] = $this->selectedTenantId();
+
+        if (empty($data['username']) || empty($data['password'])) {
+            Notification::make()->title('Username dan password wajib diisi')->danger()->send();
+            return;
+        }
+
+        if (($data['lock_mac'] ?? 'no') === 'yes' && empty($data['mac_address'])) {
+            $data['mac_address'] = 'LOCK-ON-LOGIN';
+        }
+
+        // Format money
+        $data['hpp'] = $this->parseMoney($data['hpp'] ?? 0);
+        $data['commission'] = $this->parseMoney($data['commission'] ?? 0);
+        $data['price'] = $this->parseMoney($data['price'] ?? 0);
+
+        try {
+            app(HotspotVoucherService::class)->generate($data);
+            Notification::make()->title('User hotspot berhasil dibuat')->success()->send();
+            $this->resetUserForm();
+        } catch (\Exception $e) {
+            Notification::make()->title($e->getMessage())->danger()->send();
+        }
+    }
+
+    public function resetUserForm(): void
+    {
+        $this->userForm = [
+            'tenant_id' => $this->selectedTenantId(),
+            'profile_id' => null,
+            'router_id' => null,
+            'radius_server_id' => null,
+            'outlet_id' => null,
+            'partner_id' => null,
+            'potong_saldo' => 'no',
+            'username' => '',
+            'password' => '',
+            'lock_mac' => 'no',
+            'mac_address' => '',
+            'hpp' => 0,
+            'price' => 0,
+            'commission' => 0,
+        ];
+    }
+
+    public function saveOutlet(): void
+    {
+        $data = $this->outletForm;
+        $data['tenant_id'] = $this->selectedTenantId();
+        $data['joined_at'] = $data['joined_at'] ?: now()->format('Y-m-d');
+
+        HotspotOutlet::create($data);
+        Notification::make()->title('Outlet berhasil ditambahkan')->success()->send();
+        $this->resetOutletForm();
+    }
+
+    public function resetOutletForm(): void
+    {
+        $this->outletForm = [
+            'tenant_id' => $this->selectedTenantId(),
+            'mitra_id' => null,
+            'name' => '',
+            'owner_name' => '',
+            'phone' => '',
+            'address' => '',
+            'joined_at' => now()->format('Y-m-d'),
+            'status' => 'active',
+        ];
+    }
+
+    public function activateOutlet(string $id): void
+    {
+        HotspotOutlet::findOrFail($id)->update(['status' => 'active']);
+        Notification::make()->title('Outlet diaktifkan')->success()->send();
+    }
+
+    public function deactivateOutlet(string $id): void
+    {
+        HotspotOutlet::findOrFail($id)->update(['status' => 'inactive']);
+        Notification::make()->title('Outlet dinonaktifkan')->success()->send();
+    }
+
+    public function deleteOutlet(string $id): void
+    {
+        HotspotOutlet::findOrFail($id)->delete();
+        Notification::make()->title('Outlet dihapus')->success()->send();
+    }
+
+    public function saveHotspotSetting(): void
+    {
+        $data = $this->templateForm;
+        $data['tenant_id'] = $this->selectedTenantId();
+
+        if ($this->hotspotLogo) {
+            $this->validate([
+                'hotspotLogo' => 'image|max:100',
+            ]);
+            $logoPath = $this->hotspotLogo->store('hotspot-logos', 'public');
+            $data['logo_path'] = $logoPath;
+        }
+
+        HotspotTemplate::updateOrCreate(
+            ['tenant_id' => $data['tenant_id'], 'name' => $data['name']],
+            $data
+        );
+
+        Notification::make()->title('Setting hotspot berhasil disimpan')->success()->send();
+    }
+
+    public function importVouchers(): void
+    {
+        if (!$this->importFile) {
+            Notification::make()->title('Pilih file terlebih dahulu')->danger()->send();
+            return;
+        }
+
+        $this->validate([
+            'importFile' => 'file|mimes:csv,txt,json|max:2048',
+        ]);
+
+        $path = $this->importFile->getRealPath();
+        $content = file_get_contents($path);
+        $vouchersData = [];
+
+        $extension = $this->importFile->getClientOriginalExtension();
+        if ($extension === 'json') {
+            $json = json_decode($content, true);
+            if (is_array($json)) {
+                $vouchersData = $json;
+            }
+        } else {
+            $lines = explode("\n", $content);
+            $header = null;
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if (empty($line)) continue;
+
+                $cols = str_getcsv($line, ',');
+                if (!$header) {
+                    $header = array_map('strtolower', $cols);
+                    continue;
+                }
+
+                if (count($cols) >= 2) {
+                    $row = array_combine(array_slice($header, 0, count($cols)), $cols);
+                    $vouchersData[] = [
+                        'username' => $row['username'] ?? $cols[0],
+                        'password' => $row['password'] ?? $cols[1],
+                    ];
+                }
+            }
+        }
+
+        if (empty($vouchersData)) {
+            Notification::make()->title('Format file tidak didukung atau kosong')->danger()->send();
+            return;
+        }
+
+        $successCount = 0;
+        $errorMessages = [];
+
+        foreach ($vouchersData as $vData) {
+            if (empty($vData['username']) || empty($vData['password'])) {
+                continue;
+            }
+
+            $payload = array_merge($this->importForm, [
+                'tenant_id' => $this->selectedTenantId(),
+                'username' => $vData['username'],
+                'password' => $vData['password'],
+                'mac_address' => ($this->importForm['lock_mac'] === 'yes' ? 'PENDING' : null),
+                'hpp' => $this->parseMoney($this->importForm['hpp'] ?? 0),
+                'price' => $this->parseMoney($this->importForm['price'] ?? 0),
+                'commission' => $this->parseMoney($this->importForm['commission'] ?? 0),
+            ]);
+
+            try {
+                app(HotspotVoucherService::class)->generate($payload);
+                $successCount++;
+            } catch (\Exception $e) {
+                $errorMessages[] = $vData['username'] . ': ' . $e->getMessage();
+            }
+        }
+
+        if ($successCount > 0) {
+            Notification::make()->title("$successCount voucher berhasil di-import")->success()->send();
+        }
+
+        if (!empty($errorMessages)) {
+            Notification::make()
+                ->title("Beberapa voucher gagal di-import")
+                ->body(implode("\n", array_slice($errorMessages, 0, 5)))
+                ->danger()
+                ->send();
+        }
+
+        $this->importFile = null;
+    }
+
+    public function downloadImportFormat(): StreamedResponse
+    {
+        $filename = 'nex-voucher-import-format.csv';
+        return response()->streamDownload(function (): void {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['username', 'password']);
+            fputcsv($handle, ['NEX123456', '889922']);
+            fputcsv($handle, ['NEX789012', '771133']);
+            fclose($handle);
+        }, $filename);
+    }
+
+    public function exportVouchers(): StreamedResponse
+    {
+        $partner = $this->exportForm['partner_id'] ? Mitra::find($this->exportForm['partner_id'])?->name : null;
+        $outletId = $this->exportForm['outlet_id'];
+        $profileId = $this->exportForm['profile_id'];
+
+        $query = HotspotVoucher::with(['profile', 'router', 'radiusServer'])
+            ->where('tenant_id', $this->selectedTenantId());
+
+        if ($partner) {
+            $query->where('partner_name', $partner);
+        }
+        if ($outletId) {
+            $query->where('outlet_id', $outletId);
+        }
+        if ($profileId) {
+            $query->where('profile_id', $profileId);
+        }
+
+        $rows = $query->get();
+        $filename = 'nex-hotspot-vouchers-export-'.now('Asia/Jakarta')->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($handle, ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga', 'Status', 'MAC Address']);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $row->username,
+                    $row->password,
+                    $row->profile?->name,
+                    $row->router?->router_name,
+                    $row->radiusServer?->name,
+                    $row->partner_name,
+                    $row->outlet_name ?: ($row->outlet?->name),
+                    $row->price,
+                    $row->status,
+                    $row->mac_address,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename);
+    }
+
+    public function outletRows()
+    {
+        return HotspotOutlet::with('mitra')
+            ->where('tenant_id', $this->selectedTenantId())
+            ->latest()
+            ->get();
+    }
+
+    public function partnerOptions(): array
+    {
+        return Mitra::where('tenant_id', $this->selectedTenantId())
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    public function outletOptions(): array
+    {
+        return HotspotOutlet::where('tenant_id', $this->selectedTenantId())
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
     }
 
     private function voucherProfileQuery()

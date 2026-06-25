@@ -38,4 +38,9 @@ class HotspotVoucher extends NexModel
     {
         return $this->belongsTo(RadiusServer::class);
     }
+
+    public function outlet(): BelongsTo
+    {
+        return $this->belongsTo(HotspotOutlet::class, 'outlet_id');
+    }
 }
