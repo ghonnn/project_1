@@ -218,6 +218,11 @@ abstract class VoucherPage extends Page
 
         $stock = HotspotVoucher::query()->where('tenant_id', $tenantId)->where('status', 'stock');
         $sold = HotspotVoucher::query()->where('tenant_id', $tenantId)->where('status', 'sold');
+        $expired = HotspotVoucher::query()->where('tenant_id', $tenantId)->where('status', 'expired');
+        $soldThisMonth = HotspotVoucher::query()
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'sold')
+            ->whereBetween('activated_at', [now()->startOfMonth(), now()->endOfMonth()]);
 
         return match ($this->pageType) {
             'stock' => [
@@ -227,10 +232,10 @@ abstract class VoucherPage extends Page
                 ['label' => 'Total Harga', 'value' => $this->rupiah((float) $stock->sum('price')), 'description' => 'Nominal jual voucher', 'icon' => 'heroicon-o-circle-stack', 'color' => '#0891b2'],
             ],
             'sold' => [
-                ['label' => 'Jumlah Terjual', 'value' => (string) $sold->count(), 'description' => 'Voucher sudah dipakai', 'icon' => 'heroicon-o-shopping-cart', 'color' => '#0ea5e9'],
+                ['label' => 'Jumlah', 'value' => (string) $sold->count(), 'description' => 'Total voucher terjual', 'icon' => 'heroicon-o-shopping-bag', 'color' => '#0d82ff'],
                 ['label' => 'Total Penjualan', 'value' => $this->rupiah((float) $sold->sum('price')), 'description' => 'Nominal voucher terjual', 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
-                ['label' => 'Komisi', 'value' => $this->rupiah((float) $sold->sum('commission')), 'description' => 'Komisi voucher terjual', 'icon' => 'heroicon-o-currency-dollar', 'color' => '#06b6d4'],
-                ['label' => 'Expired', 'value' => (string) HotspotVoucher::where('tenant_id', $tenantId)->where('status', 'expired')->count(), 'description' => 'Voucher kedaluwarsa', 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#ef4444'],
+                ['label' => 'Total '.$this->monthLabel(), 'value' => $this->rupiah((float) $soldThisMonth->sum('price')), 'description' => 'Penjualan bulan ini', 'icon' => 'heroicon-o-calendar-days', 'color' => '#0891b2'],
+                ['label' => 'Jumlah Expired', 'value' => (string) $expired->count(), 'description' => 'Voucher expired', 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#ef4444'],
             ],
             'online' => [
                 ['label' => 'Voucher Online', 'value' => (string) $this->onlineRows()->count(), 'description' => 'Sesi aktif saat ini', 'icon' => 'heroicon-o-wifi', 'color' => '#22c55e'],
@@ -488,7 +493,7 @@ abstract class VoucherPage extends Page
     {
         $query = $this->filteredVoucherQuery();
 
-        if ($this->pageType === 'stock') {
+        if (in_array($this->pageType, ['stock', 'sold'], true)) {
             return $query->paginate(
                 max(5, min(100, (int) $this->stockPerPage)),
                 ['hotspot_vouchers.*'],
@@ -506,12 +511,12 @@ abstract class VoucherPage extends Page
             ->when($this->pageType === 'stock', fn (Builder $query) => $query->where('hotspot_vouchers.status', 'stock'))
             ->when($this->pageType === 'sold', fn (Builder $query) => $query->whereIn('hotspot_vouchers.status', ['sold', 'expired']));
 
-        if ($this->pageType !== 'stock') {
+        if (! in_array($this->pageType, ['stock', 'sold'], true)) {
             return $query;
         }
 
         $query
-            ->when($this->stockDate, fn (Builder $query, string $date) => $query->whereDate('hotspot_vouchers.created_at', $date))
+            ->when($this->stockDate, fn (Builder $query, string $date) => $query->whereDate($this->pageType === 'sold' ? 'hotspot_vouchers.activated_at' : 'hotspot_vouchers.created_at', $date))
             ->when($this->stockProfileId, fn (Builder $query, string $profileId) => $query->where('hotspot_vouchers.profile_id', $profileId))
             ->when($this->stockRouterId, fn (Builder $query, string $routerId) => $query->where('hotspot_vouchers.router_id', $routerId));
 
@@ -570,7 +575,7 @@ abstract class VoucherPage extends Page
                 ->orderBy('voucher_sort_admins.name', $direction),
             'saldo' => $query->orderBy('hotspot_vouchers.balance_deducted', $direction),
             'kode' => $query->orderBy('hotspot_vouchers.batch_code', $direction),
-            'username', 'password', 'mitra', 'outlet', 'hpp', 'commission', 'price', 'created_at' => $query->orderBy('hotspot_vouchers.'.$this->stockSortColumn(), $direction),
+            'username', 'password', 'mitra', 'outlet', 'hpp', 'commission', 'price', 'created_at', 'activated_at', 'expires_at', 'mac_address' => $query->orderBy('hotspot_vouchers.'.$this->stockSortColumn(), $direction),
             default => $query->latest('hotspot_vouchers.created_at'),
         };
     }
@@ -586,7 +591,7 @@ abstract class VoucherPage extends Page
 
     public function sortVouchers(string $field): void
     {
-        $allowed = ['kode', 'username', 'password', 'profile', 'router', 'server', 'mitra', 'outlet', 'hpp', 'commission', 'price', 'saldo', 'admin', 'created_at'];
+        $allowed = ['kode', 'username', 'password', 'profile', 'router', 'server', 'mitra', 'outlet', 'hpp', 'commission', 'price', 'saldo', 'admin', 'created_at', 'activated_at', 'expires_at', 'mac_address'];
 
         if (! in_array($field, $allowed, true)) {
             return;
@@ -600,6 +605,133 @@ abstract class VoucherPage extends Page
         }
 
         $this->resetPage('vouchersPage');
+    }
+
+    public function exportSoldVouchers(): StreamedResponse
+    {
+        $rows = $this->filteredVoucherQuery()->limit(5000)->get();
+        $filename = 'nex-voucher-terjual-'.now('Asia/Jakarta')->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($handle, ['Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC Address']);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $row->username,
+                    $row->password,
+                    $row->profile?->name,
+                    $row->router?->router_name,
+                    $row->radiusServer?->name,
+                    $row->partner_name ?: ($row->mitra?->name ?? 'SYSTEM'),
+                    $row->outlet_name ?: ($row->outlet?->name),
+                    $row->hpp,
+                    $row->commission,
+                    $row->price,
+                    $row->balance_deducted ? 'Yes' : 'No',
+                    $row->admin?->name ?? 'SYSTEM',
+                    $row->batch_code,
+                    $this->voucherDurationLabel($row),
+                    $this->voucherQuotaLabel($row),
+                    $row->activated_at?->format('d/m/Y H:i:s'),
+                    $row->expires_at?->format('d/m/Y H:i:s'),
+                    $row->mac_address,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename);
+    }
+
+    public function exportSoldRecap(): StreamedResponse
+    {
+        $rows = collect($this->soldRecapRows());
+        $filename = 'nex-rekap-voucher-terjual-'.now('Asia/Jakarta')->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($handle, ['Tanggal', 'Mitra', 'Outlet', 'Profile', 'Qty', 'HPP', 'Komisi', 'Penjualan']);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $row->sale_date ?: '-',
+                    $row->partner_name ?: 'SYSTEM',
+                    $row->outlet_name ?: '-',
+                    $row->profile?->name ?: '-',
+                    $row->qty,
+                    $row->hpp,
+                    $row->commission,
+                    $row->price,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename);
+    }
+
+    public function deleteExpiredVouchers(): void
+    {
+        $rows = HotspotVoucher::query()
+            ->where('tenant_id', $this->selectedTenantId())
+            ->where('status', 'expired')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            Notification::make()->title('Tidak ada voucher expired untuk dihapus')->warning()->send();
+
+            return;
+        }
+
+        foreach ($rows as $voucher) {
+            if (Schema::hasTable('radcheck')) {
+                DB::table('radcheck')->where('username', $voucher->username)->delete();
+                DB::table('radreply')->where('username', $voucher->username)->delete();
+                DB::table('radusergroup')->where('username', $voucher->username)->delete();
+            }
+
+            $voucher->delete();
+        }
+
+        Notification::make()->title($rows->count().' voucher expired berhasil dihapus')->success()->send();
+        $this->resetPage('vouchersPage');
+    }
+
+    public function soldRecapRows(): array
+    {
+        return HotspotVoucher::query()
+            ->with('profile')
+            ->where('tenant_id', $this->selectedTenantId())
+            ->whereIn('status', ['sold', 'expired'])
+            ->selectRaw('date(activated_at) as sale_date, partner_name, outlet_name, profile_id, count(*) as qty, sum(hpp) as hpp, sum(commission) as commission, sum(price) as price')
+            ->groupByRaw('date(activated_at), partner_name, outlet_name, profile_id')
+            ->latest('sale_date')
+            ->limit(100)
+            ->get()
+            ->all();
+    }
+
+    public function soldChartRows(): array
+    {
+        $rows = HotspotVoucher::query()
+            ->where('tenant_id', $this->selectedTenantId())
+            ->where('status', 'sold')
+            ->whereNotNull('activated_at')
+            ->where('activated_at', '>=', now()->subDays(13)->startOfDay())
+            ->selectRaw('date(activated_at) as sale_date, count(*) as qty, sum(price) as price')
+            ->groupByRaw('date(activated_at)')
+            ->orderBy('sale_date')
+            ->get();
+
+        $max = max(1, (int) $rows->max('qty'));
+
+        return $rows->map(fn ($row): array => [
+            'date' => $row->sale_date,
+            'qty' => (int) $row->qty,
+            'price' => (float) $row->price,
+            'height' => max(8, (int) round(((int) $row->qty / $max) * 96)),
+        ])->all();
     }
 
     protected function printableVoucherRows()
@@ -654,7 +786,7 @@ abstract class VoucherPage extends Page
         return match ($this->pageType) {
             'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
             'stock' => ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan'],
-            'sold' => ['Username', 'Profile', 'Partner', 'Outlet', 'Harga Jual', 'Aktif', 'Expired', 'MAC'],
+            'sold' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC AC'],
             'online' => ['Username', 'IP Address', 'MAC Address', 'Uptime', 'Profile'],
             'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'Komisi', 'Harga Jual'],
             default => ['Nama Template', 'Hotspot', 'DNS', 'Phone', 'Status'],
@@ -705,6 +837,47 @@ abstract class VoucherPage extends Page
     public function rupiahInput(float $value): string
     {
         return number_format($value, 0, ',', '.');
+    }
+
+    public function monthLabel(): string
+    {
+        $months = [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+
+        return ($months[(int) now('Asia/Jakarta')->format('n')] ?? now('Asia/Jakarta')->format('F')).' '.now('Asia/Jakarta')->format('Y');
+    }
+
+    public function voucherDurationLabel(HotspotVoucher $voucher): string
+    {
+        $minutes = (int) ($voucher->profile?->attributes['Duration-Minutes'] ?? 0);
+
+        if ($minutes <= 0) {
+            return '00:00:00/UNLIMITED';
+        }
+
+        $hours = intdiv($minutes, 60);
+        $remainingMinutes = $minutes % 60;
+
+        return sprintf('%02d:%02d:00/UNLIMITED', $hours, $remainingMinutes);
+    }
+
+    public function voucherQuotaLabel(HotspotVoucher $voucher): string
+    {
+        $quotaMb = (int) ($voucher->profile?->attributes['Quota-MB'] ?? 0);
+
+        return $quotaMb > 0 ? number_format($quotaMb, 0, ',', '.').'MB/UNLIMITED' : '0/UNLIMITED';
     }
 
     public function activateProfile(string $profileId): void
