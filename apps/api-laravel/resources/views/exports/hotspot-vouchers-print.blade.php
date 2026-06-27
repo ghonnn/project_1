@@ -40,6 +40,8 @@
             </section>
         @endforeach
     </div>
-    <script>window.print()</script>
+    <script>
+        window.addEventListener('load', () => window.print());
+    </script>
 </body>
 </html>

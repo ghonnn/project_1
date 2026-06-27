@@ -14,8 +14,10 @@ use App\Services\HotspotVoucherService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -418,19 +420,26 @@ abstract class VoucherPage extends Page
         }, $filename);
     }
 
-    public function downloadPrintHtml(): ?StreamedResponse
+    public function openPrintTab(): void
     {
         $rows = $this->printableVoucherRows();
 
         if ($rows->isEmpty()) {
+            $this->dispatch('voucher-print-empty');
+
             Notification::make()->title('Tidak ada voucher untuk dicetak')->warning()->send();
 
-            return null;
+            return;
         }
 
-        $html = view('exports.hotspot-vouchers-print', ['vouchers' => $rows])->render();
+        $token = Str::random(40);
 
-        return response()->streamDownload(fn () => print($html), 'nex-voucher-print.html');
+        Cache::put('voucher-print:'.$token, [
+            'tenant_id' => $this->selectedTenantId(),
+            'voucher_ids' => $rows->pluck('id')->all(),
+        ], now()->addMinutes(10));
+
+        $this->dispatch('voucher-print-ready', url: route('voucher.print', ['token' => $token]));
     }
 
     public function downloadTemplateHtml(): StreamedResponse

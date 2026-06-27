@@ -94,6 +94,30 @@
                 stroke: currentColor !important;
             }
         </style>
+        <script>
+            window.addEventListener('voucher-print-ready', (event) => {
+                if (! event.detail?.url) {
+                    return;
+                }
+
+                if (window.nexVoucherPrintWindow && ! window.nexVoucherPrintWindow.closed) {
+                    window.nexVoucherPrintWindow.location.href = event.detail.url;
+                    window.nexVoucherPrintWindow.focus();
+                    window.nexVoucherPrintWindow = null;
+
+                    return;
+                }
+
+                window.open(event.detail.url, '_blank', 'noopener,noreferrer');
+            });
+
+            window.addEventListener('voucher-print-empty', () => {
+                if (window.nexVoucherPrintWindow && ! window.nexVoucherPrintWindow.closed) {
+                    window.nexVoucherPrintWindow.close();
+                    window.nexVoucherPrintWindow = null;
+                }
+            });
+        </script>
     @endonce
 
     <div class="space-y-6">
@@ -171,7 +195,7 @@
                             <button type="button" class="nex-voucher-control nex-voucher-control--sky" x-on:click="stockPanel = stockPanel === 'menu' ? null : 'menu'">
                                 <x-filament::icon icon="heroicon-m-bars-3" class="h-4 w-4" /> MENU
                             </button>
-                            <button type="button" class="nex-voucher-control nex-voucher-control--rose" wire:click="downloadPrintHtml">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--rose" x-on:click="window.nexVoucherPrintWindow = window.open('about:blank', '_blank')" wire:click="openPrintTab">
                                 <x-filament::icon icon="heroicon-m-printer" class="h-4 w-4" /> QUICK PRINT
                             </button>
                             <button type="button" class="nex-voucher-control nex-voucher-control--emerald" x-on:click="stockPanel = stockPanel === 'create-user' ? null : 'create-user'">
@@ -198,7 +222,7 @@
                         <div x-show="stockPanel === 'menu'" class="rounded-lg border border-sky-100 bg-sky-50/50 p-4 space-y-3" x-cloak>
                             <div class="text-xs font-bold uppercase text-sky-800">Aksi Massal Voucher Terpilih ({{ count($selectedVouchers) }} item)</div>
                             <div class="flex flex-wrap items-center gap-2">
-                                <button type="button" wire:click="downloadPrintHtml" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-gray-900/5 hover:bg-gray-50"><x-filament::icon icon="heroicon-m-printer" class="h-4 w-4 text-sky-600" /> Cetak Terpilih</button>
+                                <button type="button" x-on:click="window.nexVoucherPrintWindow = window.open('about:blank', '_blank')" wire:click="openPrintTab" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-gray-900/5 hover:bg-gray-50"><x-filament::icon icon="heroicon-m-printer" class="h-4 w-4 text-sky-600" /> Cetak Terpilih</button>
                                 <button type="button" wire:click="lockMacForSelected" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-gray-900/5 hover:bg-gray-50"><x-filament::icon icon="heroicon-m-lock-closed" class="h-4 w-4 text-gray-500" /> Lock MAC</button>
                                 <button type="button" wire:click="unlockMacForSelected" class="inline-flex items-center gap-1 rounded bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-gray-900/5 hover:bg-gray-50"><x-filament::icon icon="heroicon-m-lock-open" class="h-4 w-4 text-gray-500" /> Unlock MAC</button>
                                 <button type="button" wire:click="setActiveForSelected" class="inline-flex items-center gap-1 rounded bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"><x-filament::icon icon="heroicon-m-check-circle" class="h-4 w-4" /> Set Aktif</button>
