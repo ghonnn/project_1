@@ -60,6 +60,39 @@
             .nex-voucher-control--indigo:hover { background: #4338ca !important; }
             .nex-voucher-control--violet { background: #7c3aed !important; }
             .nex-voucher-control--violet:hover { background: #6d28d9 !important; }
+
+            .nex-voucher-stat-card {
+                min-height: 112px;
+                padding-right: 96px;
+            }
+
+            .nex-voucher-stat-icon {
+                position: absolute;
+                right: 28px;
+                top: 50%;
+                display: flex;
+                width: 52px;
+                height: 52px;
+                transform: translateY(-50%);
+                align-items: center;
+                justify-content: center;
+                color: var(--nex-stat-color);
+                pointer-events: none;
+            }
+
+            .nex-voucher-stat-icon svg,
+            .nex-voucher-stat-svg {
+                width: 44px !important;
+                min-width: 44px !important;
+                max-width: 44px !important;
+                height: 44px !important;
+                min-height: 44px !important;
+                max-height: 44px !important;
+                display: block !important;
+                flex: none !important;
+                color: currentColor !important;
+                stroke: currentColor !important;
+            }
         </style>
     @endonce
 
@@ -68,13 +101,15 @@
         @if (count($this->stats()))
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ($this->stats() as $stat)
-                    <div class="relative min-h-[112px] overflow-hidden rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-950/5">
+                    <div class="nex-voucher-stat-card relative overflow-hidden rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-950/5">
                         <div class="min-w-0">
                             <div class="truncate text-xs font-bold uppercase text-gray-700">{{ $stat['label'] }}</div>
                             <div class="mt-2 text-2xl font-bold leading-none" style="color: {{ $stat['color'] }}">{{ $stat['value'] }}</div>
                             <div class="mt-2 text-sm font-medium text-gray-500">{{ $stat['description'] }}</div>
                         </div>
-                        <x-dynamic-component :component="$stat['icon']" class="absolute right-8 top-1/2 h-12 w-12 -translate-y-1/2" style="color: {{ $stat['color'] }}" />
+                        <div class="nex-voucher-stat-icon" style="--nex-stat-color: {{ $stat['color'] }}">
+                            <x-filament::icon :icon="$stat['icon']" class="nex-voucher-stat-svg" />
+                        </div>
                     </div>
                 @endforeach
             </div>
