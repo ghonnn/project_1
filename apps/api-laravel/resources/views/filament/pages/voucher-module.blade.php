@@ -68,14 +68,13 @@
         @if (count($this->stats()))
             <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ($this->stats() as $stat)
-                    <div class="flex items-center gap-4 rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-950/10">
-                        <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-white" style="background: {{ $stat['color'] }}">
-                            <x-dynamic-component :component="$stat['icon']" class="h-5 w-5" />
-                        </div>
+                    <div class="relative min-h-[112px] overflow-hidden rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-950/5">
                         <div class="min-w-0">
-                            <div class="truncate text-xs font-semibold uppercase text-gray-500">{{ $stat['label'] }}</div>
-                            <div class="mt-1 text-xl font-bold text-gray-950">{{ $stat['value'] }}</div>
+                            <div class="truncate text-xs font-bold uppercase text-gray-700">{{ $stat['label'] }}</div>
+                            <div class="mt-2 text-2xl font-bold leading-none" style="color: {{ $stat['color'] }}">{{ $stat['value'] }}</div>
+                            <div class="mt-2 text-sm font-medium text-gray-500">{{ $stat['description'] }}</div>
                         </div>
+                        <x-dynamic-component :component="$stat['icon']" class="absolute right-8 top-1/2 h-12 w-12 -translate-y-1/2" style="color: {{ $stat['color'] }}" />
                     </div>
                 @endforeach
             </div>
@@ -132,30 +131,31 @@
                 {{-- Stok Voucher Tab Interface --}}
                 @if ($pageType === 'stock')
                     <div x-data="{ stockPanel: null }" class="space-y-4">
-                        <div class="rounded-lg bg-gray-100 px-4 py-3 text-sm font-bold uppercase text-gray-700 ring-1 ring-gray-950/10">Stok Voucher</div>
-
                         {{-- Control Panel Navigation Bar --}}
                         <div class="nex-voucher-toolbar">
                             <button type="button" class="nex-voucher-control nex-voucher-control--sky" x-on:click="stockPanel = stockPanel === 'menu' ? null : 'menu'">
-                                <x-filament::icon icon="heroicon-m-bars-3" class="h-4 w-4" /> Aksi Terpilih ({{ count($selectedVouchers) }})
+                                <x-filament::icon icon="heroicon-m-bars-3" class="h-4 w-4" /> MENU
+                            </button>
+                            <button type="button" class="nex-voucher-control nex-voucher-control--rose" wire:click="downloadPrintHtml">
+                                <x-filament::icon icon="heroicon-m-printer" class="h-4 w-4" /> QUICK PRINT
                             </button>
                             <button type="button" class="nex-voucher-control nex-voucher-control--emerald" x-on:click="stockPanel = stockPanel === 'create-user' ? null : 'create-user'">
-                                <x-filament::icon icon="heroicon-m-plus-circle" class="h-4 w-4" /> Buat User
+                                <x-filament::icon icon="heroicon-m-plus-circle" class="h-4 w-4" /> BUAT USER
                             </button>
                             <button type="button" class="nex-voucher-control nex-voucher-control--blue" x-on:click="stockPanel = stockPanel === 'create-voucher' ? null : 'create-voucher'">
-                                <x-filament::icon icon="heroicon-m-ticket" class="h-4 w-4" /> Buat Voucher (Bulk)
+                                <x-filament::icon icon="heroicon-m-plus-circle" class="h-4 w-4" /> BUAT VOUCHER
                             </button>
                             <button type="button" class="nex-voucher-control nex-voucher-control--slate" x-on:click="stockPanel = stockPanel === 'outlet' ? null : 'outlet'">
-                                <x-filament::icon icon="heroicon-m-users" class="h-4 w-4" /> Data Outlet
+                                <x-filament::icon icon="heroicon-m-users" class="h-4 w-4" /> OUTLET
                             </button>
                             <button type="button" class="nex-voucher-control nex-voucher-control--rose" x-on:click="stockPanel = stockPanel === 'setting' ? null : 'setting'">
-                                <x-filament::icon icon="heroicon-m-cog-6-tooth" class="h-4 w-4" /> Setting Hotspot
+                                <x-filament::icon icon="heroicon-m-cog-6-tooth" class="h-4 w-4" /> SETTING
                             </button>
-                            <button type="button" class="nex-voucher-control nex-voucher-control--indigo" x-on:click="stockPanel = stockPanel === 'import' ? null : 'import'">
-                                <x-filament::icon icon="heroicon-m-document-arrow-up" class="h-4 w-4" /> Import
+                            <button type="button" class="nex-voucher-control nex-voucher-control--blue" x-on:click="stockPanel = stockPanel === 'import' ? null : 'import'">
+                                <x-filament::icon icon="heroicon-m-document-arrow-up" class="h-4 w-4" /> IMPORT
                             </button>
-                            <button type="button" class="nex-voucher-control nex-voucher-control--violet" x-on:click="stockPanel = stockPanel === 'export-panel' ? null : 'export-panel'">
-                                <x-filament::icon icon="heroicon-m-document-arrow-down" class="h-4 w-4" /> Export
+                            <button type="button" class="nex-voucher-control nex-voucher-control--emerald" x-on:click="stockPanel = stockPanel === 'export-panel' ? null : 'export-panel'">
+                                <x-filament::icon icon="heroicon-m-document-arrow-down" class="h-4 w-4" /> EXPORT
                             </button>
                         </div>
 
@@ -215,7 +215,8 @@
                                 <button type="button" x-on:click="stockPanel = null" class="text-gray-400 hover:text-gray-600">&times;</button>
                             </div>
                             <x-voucher-select label="Tenant" model="voucherForm.tenant_id" :options="$this->tenantOptions()" />
-                            <x-voucher-input label="Partner" model="voucherForm.partner_name" placeholder="Cari partner" />
+                            <x-voucher-select label="Mitra" model="voucherForm.partner_id" :options="$this->partnerOptions()" />
+                            <x-voucher-select label="Potong Saldo Mitra" model="voucherForm.potong_saldo" :options="['yes' => 'YES', 'no' => 'NO']" />
                             <x-voucher-select label="Profile" model="voucherForm.profile_id" :options="$this->profileOptions()" />
                             <x-voucher-input label="Outlet/Hotel Area" model="voucherForm.outlet_name" />
                             <x-voucher-select label="Router" model="voucherForm.router_id" :options="$this->routerOptions()" />
@@ -365,7 +366,7 @@
                         <div x-show="stockPanel === 'import'" class="rounded-lg bg-white p-5 ring-1 ring-gray-950/10 space-y-4" x-cloak>
                             <div class="text-sm font-bold uppercase text-gray-700 border-b pb-2 flex items-center justify-between">
                                 <span>Import Voucher dari File</span>
-                                <button type="button" wire:click="downloadImportFormat" class="text-xs font-semibold text-emerald-600 hover:underline">Unduh Format Data Import (CSV/Excel)</button>
+                                <button type="button" wire:click="downloadImportFormat" class="text-xs font-semibold text-emerald-600 hover:underline">Unduh Format Data Import (CSV)</button>
                             </div>
                             <form wire:submit="importVouchers" class="grid gap-4 md:grid-cols-2">
                                 <x-voucher-select label="Cari Partner" model="importForm.partner_id" :options="$this->partnerOptions()" />
@@ -394,7 +395,7 @@
 
                                 <div class="md:col-span-2">
                                     <label class="block">
-                                        <span class="mb-1 block text-sm font-semibold text-gray-700">Pilih File (Excel/CSV, TXT, JSON)</span>
+                                        <span class="mb-1 block text-sm font-semibold text-gray-700">Pilih File (CSV, TXT, JSON)</span>
                                         <input type="file" wire:model="importFile" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100" />
                                         @error('importFile') <span class="text-xs text-rose-600">{{ $message }}</span> @enderror
                                     </label>
@@ -421,27 +422,68 @@
                         </div>
 
                         {{-- Basic Table Filter --}}
-                        <div class="grid gap-2 md:grid-cols-[80px_1fr_1fr_1fr_1fr_2fr]">
-                            <select class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                <option>10</option>
-                                <option>25</option>
-                                <option>50</option>
-                            </select>
-                            <input type="search" class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="Cari partner">
-                            <select class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                <option>All Router</option>
-                                @foreach ($this->routerOptions() as $routerName)
-                                    <option>{{ $routerName }}</option>
-                                @endforeach
-                            </select>
-                            <select class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                <option>All Profile</option>
-                                @foreach ($this->profileOptions() as $profileName)
-                                    <option>{{ $profileName }}</option>
-                                @endforeach
-                            </select>
-                            <input type="text" class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="Tgl pembuatan">
-                            <input type="search" class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500" placeholder="Cari voucher...">
+                        <div class="grid gap-2 xl:grid-cols-[220px_190px_260px_220px_110px_minmax(260px,1fr)]">
+                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                                    <x-filament::icon icon="heroicon-m-calendar-days" class="h-4 w-4" />
+                                </span>
+                                <input type="date" wire:model.live="stockDate" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Tanggal pembuatan">
+                            </label>
+
+                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                                    <x-filament::icon icon="heroicon-m-identification" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="stockProfileId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter profile">
+                                    <option value="">ALL PROFILE</option>
+                                    @foreach ($this->profileOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                                    <x-filament::icon icon="heroicon-m-server-stack" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="stockRouterId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter router">
+                                    <option value="">ALL ROUTER</option>
+                                    @foreach ($this->routerOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                                    <x-filament::icon icon="heroicon-m-user-group" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter mitra">
+                                    <option value="">Pilih mitra</option>
+                                    @foreach ($this->partnerOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+
+                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                                    <x-filament::icon icon="heroicon-m-list-bullet" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="stockPerPage" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Jumlah baris">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                    <option value="100">100</option>
+                                </select>
+                            </label>
+
+                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                                    <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-4 w-4" />
+                                </span>
+                                <input type="search" wire:model.live.debounce.350ms="stockSearch" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" placeholder="Cari voucher..." aria-label="Cari voucher">
+                            </label>
                         </div>
                     </div>
                 @endif
@@ -466,8 +508,15 @@
                 @endif
 
                 {{-- Main Data Tables --}}
+                @php
+                    $voucherRows = in_array($pageType, ['stock', 'sold'], true) ? $this->voucherRows() : null;
+                @endphp
                 <div class="overflow-x-auto rounded-lg bg-white ring-1 ring-gray-950/10">
-                    <table class="w-full min-w-[1050px] text-left text-sm">
+                    <table @class([
+                        'w-full text-left text-sm',
+                        'min-w-[1700px]' => $pageType === 'stock',
+                        'min-w-[1050px]' => $pageType !== 'stock',
+                    ])>
                         <thead>
                             <tr class="border-b border-gray-200 bg-gray-50">
                                 {{-- Checkbox column for selection on Stok Voucher --}}
@@ -475,10 +524,37 @@
                                     <th class="w-10 px-4 py-3"><input type="checkbox" wire:model.live="selectAllVouchers" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"></th>
                                 @endif
                                 
-                                @foreach ($this->columns() as $column)
-                                    <th class="whitespace-nowrap px-4 py-3 text-xs font-bold uppercase text-gray-600">{{ $column }}</th>
-                                @endforeach
-                                @if (in_array($pageType, ['profile', 'stock'], true))
+                                @if ($pageType === 'stock')
+                                    @foreach ([
+                                        'kode' => 'Kode',
+                                        'username' => 'Username',
+                                        'password' => 'Password',
+                                        'profile' => 'Profile',
+                                        'router' => 'Router',
+                                        'server' => 'Server',
+                                        'mitra' => 'Mitra',
+                                        'outlet' => 'Outlet',
+                                        'hpp' => 'HPP',
+                                        'commission' => 'Komisi',
+                                        'price' => 'Harga',
+                                        'saldo' => 'Saldo',
+                                        'admin' => 'Admin',
+                                        'created_at' => 'Tgl Pembuatan',
+                                    ] as $field => $label)
+                                        <th class="whitespace-nowrap px-4 py-3 text-xs font-bold uppercase text-gray-600">
+                                            <button type="button" wire:click="sortVouchers('{{ $field }}')" class="inline-flex items-center gap-2 uppercase">
+                                                {{ $label }}
+                                                <x-filament::icon :icon="$stockSort === $field ? ($stockSortDirection === 'asc' ? 'heroicon-m-arrow-up' : 'heroicon-m-arrow-down') : 'heroicon-m-arrows-up-down'" class="h-3.5 w-3.5 text-gray-400" />
+                                            </button>
+                                        </th>
+                                    @endforeach
+                                    <th class="w-10 px-4 py-3"></th>
+                                @else
+                                    @foreach ($this->columns() as $column)
+                                        <th class="whitespace-nowrap px-4 py-3 text-xs font-bold uppercase text-gray-600">{{ $column }}</th>
+                                    @endforeach
+                                @endif
+                                @if ($pageType === 'profile')
                                     <th class="px-4 py-3 text-xs font-bold uppercase text-gray-600">Action</th>
                                 @endif
                             </tr>
@@ -521,17 +597,48 @@
                                 @empty
                                     <tr><td colspan="11" class="px-4 py-10 text-center text-gray-500">Belum ada profile voucher.</td></tr>
                                 @endforelse
-                            @elseif (in_array($pageType, ['stock', 'sold'], true))
-                                {{-- Stock & Sold Voucher rows rendering --}}
-                                @forelse ($this->voucherRows() as $voucher)
+                            @elseif ($pageType === 'stock')
+                                {{-- Stock Voucher rows rendering --}}
+                                @forelse ($voucherRows as $voucher)
                                     <tr>
-                                        @if ($pageType === 'stock')
-                                            <td class="px-4 py-3"><input type="checkbox" wire:model.live="selectedVouchers" value="{{ $voucher->id }}" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"></td>
-                                        @endif
+                                        @php
+                                            $passwordMask = str_repeat('*', max(8, min(10, strlen((string) $voucher->password))));
+                                        @endphp
+                                        <td class="px-4 py-3"><input type="checkbox" wire:model.live="selectedVouchers" value="{{ $voucher->id }}" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"></td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-700">{{ $voucher->batch_code ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-700">{{ $voucher->username }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-mono text-gray-700">{{ $passwordMask }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $voucher->profile?->name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $voucher->router?->router_name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $voucher->radiusServer?->name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-700">{{ $voucher->partner_name ?: ($voucher->mitra?->name ?? 'SYSTEM') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $voucher->outlet_name ?: ($voucher->outlet?->name ?? '-') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ number_format((float) $voucher->hpp, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ number_format((float) $voucher->commission, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ number_format((float) $voucher->price, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3">
+                                            <span class="inline-flex rounded bg-amber-50 px-1.5 py-0.5 text-xs font-bold text-amber-500">
+                                                {{ $voucher->balance_deducted ? 'Yes' : 'No' }}
+                                            </span>
+                                        </td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-700">{{ $voucher->admin?->name ?? 'SYSTEM' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $voucher->created_at?->format('d/m/Y H:i:s') ?? '-' }}</td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span title="{{ $voucher->mac_address ? 'MAC terkunci' : 'MAC belum terkunci' }}" class="inline-flex text-gray-500">
+                                                <x-filament::icon :icon="$voucher->mac_address ? 'heroicon-m-lock-closed' : 'heroicon-m-lock-open'" class="h-5 w-5" />
+                                            </span>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="16" class="px-4 py-10 text-center text-gray-500">Belum ada data voucher.</td>
+                                    </tr>
+                                @endforelse
+                            @elseif ($pageType === 'sold')
+                                {{-- Sold Voucher rows rendering --}}
+                                @forelse ($voucherRows as $voucher)
+                                    <tr>
                                         <td class="px-4 py-3 font-semibold">{{ $voucher->username }}</td>
-                                        @if ($pageType === 'stock')
-                                            <td class="px-4 py-3 font-mono">{{ $voucher->password }}</td>
-                                        @endif
                                         <td class="px-4 py-3">
                                             @if ($voucher->profile)
                                                 <span class="inline-block px-2 py-0.5 rounded text-xs font-bold" style="background-color: {{ $voucher->profile->attributes['Color'] ?? '#059669' }}20; color: {{ $voucher->profile->attributes['Color'] ?? '#059669' }}">
@@ -541,43 +648,16 @@
                                                 -
                                             @endif
                                         </td>
-                                        @if ($pageType === 'stock')
-                                            <td class="px-4 py-3">{{ $voucher->router?->router_name ?? '-' }}</td>
-                                            <td class="px-4 py-3">{{ $voucher->radiusServer?->name ?? '-' }}</td>
-                                        @endif
                                         <td class="px-4 py-3 text-sky-700 font-medium">{{ $voucher->partner_name ?? '-' }}</td>
                                         <td class="px-4 py-3">{{ $voucher->outlet_name ?: ($voucher->outlet?->name ?? '-') }}</td>
                                         <td class="px-4 py-3 text-right tabular-nums font-semibold">{{ $this->rupiah((float) $voucher->price) }}</td>
-                                        @if ($pageType === 'stock')
-                                            <td class="px-4 py-3">
-                                                <span class="inline-block rounded-full px-2 py-0.5 text-xs font-bold {{ $voucher->status === 'stock' ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600' }}">
-                                                    {{ strtoupper($voucher->status) }}
-                                                </span>
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                <div class="flex items-center gap-1.5">
-                                                    <span class="text-xs {{ $voucher->synced_at ? 'text-emerald-600 font-medium' : 'text-amber-600 font-medium' }}">
-                                                        {{ $voucher->synced_at ? 'Synced' : 'Pending' }}
-                                                    </span>
-                                                    @if ($voucher->mac_address)
-                                                        <span class="inline-block bg-sky-55 text-sky-700 font-bold px-1 py-0.5 rounded text-[9px] uppercase border border-sky-200">Locked</span>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                            <td class="px-4 py-3">
-                                                <div class="flex items-center gap-1.5">
-                                                    <x-filament::button size="xs" color="success" wire:click="markSold('{{ $voucher->id }}')">Terjual</x-filament::button>
-                                                </div>
-                                            </td>
-                                        @else
-                                            <td class="px-4 py-3">{{ $voucher->activated_at?->format('d/m/Y H:i') ?? '-' }}</td>
-                                            <td class="px-4 py-3">{{ $voucher->expires_at?->format('d/m/Y H:i') ?? '-' }}</td>
-                                            <td class="px-4 py-3 font-mono text-xs">{{ $voucher->mac_address ?? '-' }}</td>
-                                        @endif
+                                        <td class="px-4 py-3">{{ $voucher->activated_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                                        <td class="px-4 py-3">{{ $voucher->expires_at?->format('d/m/Y H:i') ?? '-' }}</td>
+                                        <td class="px-4 py-3 font-mono text-xs">{{ $voucher->mac_address ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="{{ $pageType === 'stock' ? 12 : 9 }}" class="px-4 py-10 text-center text-gray-500">Belum ada data voucher.</td>
+                                        <td colspan="8" class="px-4 py-10 text-center text-gray-500">Belum ada data voucher.</td>
                                     </tr>
                                 @endforelse
                             @elseif ($pageType === 'online')
@@ -646,6 +726,17 @@
                         </tbody>
                     </table>
                 </div>
+
+                @if ($pageType === 'stock' && $voucherRows)
+                    <div class="flex flex-col gap-3 text-sm text-gray-700 md:flex-row md:items-center md:justify-between">
+                        <div>
+                            Showing {{ $voucherRows->firstItem() ?? 0 }} to {{ $voucherRows->lastItem() ?? 0 }} of {{ $voucherRows->total() }} entries
+                        </div>
+                        <div>
+                            {{ $voucherRows->links() }}
+                        </div>
+                    </div>
+                @endif
             </div>
         </x-filament::section>
     </div>

@@ -6,7 +6,6 @@ use App\Models\HotspotTemplate;
 use App\Models\HotspotVoucher;
 use App\Models\RadiusProfile;
 use App\Models\Mitra;
-use App\Models\HotspotOutlet;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
@@ -22,7 +21,7 @@ class HotspotVoucherService
         $profile = RadiusProfile::query()->findOrFail($data['profile_id']);
         $qty = max(1, min(500, (int) ($data['qty'] ?? 1)));
         $prefix = strtoupper(preg_replace('/[^A-Z0-9]/i', '', (string) ($data['prefix'] ?? 'NEX')) ?: 'NEX');
-        $batchCode = $data['batch_code'] ?: now('Asia/Jakarta')->format('YmdHis');
+        $batchCode = ! empty($data['batch_code']) ? $data['batch_code'] : now('Asia/Jakarta')->format('YmdHis');
         $vouchers = [];
 
         $this->syncProfile($profile);
@@ -36,7 +35,9 @@ class HotspotVoucherService
                 $partner = Mitra::where('tenant_id', $data['tenant_id'])->where('name', $data['partner_name'])->first();
             }
 
-            if ($partner && ($data['potong_saldo'] ?? 'no') === 'yes') {
+            $deductBalance = $partner && ($data['potong_saldo'] ?? 'no') === 'yes';
+
+            if ($deductBalance) {
                 $price = (float) ($data['price'] ?? ($profile->attributes['Price'] ?? 0));
                 $commission = (float) ($data['commission'] ?? ($profile->attributes['Commission'] ?? 0));
                 $singleNet = max(0.0, $price - $commission);
@@ -65,14 +66,17 @@ class HotspotVoucherService
                 $voucher = HotspotVoucher::create([
                     'tenant_id' => $data['tenant_id'],
                     'profile_id' => $profile->id,
-                    'router_id' => $data['router_id'] ?: null,
-                    'radius_server_id' => $data['radius_server_id'] ?: null,
-                    'outlet_id' => $data['outlet_id'] ?: null,
+                    'router_id' => ($data['router_id'] ?? null) ?: null,
+                    'radius_server_id' => ($data['radius_server_id'] ?? null) ?: null,
+                    'outlet_id' => ($data['outlet_id'] ?? null) ?: null,
+                    'mitra_id' => $partner?->id,
+                    'admin_user_id' => $data['admin_user_id'] ?? null,
+                    'balance_deducted' => $deductBalance,
                     'username' => $username,
                     'password' => $password,
                     'batch_code' => $batchCode,
                     'partner_name' => $partner ? $partner->name : ($data['partner_name'] ?? null),
-                    'outlet_name' => $data['outlet_name'] ?: null,
+                    'outlet_name' => ($data['outlet_name'] ?? null) ?: null,
                     'hpp' => (float) ($data['hpp'] ?? 0),
                     'commission' => (float) ($data['commission'] ?? ($profile->attributes['Commission'] ?? 0)),
                     'price' => (float) ($data['price'] ?? ($profile->attributes['Price'] ?? 0)),

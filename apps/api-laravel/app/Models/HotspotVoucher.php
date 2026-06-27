@@ -15,6 +15,7 @@ class HotspotVoucher extends NexModel
     protected function casts(): array
     {
         return [
+            'balance_deducted' => 'boolean',
             'hpp' => 'decimal:2',
             'commission' => 'decimal:2',
             'price' => 'decimal:2',
@@ -42,5 +43,15 @@ class HotspotVoucher extends NexModel
     public function outlet(): BelongsTo
     {
         return $this->belongsTo(HotspotOutlet::class, 'outlet_id');
+    }
+
+    public function mitra(): BelongsTo
+    {
+        return $this->belongsTo(Mitra::class, 'mitra_id');
+    }
+
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'admin_user_id');
     }
 }

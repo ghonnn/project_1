@@ -13,15 +13,17 @@ use App\Models\HotspotOutlet;
 use App\Services\HotspotVoucherService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Illuminate\Support\Facades\DB;
 
 abstract class VoucherPage extends Page
 {
-    use WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     protected static ?string $navigationGroup = 'Voucher';
 
@@ -59,6 +61,22 @@ abstract class VoucherPage extends Page
 
     public ?string $lastBatchCode = null;
 
+    public int|string $stockPerPage = 10;
+
+    public string $stockSearch = '';
+
+    public ?string $stockDate = null;
+
+    public ?string $stockProfileId = null;
+
+    public ?string $stockRouterId = null;
+
+    public ?string $stockPartnerId = null;
+
+    public string $stockSort = 'created_at';
+
+    public string $stockSortDirection = 'desc';
+
     public function mount(): void
     {
         $tenantId = $this->defaultTenantId();
@@ -85,6 +103,8 @@ abstract class VoucherPage extends Page
             'router_id' => null,
             'radius_server_id' => null,
             'outlet_id' => null,
+            'partner_id' => null,
+            'potong_saldo' => 'no',
             'qty' => 10,
             'prefix' => 'NEX',
             'password_length' => 6,
@@ -102,6 +122,7 @@ abstract class VoucherPage extends Page
             'hotspot_name' => $template ? $template->hotspot_name : 'NEX ISP Hotspot',
             'dns_name' => $template ? $template->dns_name : 'wifi.nex.local',
             'support_phone' => $template ? $template->support_phone : '082170000000',
+            'logo_path' => $template ? $template->logo_path : null,
             'status' => $template ? $template->status : 'active',
             'html_body' => $template ? $template->html_body : app(HotspotVoucherService::class)->defaultTemplate(),
         ];
@@ -156,6 +177,15 @@ abstract class VoucherPage extends Page
         ];
     }
 
+    public function updated(string $property, mixed $value = null): void
+    {
+        if (str_starts_with($property, 'stock')) {
+            $this->resetPage('vouchersPage');
+            $this->selectAllVouchers = false;
+            $this->selectedVouchers = [];
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -179,7 +209,7 @@ abstract class VoucherPage extends Page
         };
     }
 
-    /** @return array<int, array{label: string, value: string, icon: string, color: string}> */
+    /** @return array<int, array{label: string, value: string, description: string, icon: string, color: string}> */
     public function stats(): array
     {
         $tenantId = $this->selectedTenantId();
@@ -189,20 +219,20 @@ abstract class VoucherPage extends Page
 
         return match ($this->pageType) {
             'stock' => [
-                ['label' => 'Total Stok Voucher', 'value' => (string) $stock->count(), 'icon' => 'heroicon-o-ticket', 'color' => '#0ea5e9'],
-                ['label' => 'Total HPP', 'value' => $this->rupiah((float) $stock->sum('hpp')), 'icon' => 'heroicon-o-calculator', 'color' => '#f59e0b'],
-                ['label' => 'Total Komisi', 'value' => $this->rupiah((float) $stock->sum('commission')), 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
-                ['label' => 'Total Harga', 'value' => $this->rupiah((float) $stock->sum('price')), 'icon' => 'heroicon-o-circle-stack', 'color' => '#06b6d4'],
+                ['label' => 'Total Stok', 'value' => (string) $stock->count(), 'description' => 'Jumlah voucher aktif', 'icon' => 'heroicon-o-wifi', 'color' => '#0d82ff'],
+                ['label' => 'Total HPP', 'value' => $this->rupiah((float) $stock->sum('hpp')), 'description' => 'Harga pokok penjualan', 'icon' => 'heroicon-o-banknotes', 'color' => '#16a34a'],
+                ['label' => 'Total Komisi', 'value' => $this->rupiah((float) $stock->sum('commission')), 'description' => 'Komisi mitra / outlet', 'icon' => 'heroicon-o-currency-dollar', 'color' => '#f59e0b'],
+                ['label' => 'Total Harga', 'value' => $this->rupiah((float) $stock->sum('price')), 'description' => 'Nominal jual voucher', 'icon' => 'heroicon-o-circle-stack', 'color' => '#0891b2'],
             ],
             'sold' => [
-                ['label' => 'Jumlah Terjual', 'value' => (string) $sold->count(), 'icon' => 'heroicon-o-shopping-cart', 'color' => '#0ea5e9'],
-                ['label' => 'Total Penjualan', 'value' => $this->rupiah((float) $sold->sum('price')), 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
-                ['label' => 'Komisi', 'value' => $this->rupiah((float) $sold->sum('commission')), 'icon' => 'heroicon-o-currency-dollar', 'color' => '#06b6d4'],
-                ['label' => 'Expired', 'value' => (string) HotspotVoucher::where('tenant_id', $tenantId)->where('status', 'expired')->count(), 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#ef4444'],
+                ['label' => 'Jumlah Terjual', 'value' => (string) $sold->count(), 'description' => 'Voucher sudah dipakai', 'icon' => 'heroicon-o-shopping-cart', 'color' => '#0ea5e9'],
+                ['label' => 'Total Penjualan', 'value' => $this->rupiah((float) $sold->sum('price')), 'description' => 'Nominal voucher terjual', 'icon' => 'heroicon-o-banknotes', 'color' => '#22c55e'],
+                ['label' => 'Komisi', 'value' => $this->rupiah((float) $sold->sum('commission')), 'description' => 'Komisi voucher terjual', 'icon' => 'heroicon-o-currency-dollar', 'color' => '#06b6d4'],
+                ['label' => 'Expired', 'value' => (string) HotspotVoucher::where('tenant_id', $tenantId)->where('status', 'expired')->count(), 'description' => 'Voucher kedaluwarsa', 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#ef4444'],
             ],
             'online' => [
-                ['label' => 'Voucher Online', 'value' => (string) $this->onlineRows()->count(), 'icon' => 'heroicon-o-wifi', 'color' => '#22c55e'],
-                ['label' => 'FreeRadius', 'value' => '10.20.1.19 / 103.142.202.19', 'icon' => 'heroicon-o-server', 'color' => '#0ea5e9'],
+                ['label' => 'Voucher Online', 'value' => (string) $this->onlineRows()->count(), 'description' => 'Sesi aktif saat ini', 'icon' => 'heroicon-o-wifi', 'color' => '#22c55e'],
+                ['label' => 'FreeRadius', 'value' => '10.20.1.19 / 103.142.202.19', 'description' => 'Server autentikasi', 'icon' => 'heroicon-o-server', 'color' => '#0ea5e9'],
             ],
             default => [],
         };
@@ -304,20 +334,32 @@ abstract class VoucherPage extends Page
     public function generateVouchers(): void
     {
         $data = $this->voucherForm;
+
+        if (empty($data['profile_id'])) {
+            Notification::make()->title('Profile voucher wajib dipilih')->danger()->send();
+
+            return;
+        }
+
         $data['batch_code'] = $data['batch_code'] ?: now('Asia/Jakarta')->format('YmdHis');
-        $data['hpp'] = 0;
         $data['commission'] = $this->parseMoney($data['commission'] ?? 0);
         $data['dpp'] = $this->parseMoney($data['dpp'] ?? 0);
+        $data['hpp'] = $data['dpp'];
         $data['price'] = $this->taxBreakdown($data['dpp'])['total'];
+        $data['admin_user_id'] = auth()->id();
 
-        $vouchers = app(HotspotVoucherService::class)->generate($data);
-        $this->lastBatchCode = $data['batch_code'];
+        try {
+            $vouchers = app(HotspotVoucherService::class)->generate($data);
+            $this->lastBatchCode = $data['batch_code'];
 
-        Notification::make()
-            ->title(count($vouchers).' voucher berhasil dibuat')
-            ->body('User/password sudah disimpan dan disync ke FreeRadius SQL.')
-            ->success()
-            ->send();
+            Notification::make()
+                ->title(count($vouchers).' voucher berhasil dibuat')
+                ->body('User/password sudah disimpan dan disync ke FreeRadius SQL.')
+                ->success()
+                ->send();
+        } catch (\Throwable $e) {
+            Notification::make()->title($e->getMessage())->danger()->send();
+        }
     }
 
     public function markSold(string $voucherId): void
@@ -346,25 +388,29 @@ abstract class VoucherPage extends Page
 
     public function exportCsv(): StreamedResponse
     {
-        $rows = $this->voucherRows();
+        $rows = $this->filteredVoucherQuery()->limit(1000)->get();
         $filename = 'nex-hotspot-vouchers-'.now('Asia/Jakarta')->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga', 'Status', 'Batch']);
+            fputcsv($handle, ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
+                    $row->batch_code,
                     $row->username,
                     $row->password,
                     $row->profile?->name,
                     $row->router?->router_name,
                     $row->radiusServer?->name,
                     $row->partner_name,
-                    $row->outlet_name,
+                    $row->outlet_name ?: $row->outlet?->name,
+                    $row->hpp,
+                    $row->commission,
                     $row->price,
-                    $row->status,
-                    $row->batch_code,
+                    $row->balance_deducted ? 'Yes' : 'No',
+                    $row->admin?->name ?? 'SYSTEM',
+                    $row->created_at?->format('d/m/Y H:i:s'),
                 ]);
             }
 
@@ -372,9 +418,16 @@ abstract class VoucherPage extends Page
         }, $filename);
     }
 
-    public function downloadPrintHtml(): StreamedResponse
+    public function downloadPrintHtml(): ?StreamedResponse
     {
-        $rows = $this->voucherRows()->take(120);
+        $rows = $this->printableVoucherRows();
+
+        if ($rows->isEmpty()) {
+            Notification::make()->title('Tidak ada voucher untuk dicetak')->warning()->send();
+
+            return null;
+        }
+
         $html = view('exports.hotspot-vouchers-print', ['vouchers' => $rows])->render();
 
         return response()->streamDownload(fn () => print($html), 'nex-voucher-print.html');
@@ -424,13 +477,133 @@ abstract class VoucherPage extends Page
 
     public function voucherRows()
     {
-        return HotspotVoucher::with(['profile', 'router', 'radiusServer'])
-            ->where('tenant_id', $this->selectedTenantId())
-            ->when($this->pageType === 'stock', fn ($query) => $query->where('status', 'stock'))
-            ->when($this->pageType === 'sold', fn ($query) => $query->whereIn('status', ['sold', 'expired']))
-            ->latest()
-            ->limit(200)
-            ->get();
+        $query = $this->filteredVoucherQuery();
+
+        if ($this->pageType === 'stock') {
+            return $query->paginate(
+                max(5, min(100, (int) $this->stockPerPage)),
+                ['hotspot_vouchers.*'],
+                'vouchersPage',
+            );
+        }
+
+        return $query->latest('hotspot_vouchers.created_at')->limit(200)->get();
+    }
+
+    protected function filteredVoucherQuery(): Builder
+    {
+        $query = HotspotVoucher::with(['profile', 'router', 'radiusServer', 'outlet', 'mitra', 'admin'])
+            ->where('hotspot_vouchers.tenant_id', $this->selectedTenantId())
+            ->when($this->pageType === 'stock', fn (Builder $query) => $query->where('hotspot_vouchers.status', 'stock'))
+            ->when($this->pageType === 'sold', fn (Builder $query) => $query->whereIn('hotspot_vouchers.status', ['sold', 'expired']));
+
+        if ($this->pageType !== 'stock') {
+            return $query;
+        }
+
+        $query
+            ->when($this->stockDate, fn (Builder $query, string $date) => $query->whereDate('hotspot_vouchers.created_at', $date))
+            ->when($this->stockProfileId, fn (Builder $query, string $profileId) => $query->where('hotspot_vouchers.profile_id', $profileId))
+            ->when($this->stockRouterId, fn (Builder $query, string $routerId) => $query->where('hotspot_vouchers.router_id', $routerId));
+
+        if ($this->stockPartnerId) {
+            $partner = Mitra::query()->find($this->stockPartnerId);
+
+            $query->where(function (Builder $query) use ($partner): void {
+                $query->where('hotspot_vouchers.mitra_id', $this->stockPartnerId);
+
+                if ($partner) {
+                    $query->orWhere('hotspot_vouchers.partner_name', $partner->name);
+                }
+            });
+        }
+
+        $search = trim($this->stockSearch);
+        if ($search !== '') {
+            $query->where(function (Builder $query) use ($search): void {
+                $query
+                    ->where('hotspot_vouchers.batch_code', 'like', "%{$search}%")
+                    ->orWhere('hotspot_vouchers.username', 'like', "%{$search}%")
+                    ->orWhere('hotspot_vouchers.password', 'like', "%{$search}%")
+                    ->orWhere('hotspot_vouchers.partner_name', 'like', "%{$search}%")
+                    ->orWhere('hotspot_vouchers.outlet_name', 'like', "%{$search}%")
+                    ->orWhereHas('profile', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('router', fn (Builder $query) => $query->where('router_name', 'like', "%{$search}%"))
+                    ->orWhereHas('radiusServer', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('outlet', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('admin', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        return $this->sortVoucherQuery($query);
+    }
+
+    protected function sortVoucherQuery(Builder $query): Builder
+    {
+        $direction = $this->stockSortDirection === 'asc' ? 'asc' : 'desc';
+
+        return match ($this->stockSort) {
+            'profile' => $query
+                ->leftJoin('radius_profiles as voucher_sort_profiles', 'voucher_sort_profiles.id', '=', 'hotspot_vouchers.profile_id')
+                ->select('hotspot_vouchers.*')
+                ->orderBy('voucher_sort_profiles.name', $direction),
+            'router' => $query
+                ->leftJoin('routers as voucher_sort_routers', 'voucher_sort_routers.id', '=', 'hotspot_vouchers.router_id')
+                ->select('hotspot_vouchers.*')
+                ->orderBy('voucher_sort_routers.router_name', $direction),
+            'server' => $query
+                ->leftJoin('radius_servers as voucher_sort_servers', 'voucher_sort_servers.id', '=', 'hotspot_vouchers.radius_server_id')
+                ->select('hotspot_vouchers.*')
+                ->orderBy('voucher_sort_servers.name', $direction),
+            'admin' => $query
+                ->leftJoin('users as voucher_sort_admins', 'voucher_sort_admins.id', '=', 'hotspot_vouchers.admin_user_id')
+                ->select('hotspot_vouchers.*')
+                ->orderBy('voucher_sort_admins.name', $direction),
+            'saldo' => $query->orderBy('hotspot_vouchers.balance_deducted', $direction),
+            'kode' => $query->orderBy('hotspot_vouchers.batch_code', $direction),
+            'username', 'password', 'mitra', 'outlet', 'hpp', 'commission', 'price', 'created_at' => $query->orderBy('hotspot_vouchers.'.$this->stockSortColumn(), $direction),
+            default => $query->latest('hotspot_vouchers.created_at'),
+        };
+    }
+
+    protected function stockSortColumn(): string
+    {
+        return match ($this->stockSort) {
+            'mitra' => 'partner_name',
+            'outlet' => 'outlet_name',
+            default => $this->stockSort,
+        };
+    }
+
+    public function sortVouchers(string $field): void
+    {
+        $allowed = ['kode', 'username', 'password', 'profile', 'router', 'server', 'mitra', 'outlet', 'hpp', 'commission', 'price', 'saldo', 'admin', 'created_at'];
+
+        if (! in_array($field, $allowed, true)) {
+            return;
+        }
+
+        if ($this->stockSort === $field) {
+            $this->stockSortDirection = $this->stockSortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->stockSort = $field;
+            $this->stockSortDirection = 'asc';
+        }
+
+        $this->resetPage('vouchersPage');
+    }
+
+    protected function printableVoucherRows()
+    {
+        if (! empty($this->selectedVouchers)) {
+            return HotspotVoucher::with(['profile', 'router', 'radiusServer', 'outlet', 'mitra', 'admin'])
+                ->where('tenant_id', $this->selectedTenantId())
+                ->whereIn('id', $this->selectedVouchers)
+                ->latest()
+                ->get();
+        }
+
+        return $this->filteredVoucherQuery()->limit(120)->get();
     }
 
     public function templateRows()
@@ -471,7 +644,7 @@ abstract class VoucherPage extends Page
     {
         return match ($this->pageType) {
             'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
-            'stock' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga Jual', 'Status', 'Sync'],
+            'stock' => ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan'],
             'sold' => ['Username', 'Profile', 'Partner', 'Outlet', 'Harga Jual', 'Aktif', 'Expired', 'MAC'],
             'online' => ['Username', 'IP Address', 'MAC Address', 'Uptime', 'Profile'],
             'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'Komisi', 'Harga Jual'],
@@ -564,7 +737,9 @@ abstract class VoucherPage extends Page
     public function updatedSelectAllVouchers($value): void
     {
         if ($value) {
-            $this->selectedVouchers = $this->voucherRows()->pluck('id')->map(fn($id) => (string)$id)->toArray();
+            $rows = $this->voucherRows();
+            $collection = method_exists($rows, 'getCollection') ? $rows->getCollection() : $rows;
+            $this->selectedVouchers = $collection->pluck('id')->map(fn($id) => (string)$id)->toArray();
         } else {
             $this->selectedVouchers = [];
         }
@@ -717,9 +892,21 @@ abstract class VoucherPage extends Page
             $profile = RadiusProfile::find($value);
             if ($profile) {
                 $attributes = $profile->attributes ?? [];
-                $this->userForm['hpp'] = $attributes['HPP'] ?? 0;
+                $this->userForm['hpp'] = $attributes['HPP'] ?? ($attributes['DPP'] ?? 0);
                 $this->userForm['price'] = $attributes['Price'] ?? 0;
                 $this->userForm['commission'] = $attributes['Commission'] ?? 0;
+            }
+        }
+    }
+
+    public function updatedVoucherFormProfileId($value): void
+    {
+        if ($value) {
+            $profile = RadiusProfile::find($value);
+            if ($profile) {
+                $attributes = $profile->attributes ?? [];
+                $this->voucherForm['dpp'] = $attributes['DPP'] ?? 0;
+                $this->voucherForm['commission'] = $attributes['Commission'] ?? 0;
             }
         }
     }
@@ -730,7 +917,7 @@ abstract class VoucherPage extends Page
             $profile = RadiusProfile::find($value);
             if ($profile) {
                 $attributes = $profile->attributes ?? [];
-                $this->importForm['hpp'] = $attributes['HPP'] ?? 0;
+                $this->importForm['hpp'] = $attributes['HPP'] ?? ($attributes['DPP'] ?? 0);
                 $this->importForm['price'] = $attributes['Price'] ?? 0;
                 $this->importForm['commission'] = $attributes['Commission'] ?? 0;
             }
@@ -747,6 +934,11 @@ abstract class VoucherPage extends Page
             return;
         }
 
+        if (empty($data['profile_id'])) {
+            Notification::make()->title('Profile voucher wajib dipilih')->danger()->send();
+            return;
+        }
+
         if (($data['lock_mac'] ?? 'no') === 'yes' && empty($data['mac_address'])) {
             $data['mac_address'] = 'LOCK-ON-LOGIN';
         }
@@ -755,9 +947,17 @@ abstract class VoucherPage extends Page
         $data['hpp'] = $this->parseMoney($data['hpp'] ?? 0);
         $data['commission'] = $this->parseMoney($data['commission'] ?? 0);
         $data['price'] = $this->parseMoney($data['price'] ?? 0);
+        $data['admin_user_id'] = auth()->id();
 
         try {
-            app(HotspotVoucherService::class)->generate($data);
+            $vouchers = app(HotspotVoucherService::class)->generate($data);
+
+            if (empty($vouchers)) {
+                Notification::make()->title('Username sudah ada, user tidak dibuat')->warning()->send();
+
+                return;
+            }
+
             Notification::make()->title('User hotspot berhasil dibuat')->success()->send();
             $this->resetUserForm();
         } catch (\Exception $e) {
@@ -856,6 +1056,11 @@ abstract class VoucherPage extends Page
             return;
         }
 
+        if (empty($this->importForm['profile_id'])) {
+            Notification::make()->title('Profile voucher wajib dipilih')->danger()->send();
+            return;
+        }
+
         $this->validate([
             'importFile' => 'file|mimes:csv,txt,json|max:2048',
         ]);
@@ -914,11 +1119,12 @@ abstract class VoucherPage extends Page
                 'hpp' => $this->parseMoney($this->importForm['hpp'] ?? 0),
                 'price' => $this->parseMoney($this->importForm['price'] ?? 0),
                 'commission' => $this->parseMoney($this->importForm['commission'] ?? 0),
+                'admin_user_id' => auth()->id(),
             ]);
 
             try {
-                app(HotspotVoucherService::class)->generate($payload);
-                $successCount++;
+                $created = app(HotspotVoucherService::class)->generate($payload);
+                $successCount += count($created);
             } catch (\Exception $e) {
                 $errorMessages[] = $vData['username'] . ': ' . $e->getMessage();
             }
@@ -953,15 +1159,17 @@ abstract class VoucherPage extends Page
 
     public function exportVouchers(): StreamedResponse
     {
-        $partner = $this->exportForm['partner_id'] ? Mitra::find($this->exportForm['partner_id'])?->name : null;
+        $partner = $this->exportForm['partner_id'] ? Mitra::find($this->exportForm['partner_id']) : null;
         $outletId = $this->exportForm['outlet_id'];
         $profileId = $this->exportForm['profile_id'];
 
-        $query = HotspotVoucher::with(['profile', 'router', 'radiusServer'])
+        $query = HotspotVoucher::with(['profile', 'router', 'radiusServer', 'outlet', 'mitra', 'admin'])
             ->where('tenant_id', $this->selectedTenantId());
 
         if ($partner) {
-            $query->where('partner_name', $partner);
+            $query->where(function (Builder $query) use ($partner): void {
+                $query->where('mitra_id', $partner->id)->orWhere('partner_name', $partner->name);
+            });
         }
         if ($outletId) {
             $query->where('outlet_id', $outletId);
@@ -976,10 +1184,11 @@ abstract class VoucherPage extends Page
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'Harga', 'Status', 'MAC Address']);
+            fputcsv($handle, ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan', 'MAC Address']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
+                    $row->batch_code,
                     $row->username,
                     $row->password,
                     $row->profile?->name,
@@ -987,8 +1196,12 @@ abstract class VoucherPage extends Page
                     $row->radiusServer?->name,
                     $row->partner_name,
                     $row->outlet_name ?: ($row->outlet?->name),
+                    $row->hpp,
+                    $row->commission,
                     $row->price,
-                    $row->status,
+                    $row->balance_deducted ? 'Yes' : 'No',
+                    $row->admin?->name ?? 'SYSTEM',
+                    $row->created_at?->format('d/m/Y H:i:s'),
                     $row->mac_address,
                 ]);
             }
@@ -1042,6 +1255,6 @@ abstract class VoucherPage extends Page
 
     public function printPreview(): HtmlString
     {
-        return new HtmlString(view('exports.hotspot-vouchers-print', ['vouchers' => $this->voucherRows()->take(12)])->render());
+        return new HtmlString(view('exports.hotspot-vouchers-print', ['vouchers' => $this->filteredVoucherQuery()->limit(12)->get()])->render());
     }
 }
