@@ -1,4 +1,68 @@
 <x-filament-panels::page>
+    @once
+        <style>
+            .nex-voucher-toolbar {
+                display: flex;
+                flex-wrap: wrap;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .nex-voucher-control {
+                display: inline-flex !important;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                min-height: 36px;
+                min-width: max-content;
+                padding: 0 12px;
+                border: 1px solid transparent;
+                border-radius: 6px;
+                color: #ffffff !important;
+                -webkit-text-fill-color: #ffffff;
+                font-size: 13px;
+                font-weight: 700;
+                line-height: 1.1;
+                white-space: nowrap;
+                box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+                transition: background-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
+            }
+
+            .nex-voucher-control:hover {
+                box-shadow: 0 3px 8px rgba(15, 23, 42, 0.16);
+                transform: translateY(-1px);
+            }
+
+            .nex-voucher-control:focus-visible {
+                outline: 2px solid #10b981;
+                outline-offset: 2px;
+            }
+
+            .nex-voucher-control svg {
+                width: 16px;
+                height: 16px;
+                flex: none;
+                color: currentColor !important;
+                stroke: currentColor !important;
+            }
+
+            .nex-voucher-control--sky { background: #0284c7 !important; }
+            .nex-voucher-control--sky:hover { background: #0369a1 !important; }
+            .nex-voucher-control--emerald { background: #059669 !important; }
+            .nex-voucher-control--emerald:hover { background: #047857 !important; }
+            .nex-voucher-control--blue { background: #2563eb !important; }
+            .nex-voucher-control--blue:hover { background: #1d4ed8 !important; }
+            .nex-voucher-control--slate { background: #1e293b !important; }
+            .nex-voucher-control--slate:hover { background: #0f172a !important; }
+            .nex-voucher-control--rose { background: #e11d48 !important; }
+            .nex-voucher-control--rose:hover { background: #be123c !important; }
+            .nex-voucher-control--indigo { background: #4f46e5 !important; }
+            .nex-voucher-control--indigo:hover { background: #4338ca !important; }
+            .nex-voucher-control--violet { background: #7c3aed !important; }
+            .nex-voucher-control--violet:hover { background: #6d28d9 !important; }
+        </style>
+    @endonce
+
     <div class="space-y-6">
         {{-- Top Statistics Panels --}}
         @if (count($this->stats()))
@@ -71,26 +135,26 @@
                         <div class="rounded-lg bg-gray-100 px-4 py-3 text-sm font-bold uppercase text-gray-700 ring-1 ring-gray-950/10">Stok Voucher</div>
 
                         {{-- Control Panel Navigation Bar --}}
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-sky-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-sky-700" x-on:click="stockPanel = stockPanel === 'menu' ? null : 'menu'">
+                        <div class="nex-voucher-toolbar">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--sky" x-on:click="stockPanel = stockPanel === 'menu' ? null : 'menu'">
                                 <x-filament::icon icon="heroicon-m-bars-3" class="h-4 w-4" /> Aksi Terpilih ({{ count($selectedVouchers) }})
                             </button>
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-emerald-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-emerald-700" x-on:click="stockPanel = stockPanel === 'create-user' ? null : 'create-user'">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--emerald" x-on:click="stockPanel = stockPanel === 'create-user' ? null : 'create-user'">
                                 <x-filament::icon icon="heroicon-m-plus-circle" class="h-4 w-4" /> Buat User
                             </button>
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-blue-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-blue-700" x-on:click="stockPanel = stockPanel === 'create-voucher' ? null : 'create-voucher'">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--blue" x-on:click="stockPanel = stockPanel === 'create-voucher' ? null : 'create-voucher'">
                                 <x-filament::icon icon="heroicon-m-ticket" class="h-4 w-4" /> Buat Voucher (Bulk)
                             </button>
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-slate-800 px-3 text-sm font-bold text-white shadow-sm hover:bg-slate-900" x-on:click="stockPanel = stockPanel === 'outlet' ? null : 'outlet'">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--slate" x-on:click="stockPanel = stockPanel === 'outlet' ? null : 'outlet'">
                                 <x-filament::icon icon="heroicon-m-users" class="h-4 w-4" /> Data Outlet
                             </button>
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-rose-500 px-3 text-sm font-bold text-white shadow-sm hover:bg-rose-600" x-on:click="stockPanel = stockPanel === 'setting' ? null : 'setting'">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--rose" x-on:click="stockPanel = stockPanel === 'setting' ? null : 'setting'">
                                 <x-filament::icon icon="heroicon-m-cog-6-tooth" class="h-4 w-4" /> Setting Hotspot
                             </button>
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-indigo-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-indigo-700" x-on:click="stockPanel = stockPanel === 'import' ? null : 'import'">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--indigo" x-on:click="stockPanel = stockPanel === 'import' ? null : 'import'">
                                 <x-filament::icon icon="heroicon-m-document-arrow-up" class="h-4 w-4" /> Import
                             </button>
-                            <button type="button" class="inline-flex h-9 items-center gap-2 rounded-md bg-violet-600 px-3 text-sm font-bold text-white shadow-sm hover:bg-violet-700" x-on:click="stockPanel = stockPanel === 'export-panel' ? null : 'export-panel'">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--violet" x-on:click="stockPanel = stockPanel === 'export-panel' ? null : 'export-panel'">
                                 <x-filament::icon icon="heroicon-m-document-arrow-down" class="h-4 w-4" /> Export
                             </button>
                         </div>
