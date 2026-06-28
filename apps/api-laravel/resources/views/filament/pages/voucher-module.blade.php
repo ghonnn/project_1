@@ -5,22 +5,22 @@
                 display: flex;
                 flex-wrap: wrap;
                 align-items: center;
-                gap: 8px;
+                gap: 6px;
             }
 
             .nex-voucher-control {
                 display: inline-flex !important;
                 align-items: center;
                 justify-content: center;
-                gap: 8px;
-                min-height: 36px;
+                gap: 6px;
+                min-height: 32px;
                 min-width: max-content;
-                padding: 0 12px;
+                padding: 0 10px;
                 border: 1px solid transparent;
                 border-radius: 6px;
                 color: #ffffff !important;
                 -webkit-text-fill-color: #ffffff;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 700;
                 line-height: 1.1;
                 white-space: nowrap;
@@ -39,8 +39,8 @@
             }
 
             .nex-voucher-control svg {
-                width: 16px;
-                height: 16px;
+                width: 14px;
+                height: 14px;
                 flex: none;
                 color: currentColor !important;
                 stroke: currentColor !important;
@@ -62,17 +62,17 @@
             .nex-voucher-control--violet:hover { background: #6d28d9 !important; }
 
             .nex-voucher-stat-card {
-                min-height: 112px;
-                padding-right: 96px;
+                min-height: 86px;
+                padding-right: 70px;
             }
 
             .nex-voucher-stat-icon {
                 position: absolute;
-                right: 28px;
+                right: 20px;
                 top: 50%;
                 display: flex;
-                width: 52px;
-                height: 52px;
+                width: 40px;
+                height: 40px;
                 transform: translateY(-50%);
                 align-items: center;
                 justify-content: center;
@@ -82,16 +82,124 @@
 
             .nex-voucher-stat-icon svg,
             .nex-voucher-stat-svg {
-                width: 44px !important;
-                min-width: 44px !important;
-                max-width: 44px !important;
-                height: 44px !important;
-                min-height: 44px !important;
-                max-height: 44px !important;
+                width: 32px !important;
+                min-width: 32px !important;
+                max-width: 32px !important;
+                height: 32px !important;
+                min-height: 32px !important;
+                max-height: 32px !important;
                 display: block !important;
                 flex: none !important;
                 color: currentColor !important;
                 stroke: currentColor !important;
+            }
+
+            .nex-voucher-filterbar {
+                display: grid;
+                grid-template-columns: minmax(148px, 176px) minmax(150px, 190px) minmax(170px, 220px) minmax(150px, 200px) 84px minmax(220px, 1fr);
+                gap: 8px;
+                align-items: center;
+                padding: 10px;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                background: #f8fafc;
+            }
+
+            .nex-voucher-filterbar--simple {
+                grid-template-columns: 84px minmax(220px, 1fr);
+            }
+
+            .nex-voucher-filterbar--recap {
+                grid-template-columns: 82px 82px minmax(140px, 160px) 92px 84px minmax(220px, 1fr);
+            }
+
+            .nex-voucher-field {
+                display: flex;
+                height: 32px;
+                min-width: 0;
+                overflow: hidden;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background: #ffffff;
+                box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+            }
+
+            .nex-voucher-field:focus-within {
+                border-color: #10b981;
+                box-shadow: 0 0 0 1px #10b981;
+            }
+
+            .nex-voucher-field > span {
+                display: inline-flex;
+                width: 32px;
+                flex: none;
+                align-items: center;
+                justify-content: center;
+                border-right: 1px solid #e5e7eb;
+                background: #f8fafc;
+                color: #64748b;
+            }
+
+            .nex-voucher-field svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .nex-voucher-field input,
+            .nex-voucher-field select,
+            .nex-voucher-select-compact {
+                min-width: 0;
+                height: 30px;
+                flex: 1;
+                border: 0;
+                font-size: 12px;
+                line-height: 1.2;
+            }
+
+            .nex-voucher-select-compact {
+                height: 32px;
+                border: 1px solid #d1d5db;
+                border-radius: 6px;
+                background-color: #ffffff;
+                box-shadow: 0 1px 1px rgba(15, 23, 42, 0.04);
+            }
+
+            .nex-voucher-table th {
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+                font-size: 11px;
+            }
+
+            .nex-voucher-table td {
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+                font-size: 12px;
+            }
+
+            @media (max-width: 1279px) {
+                .nex-voucher-filterbar,
+                .nex-voucher-filterbar--recap {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+
+            @media (max-width: 640px) {
+                .nex-voucher-filterbar,
+                .nex-voucher-filterbar--simple,
+                .nex-voucher-filterbar--recap {
+                    grid-template-columns: 1fr;
+                }
+            }
+
+            .nex-voucher-code-editor {
+                min-height: 360px;
+                border-color: #1f2937 !important;
+                background: #252836 !important;
+                color: #e5e7eb !important;
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+                font-size: 12px;
+                line-height: 1.55;
+                tab-size: 4;
             }
         </style>
         <script>
@@ -120,16 +228,16 @@
         </script>
     @endonce
 
-    <div class="space-y-6">
+    <div class="space-y-4">
         {{-- Top Statistics Panels --}}
         @if (count($this->stats()))
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                 @foreach ($this->stats() as $stat)
-                    <div class="nex-voucher-stat-card relative overflow-hidden rounded-lg bg-white p-5 shadow-sm ring-1 ring-gray-950/5">
+                    <div class="nex-voucher-stat-card relative overflow-hidden rounded-lg bg-white p-4 shadow-sm ring-1 ring-gray-950/5">
                         <div class="min-w-0">
                             <div class="truncate text-xs font-bold uppercase text-gray-700">{{ $stat['label'] }}</div>
-                            <div class="mt-2 text-2xl font-bold leading-none" style="color: {{ $stat['color'] }}">{{ $stat['value'] }}</div>
-                            <div class="mt-2 text-sm font-medium text-gray-500">{{ $stat['description'] }}</div>
+                            <div class="mt-1.5 text-xl font-bold leading-none" style="color: {{ $stat['color'] }}">{{ $stat['value'] }}</div>
+                            <div class="mt-1.5 truncate text-xs font-medium text-gray-500">{{ $stat['description'] }}</div>
                         </div>
                         <div class="nex-voucher-stat-icon" style="--nex-stat-color: {{ $stat['color'] }}">
                             <x-filament::icon :icon="$stat['icon']" class="nex-voucher-stat-svg" />
@@ -142,7 +250,7 @@
         <x-filament::section>
             <x-slot name="heading">{{ $this->headingTitle() }}</x-slot>
 
-            <div class="space-y-5">
+            <div class="space-y-4">
                 {{-- Profile Voucher Tab Form --}}
                 @if ($pageType === 'profile')
                     <form wire:submit="saveProfile" class="grid gap-4 rounded-lg bg-gray-50 p-4 ring-1 ring-gray-950/10 sm:grid-cols-2">
@@ -481,16 +589,16 @@
                         </div>
 
                         {{-- Basic Table Filter --}}
-                        <div class="grid gap-2 xl:grid-cols-[220px_190px_260px_220px_110px_minmax(260px,1fr)]">
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                        <div class="nex-voucher-filterbar">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-calendar-days" class="h-4 w-4" />
                                 </span>
                                 <input type="date" wire:model.live="stockDate" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Tanggal pembuatan">
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-identification" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockProfileId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter profile">
@@ -501,8 +609,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-server-stack" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockRouterId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter router">
@@ -513,8 +621,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-user-group" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter mitra">
@@ -525,8 +633,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-list-bullet" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockPerPage" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Jumlah baris">
@@ -537,8 +645,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-4 w-4" />
                                 </span>
                                 <input type="search" wire:model.live.debounce.350ms="stockSearch" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" placeholder="Cari voucher..." aria-label="Cari voucher">
@@ -592,16 +700,16 @@
                             </div>
                         </div>
 
-                        <div class="grid gap-2 xl:grid-cols-[220px_190px_260px_220px_110px_minmax(260px,1fr)]">
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                        <div class="nex-voucher-filterbar">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-calendar-days" class="h-4 w-4" />
                                 </span>
                                 <input type="date" wire:model.live="stockDate" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Tanggal terjual">
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-identification" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockProfileId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter profile">
@@ -612,8 +720,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-server-stack" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockRouterId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter router">
@@ -624,8 +732,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-user-group" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter mitra">
@@ -636,8 +744,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-list-bullet" class="h-4 w-4" />
                                 </span>
                                 <select wire:model.live="stockPerPage" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Jumlah baris">
@@ -648,8 +756,8 @@
                                 </select>
                             </label>
 
-                            <label class="flex h-9 overflow-hidden rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
-                                <span class="inline-flex w-9 shrink-0 items-center justify-center border-r border-gray-200 bg-gray-50 text-gray-500">
+                            <label class="nex-voucher-field">
+                                <span>
                                     <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-4 w-4" />
                                 </span>
                                 <input type="search" wire:model.live.debounce.350ms="stockSearch" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" placeholder="Cari voucher..." aria-label="Cari voucher">
@@ -658,40 +766,227 @@
                     </div>
                 @endif
 
+                {{-- Voucher Online Interface --}}
+                @if ($pageType === 'online')
+                    <div class="space-y-4">
+                        <div class="nex-voucher-toolbar">
+                            <button type="button" class="nex-voucher-control nex-voucher-control--slate" wire:click="kickSelectedOnlineUsers" wire:confirm="Kick user online terpilih?">
+                                <x-filament::icon icon="heroicon-m-power" class="h-4 w-4" /> KICK USER
+                            </button>
+                            <button type="button" class="nex-voucher-control nex-voucher-control--rose" wire:click="deleteSelectedOnlineSessions" wire:confirm="Hapus session online terpilih?">
+                                <x-filament::icon icon="heroicon-m-minus-circle" class="h-4 w-4" /> HAPUS
+                            </button>
+                            <button type="button" class="nex-voucher-control nex-voucher-control--emerald" wire:click="syncOnlineSessions">
+                                <x-filament::icon icon="heroicon-m-arrow-path" class="h-4 w-4" /> SINKRONKAN
+                            </button>
+                        </div>
+
+                        <div class="nex-voucher-filterbar nex-voucher-filterbar--simple">
+                            <label class="nex-voucher-field">
+                                <span>
+                                    <x-filament::icon icon="heroicon-m-list-bullet" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="stockPerPage" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Jumlah baris">
+                                    <option value="10">10</option>
+                                    <option value="13">13</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <label class="nex-voucher-field">
+                                <span>
+                                    <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-4 w-4" />
+                                </span>
+                                <input type="search" wire:model.live.debounce.350ms="stockSearch" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" placeholder="Cari voucher online..." aria-label="Cari voucher online">
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
+                {{-- Voucher Offline Interface --}}
+                @if ($pageType === 'offline')
+                    <div class="nex-voucher-filterbar nex-voucher-filterbar--simple">
+                        <label class="nex-voucher-field">
+                            <span>
+                                <x-filament::icon icon="heroicon-m-list-bullet" class="h-4 w-4" />
+                            </span>
+                            <select wire:model.live="stockPerPage" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Jumlah baris">
+                                <option value="10">10</option>
+                                <option value="13">13</option>
+                                <option value="25">25</option>
+                                <option value="50">50</option>
+                            </select>
+                        </label>
+                        <label class="nex-voucher-field">
+                            <span>
+                                <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-4 w-4" />
+                            </span>
+                            <input type="search" wire:model.live.debounce.350ms="stockSearch" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" placeholder="Cari voucher offline..." aria-label="Cari voucher offline">
+                        </label>
+                    </div>
+                @endif
+
+                {{-- Rekap Pembuatan Voucher Interface --}}
+                @if ($pageType === 'recap')
+                    <div class="space-y-4">
+                        <div class="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800">
+                            <x-filament::icon icon="heroicon-m-information-circle" class="mr-1 inline h-4 w-4" />
+                            Table ini berisi informasi rekap voucher yang dikelompokkan berdasarkan kode dan tanggal pembuatan.
+                        </div>
+                        <div class="nex-voucher-filterbar nex-voucher-filterbar--recap">
+                            <button type="button" wire:click="exportCreationRecap" class="nex-voucher-control nex-voucher-control--blue">
+                                <x-filament::icon icon="heroicon-m-document-arrow-down" class="h-4 w-4" /> EXPORT
+                            </button>
+                            <button type="button" x-on:click="window.print()" class="nex-voucher-control nex-voucher-control--slate">
+                                <x-filament::icon icon="heroicon-m-printer" class="h-4 w-4" /> PRINT
+                            </button>
+                            <label class="nex-voucher-field">
+                                <span>
+                                    <x-filament::icon icon="heroicon-m-calendar-days" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="recapMonth" class="min-w-0 flex-1 border-0 text-sm focus:ring-0">
+                                    @foreach ($this->monthOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                            </label>
+                            <select wire:model.live="recapYear" class="nex-voucher-select-compact focus:border-emerald-500 focus:ring-emerald-500">
+                                @foreach ($this->yearOptions() as $id => $name)
+                                    <option value="{{ $id }}">{{ $name }}</option>
+                                @endforeach
+                            </select>
+                            <label class="nex-voucher-field">
+                                <span>
+                                    <x-filament::icon icon="heroicon-m-list-bullet" class="h-4 w-4" />
+                                </span>
+                                <select wire:model.live="stockPerPage" class="min-w-0 flex-1 border-0 text-sm focus:ring-0">
+                                    <option value="10">10</option>
+                                    <option value="25">25</option>
+                                    <option value="50">50</option>
+                                </select>
+                            </label>
+                            <label class="nex-voucher-field">
+                                <span>
+                                    <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-4 w-4" />
+                                </span>
+                                <input type="search" wire:model.live.debounce.350ms="stockSearch" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" placeholder="Cari voucher...">
+                            </label>
+                        </div>
+                    </div>
+                @endif
+
                 {{-- Template HTML Editor Tab --}}
                 @if ($pageType === 'template')
-                    <form wire:submit="saveTemplate" class="grid gap-4 rounded-lg bg-gray-50 p-4 ring-1 ring-gray-950/10 md:grid-cols-2">
-                        <x-voucher-select label="Tenant" model="templateForm.tenant_id" :options="$this->tenantOptions()" />
-                        <x-voucher-input label="Nama Template" model="templateForm.name" />
-                        <x-voucher-input label="Nama Hotspot" model="templateForm.hotspot_name" />
-                        <x-voucher-input label="DNS Name" model="templateForm.dns_name" />
-                        <x-voucher-input label="CS Phone" model="templateForm.support_phone" />
-                        <div class="md:col-span-2">
-                            <label class="mb-1 block text-sm font-semibold text-gray-700">HTML Login MikroTik</label>
-                            <textarea wire:model="templateForm.html_body" rows="14" class="w-full rounded-lg border-gray-300 font-mono text-xs shadow-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                    <form wire:submit="saveTemplate" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+                        <div class="space-y-5">
+                            <div class="grid gap-3 lg:grid-cols-[150px_minmax(260px,1fr)_auto_auto_auto_auto] lg:items-center">
+                                <div class="text-xs font-semibold uppercase text-gray-600">Pilih</div>
+                                <select wire:model.live="editingTemplateId" class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                    <option value="">Template Baru</option>
+                                    @foreach ($this->templateOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="nex-voucher-control nex-voucher-control--blue">
+                                    <x-filament::icon icon="heroicon-m-bookmark-square" class="h-4 w-4" /> UPDATE
+                                </button>
+                                <button type="button" wire:click="downloadTemplateHtml" class="nex-voucher-control" style="background:#0891b2 !important">
+                                    <x-filament::icon icon="heroicon-m-eye" class="h-4 w-4" /> PREVIEW
+                                </button>
+                                <button type="button" wire:click="deleteTemplate" wire:confirm="Hapus template voucher ini?" class="nex-voucher-control nex-voucher-control--rose">
+                                    <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" /> HAPUS
+                                </button>
+                                <button type="button" wire:click="addTemplate" class="nex-voucher-control nex-voucher-control--emerald">
+                                    <x-filament::icon icon="heroicon-m-plus" class="h-4 w-4" /> TAMBAH
+                                </button>
+                            </div>
+
+                            <div class="border-t border-gray-200 pt-4">
+                                <label class="mb-1 block text-xs font-semibold uppercase text-gray-600">Nama Template</label>
+                                <input type="text" wire:model="templateForm.name" class="h-9 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                            </div>
+
+                            <div class="grid gap-4 md:grid-cols-3">
+                                <x-voucher-input label="Nama Hotspot" model="templateForm.hotspot_name" />
+                                <x-voucher-input label="DNS Name" model="templateForm.dns_name" />
+                                <x-voucher-input label="CS Phone" model="templateForm.support_phone" />
+                            </div>
+
+                            <div>
+                                <h3 class="mb-2 flex items-center gap-2 text-xl font-semibold text-gray-800">
+                                    <x-filament::icon icon="heroicon-m-code-bracket" class="h-5 w-5" /> HEADER
+                                </h3>
+                                <textarea wire:model="templateForm.html_body" rows="18" class="nex-voucher-code-editor w-full rounded-md shadow-sm focus:border-emerald-500 focus:ring-emerald-500"></textarea>
+                            </div>
+
+                            <div>
+                                <h3 class="mb-2 flex items-center gap-2 text-xl font-semibold text-gray-800">
+                                    <x-filament::icon icon="heroicon-m-code-bracket" class="h-5 w-5" /> FOOTER
+                                </h3>
+                                <textarea readonly rows="5" class="nex-voucher-code-editor w-full rounded-md opacity-90 shadow-sm">&lt;/body&gt;
+&lt;/html&gt;</textarea>
+                            </div>
                         </div>
-                        <div class="md:col-span-2 flex justify-end gap-2">
-                            <x-filament::button type="submit" icon="heroicon-m-check" color="success">Simpan Template</x-filament::button>
-                            <x-filament::button type="button" wire:click="downloadTemplateHtml" icon="heroicon-m-arrow-down-tray" color="info">Download login.html</x-filament::button>
+
+                        <div class="space-y-5 rounded-lg bg-white p-5 ring-1 ring-gray-950/10">
+                            <div>
+                                <h3 class="text-2xl font-semibold text-gray-800"># DAFTAR PARAMETER</h3>
+                                <p class="mt-2 text-sm text-gray-500">Daftar parameter yang bisa dimasukkan kedalam template voucher</p>
+                            </div>
+                            <div class="border-t border-sky-300 pt-4 text-sm text-gray-700">
+                                <ul class="list-disc space-y-1 pl-5">
+                                    @foreach ([
+                                        '#username# : Username',
+                                        '#password# : Password',
+                                        '#profile# : Profile',
+                                        '#harga# : Harga jual',
+                                        '#aktif# : Masa aktif',
+                                        '#durasi# : Durasi',
+                                        '#kuota# : Kuota',
+                                        '#color# : Warna voucher',
+                                        '#dns# : DNS Name',
+                                        '#hsname# : Nama hotspot',
+                                        '#printdate# : Tanggal cetak',
+                                        '#printtime# : Jam cetak',
+                                        '#mitra# : Nama mitra',
+                                        '#outlet# : Nama outlet',
+                                        '#nomor# : Nomor urut',
+                                        '#logo# : Logo voucher',
+                                        '#kode# : Nomor Kode pembuatan',
+                                        '#mitraphone# : Nomor HP mitra',
+                                        '#csphone# : Nomor HP CS',
+                                    ] as $parameter)
+                                        <li>{{ $parameter }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                            <p class="border-t border-sky-300 pt-4 text-sm text-gray-500">Untuk menampilkan model kode voucher, sintak harus di apit dengan hastag #kodevoucher# dalam 1 baris</p>
+                            <p class="text-sm text-gray-500">Untuk menampilkan model username dan password, sintak harus di apit dengan hastag #usernamepassword# dalam 1 baris</p>
                         </div>
                     </form>
                 @endif
 
-                {{-- Main Data Tables --}}
-                @php
-                    $voucherRows = in_array($pageType, ['stock', 'sold'], true) ? $this->voucherRows() : null;
-                @endphp
-                <div class="overflow-x-auto rounded-lg bg-white ring-1 ring-gray-950/10">
+                @if ($pageType !== 'template')
+                    {{-- Main Data Tables --}}
+                    @php
+                        $voucherRows = in_array($pageType, ['stock', 'sold'], true) ? $this->voucherRows() : null;
+                        $onlineRows = $pageType === 'online' ? $this->onlineRows() : null;
+                        $offlineRows = $pageType === 'offline' ? $this->offlineRows() : null;
+                        $recapRows = $pageType === 'recap' ? collect($this->recapRows()) : collect();
+                    @endphp
+                    <div class="overflow-x-auto rounded-lg bg-white ring-1 ring-gray-950/10">
                     <table @class([
-                        'w-full text-left text-sm',
+                        'nex-voucher-table w-full text-left text-sm',
                         'min-w-[1700px]' => $pageType === 'stock',
                         'min-w-[2200px]' => $pageType === 'sold',
-                        'min-w-[1050px]' => ! in_array($pageType, ['stock', 'sold'], true),
+                        'min-w-[1900px]' => $pageType === 'online',
+                        'min-w-[1500px]' => in_array($pageType, ['offline', 'recap'], true),
+                        'min-w-[1050px]' => ! in_array($pageType, ['stock', 'sold', 'online', 'offline', 'recap'], true),
                     ])>
                         <thead>
                             <tr class="border-b border-gray-200 bg-gray-50">
                                 {{-- Checkbox column for voucher selection --}}
-                                @if (in_array($pageType, ['stock', 'sold'], true))
+                                @if (in_array($pageType, ['stock', 'sold', 'online'], true))
                                     <th class="w-10 px-4 py-3"><input type="checkbox" wire:model.live="selectAllVouchers" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"></th>
                                 @endif
                                 
@@ -875,14 +1170,12 @@
                                 @endforelse
                             @elseif ($pageType === 'online')
                                 {{-- Online sessions rows rendering --}}
-                                @forelse ($this->onlineRows() as $row)
+                                @forelse ($onlineRows as $row)
                                     <tr>
-                                        <td class="px-4 py-3 font-semibold">{{ $row->username }}</td>
-                                        <td class="px-4 py-3">{{ $row->framedipaddress ?: '-' }}</td>
-                                        <td class="px-4 py-3 font-mono text-xs">{{ $row->callingstationid ?: '-' }}</td>
-                                        <td class="px-4 py-3">{{ $row->acctstarttime ?: '-' }}</td>
-                                        <td class="px-4 py-3">
-                                            @if ($row->profile)
+                                        <td class="px-4 py-3"><input type="checkbox" wire:model.live="selectedVouchers" value="{{ $row->id }}" class="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"></td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-semibold text-gray-700">{{ $row->username }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3">
+                                            @if ($row->profile?->name)
                                                 <span class="inline-block px-2 py-0.5 rounded text-xs font-bold" style="background-color: {{ $row->profile->attributes['Color'] ?? '#059669' }}20; color: {{ $row->profile->attributes['Color'] ?? '#059669' }}">
                                                     {{ $row->profile->name }}
                                                 </span>
@@ -890,33 +1183,67 @@
                                                 -
                                             @endif
                                         </td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $this->uptimeLabel($row->acctstarttime ?? null) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $this->bytesLabel($row->acctinputoctets ?? 0) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $this->bytesLabel($row->acctoutputoctets ?? 0) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->router?->router_name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->nasipaddress ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->radiusServer?->name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-gray-700">{{ $row->framedipaddress ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-gray-700">{{ $row->callingstationid ?: ($row->mac_address ?? '-') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-700">{{ $row->partner_name ?: ($row->mitra?->name ?? 'SYSTEM') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->outlet_name ?: ($row->outlet?->name ?? '-') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $row->acctstarttime ? \Illuminate\Support\Carbon::parse($row->acctstarttime)->format('d/m/Y H:i:s') : '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $row->updated_at?->format('d/m/Y H:i:s') ?? '-' }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="5" class="px-4 py-10 text-center text-gray-500">Belum ada voucher online.</td></tr>
+                                    <tr><td colspan="15" class="px-4 py-10 text-center text-gray-500">Belum ada voucher online.</td></tr>
+                                @endforelse
+                            @elseif ($pageType === 'offline')
+                                {{-- Offline sessions rows rendering --}}
+                                @forelse ($offlineRows as $row)
+                                    <tr>
+                                        <td class="whitespace-nowrap px-4 py-3 font-semibold text-gray-700">{{ $row->username }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->router?->router_name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->nasipaddress ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->radiusServer?->name ?? '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-mono text-xs text-gray-700">{{ $row->framedipaddress ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $this->bytesLabel($row->acctoutputoctets ?? 0) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $this->bytesLabel($row->acctinputoctets ?? 0) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $row->acctstarttime ? \Illuminate\Support\Carbon::parse($row->acctstarttime)->format('d/m/Y H:i:s') : '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $row->acctstoptime ? \Illuminate\Support\Carbon::parse($row->acctstoptime)->format('d/m/Y H:i:s') : '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">Stop</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="10" class="px-4 py-10 text-center text-gray-500">Belum ada voucher offline.</td></tr>
                                 @endforelse
                             @elseif ($pageType === 'recap')
                                 {{-- Recap rows rendering --}}
-                                @forelse ($this->recapRows() as $row)
+                                @forelse ($recapRows as $row)
                                     <tr>
-                                        <td class="px-4 py-3">{{ $row->sale_date ?: '-' }}</td>
-                                        <td class="px-4 py-3 text-sky-700 font-medium">{{ $row->partner_name ?: '-' }}</td>
-                                        <td class="px-4 py-3">{{ $row->outlet_name ?: '-' }}</td>
-                                        <td class="px-4 py-3">
-                                            @php $pRecap = App\Models\RadiusProfile::find($row->profile_id); @endphp
-                                            @if ($pRecap)
-                                                <span class="inline-block px-2 py-0.5 rounded text-xs font-bold" style="background-color: {{ $pRecap->attributes['Color'] ?? '#059669' }}20; color: {{ $pRecap->attributes['Color'] ?? '#059669' }}">
-                                                    {{ $pRecap->name }}
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $loop->iteration }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-semibold text-gray-700">{{ $row->batch_code ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ $row->created_date ? \Illuminate\Support\Carbon::parse($row->created_date)->format('d/m/Y') : '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 font-medium text-gray-700">{{ $row->partner_name ?: 'SYSTEM' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 text-gray-700">{{ $row->outlet_name ?: '-' }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3">
+                                            @if ($row->profile?->name)
+                                                <span class="inline-block px-2 py-0.5 rounded text-xs font-bold" style="background-color: {{ $row->profile->attributes['Color'] ?? '#059669' }}20; color: {{ $row->profile->attributes['Color'] ?? '#059669' }}">
+                                                    {{ $row->profile->name }}
                                                 </span>
                                             @else
                                                 -
                                             @endif
                                         </td>
-                                        <td class="px-4 py-3 font-bold">{{ $row->qty }}</td>
-                                        <td class="px-4 py-3 text-right tabular-nums font-semibold">{{ $this->rupiah((float) $row->commission) }}</td>
-                                        <td class="px-4 py-3 text-right tabular-nums font-bold text-emerald-700">{{ $this->rupiah((float) $row->price) }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums font-bold text-gray-700">{{ number_format((int) $row->qty, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ number_format((int) $row->stock_qty, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-gray-700">{{ number_format((int) $row->sold_qty, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-right text-gray-700">{{ number_format((float) $row->hpp, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-right text-gray-700">{{ number_format((float) $row->commission, 0, ',', '.') }}</td>
+                                        <td class="whitespace-nowrap px-4 py-3 tabular-nums text-right font-semibold text-emerald-700">{{ number_format((float) $row->price, 0, ',', '.') }}</td>
                                     </tr>
                                 @empty
-                                    <tr><td colspan="7" class="px-4 py-10 text-center text-gray-500">Belum ada rekap voucher.</td></tr>
+                                    <tr><td colspan="12" class="px-4 py-10 text-center text-gray-500">Belum ada rekap voucher.</td></tr>
                                 @endforelse
                             @else
                                 {{-- Template rows rendering --}}
@@ -938,17 +1265,25 @@
                             @endif
                         </tbody>
                     </table>
-                </div>
+                    </div>
 
-                @if (in_array($pageType, ['stock', 'sold'], true) && $voucherRows)
-                    <div class="flex flex-col gap-3 text-sm text-gray-700 md:flex-row md:items-center md:justify-between">
-                        <div>
-                            Showing {{ $voucherRows->firstItem() ?? 0 }} to {{ $voucherRows->lastItem() ?? 0 }} of {{ $voucherRows->total() }} entries
-                        </div>
-                        <div>
+                    @if (in_array($pageType, ['stock', 'sold'], true) && $voucherRows)
+                        <div class="flex justify-end text-xs text-gray-700">
                             {{ $voucherRows->links() }}
                         </div>
-                    </div>
+                    @elseif ($pageType === 'online' && $onlineRows)
+                        <div class="flex justify-end text-xs text-gray-700">
+                            {{ $onlineRows->links() }}
+                        </div>
+                    @elseif ($pageType === 'offline' && $offlineRows)
+                        <div class="flex justify-end text-xs text-gray-700">
+                            {{ $offlineRows->links() }}
+                        </div>
+                    @elseif ($pageType === 'recap')
+                        <div class="text-sm text-gray-700">
+                            Showing {{ $recapRows->count() > 0 ? 1 : 0 }} to {{ $recapRows->count() }} of {{ $recapRows->count() }} entries
+                        </div>
+                    @endif
                 @endif
             </div>
         </x-filament::section>

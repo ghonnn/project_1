@@ -14,6 +14,7 @@ use App\Services\HotspotVoucherService;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\HtmlString;
@@ -79,9 +80,17 @@ abstract class VoucherPage extends Page
 
     public string $stockSortDirection = 'desc';
 
+    public int|string $recapMonth;
+
+    public int|string $recapYear;
+
+    public ?string $editingTemplateId = null;
+
     public function mount(): void
     {
         $tenantId = $this->defaultTenantId();
+        $this->recapMonth = (int) now('Asia/Jakarta')->format('n');
+        $this->recapYear = (int) now('Asia/Jakarta')->format('Y');
 
         $this->profileForm = [
             'tenant_id' => $tenantId,
@@ -181,8 +190,10 @@ abstract class VoucherPage extends Page
 
     public function updated(string $property, mixed $value = null): void
     {
-        if (str_starts_with($property, 'stock')) {
+        if (str_starts_with($property, 'stock') || str_starts_with($property, 'recap')) {
             $this->resetPage('vouchersPage');
+            $this->resetPage('onlinePage');
+            $this->resetPage('offlinePage');
             $this->selectAllVouchers = false;
             $this->selectedVouchers = [];
         }
@@ -205,6 +216,7 @@ abstract class VoucherPage extends Page
             'stock' => 'Stok Voucher',
             'sold' => 'Voucher Terjual',
             'online' => 'Voucher Online',
+            'offline' => 'Voucher Offline',
             'recap' => 'Rekap Voucher',
             'template' => 'Template Hotspot',
             default => 'Profil Voucher',
@@ -238,7 +250,7 @@ abstract class VoucherPage extends Page
                 ['label' => 'Jumlah Expired', 'value' => (string) $expired->count(), 'description' => 'Voucher expired', 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#ef4444'],
             ],
             'online' => [
-                ['label' => 'Voucher Online', 'value' => (string) $this->onlineRows()->count(), 'description' => 'Sesi aktif saat ini', 'icon' => 'heroicon-o-wifi', 'color' => '#22c55e'],
+                ['label' => 'Voucher Online', 'value' => (string) $this->onlineRows()->total(), 'description' => 'Sesi aktif saat ini', 'icon' => 'heroicon-o-wifi', 'color' => '#22c55e'],
                 ['label' => 'FreeRadius', 'value' => '10.20.1.19 / 103.142.202.19', 'description' => 'Server autentikasi', 'icon' => 'heroicon-o-server', 'color' => '#0ea5e9'],
             ],
             default => [],
@@ -385,12 +397,63 @@ abstract class VoucherPage extends Page
 
     public function saveTemplate(): void
     {
-        HotspotTemplate::updateOrCreate(
-            ['tenant_id' => $this->templateForm['tenant_id'], 'name' => $this->templateForm['name']],
-            $this->templateForm
-        );
+        $template = $this->editingTemplateId
+            ? tap(HotspotTemplate::where('tenant_id', $this->selectedTenantId())->findOrFail($this->editingTemplateId))->update($this->templateForm)
+            : HotspotTemplate::updateOrCreate(
+                ['tenant_id' => $this->templateForm['tenant_id'], 'name' => $this->templateForm['name']],
+                $this->templateForm
+            );
 
+        $this->editingTemplateId = $template->id;
         Notification::make()->title('Template hotspot tersimpan')->success()->send();
+    }
+
+    public function loadTemplate(?string $templateId = null): void
+    {
+        if (! $templateId) {
+            return;
+        }
+
+        $template = HotspotTemplate::where('tenant_id', $this->selectedTenantId())->findOrFail($templateId);
+        $this->editingTemplateId = $template->id;
+        $this->templateForm = [
+            'tenant_id' => $template->tenant_id,
+            'name' => $template->name,
+            'hotspot_name' => $template->hotspot_name,
+            'dns_name' => $template->dns_name,
+            'support_phone' => $template->support_phone,
+            'logo_path' => $template->logo_path,
+            'status' => $template->status,
+            'html_body' => $template->html_body,
+        ];
+    }
+
+    public function addTemplate(): void
+    {
+        $this->editingTemplateId = null;
+        $this->templateForm = [
+            'tenant_id' => $this->selectedTenantId(),
+            'name' => 'Template Baru',
+            'hotspot_name' => 'NEX ISP Hotspot',
+            'dns_name' => 'wifi.nex.local',
+            'support_phone' => '082170000000',
+            'logo_path' => null,
+            'status' => 'active',
+            'html_body' => app(HotspotVoucherService::class)->defaultTemplate(),
+        ];
+    }
+
+    public function deleteTemplate(): void
+    {
+        if (! $this->editingTemplateId) {
+            Notification::make()->title('Pilih template terlebih dahulu')->warning()->send();
+
+            return;
+        }
+
+        HotspotTemplate::where('tenant_id', $this->selectedTenantId())->findOrFail($this->editingTemplateId)->delete();
+        $this->addTemplate();
+        Notification::make()->title('Template voucher dihapus')->success()->send();
     }
 
     public function exportCsv(): StreamedResponse
@@ -698,6 +761,64 @@ abstract class VoucherPage extends Page
         $this->resetPage('vouchersPage');
     }
 
+    public function kickSelectedOnlineUsers(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher online terlebih dahulu')->warning()->send();
+
+            return;
+        }
+
+        $usernames = HotspotVoucher::query()
+            ->where('tenant_id', $this->selectedTenantId())
+            ->whereIn('id', $this->selectedVouchers)
+            ->pluck('username');
+
+        if (Schema::hasTable('radacct')) {
+            DB::table('radacct')
+                ->whereIn('username', $usernames)
+                ->whereNull('acctstoptime')
+                ->update(['acctstoptime' => now()]);
+        }
+
+        Notification::make()->title($usernames->count().' user online berhasil di-kick')->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+        $this->resetPage('onlinePage');
+    }
+
+    public function deleteSelectedOnlineSessions(): void
+    {
+        if (empty($this->selectedVouchers)) {
+            Notification::make()->title('Pilih voucher online terlebih dahulu')->warning()->send();
+
+            return;
+        }
+
+        $usernames = HotspotVoucher::query()
+            ->where('tenant_id', $this->selectedTenantId())
+            ->whereIn('id', $this->selectedVouchers)
+            ->pluck('username');
+
+        if (Schema::hasTable('radacct')) {
+            DB::table('radacct')
+                ->whereIn('username', $usernames)
+                ->whereNull('acctstoptime')
+                ->delete();
+        }
+
+        Notification::make()->title('Session online terpilih berhasil dihapus')->success()->send();
+        $this->selectedVouchers = [];
+        $this->selectAllVouchers = false;
+        $this->resetPage('onlinePage');
+    }
+
+    public function syncOnlineSessions(): void
+    {
+        Notification::make()->title('Data voucher online disinkronkan dari tabel RADIUS accounting')->success()->send();
+        $this->resetPage('onlinePage');
+    }
+
     public function soldRecapRows(): array
     {
         return HotspotVoucher::query()
@@ -752,33 +873,178 @@ abstract class VoucherPage extends Page
         return HotspotTemplate::where('tenant_id', $this->selectedTenantId())->latest()->limit(20)->get();
     }
 
+    public function templateOptions(): array
+    {
+        return HotspotTemplate::where('tenant_id', $this->selectedTenantId())
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
+    }
+
+    public function monthOptions(): array
+    {
+        return [
+            1 => 'Januari',
+            2 => 'Februari',
+            3 => 'Maret',
+            4 => 'April',
+            5 => 'Mei',
+            6 => 'Juni',
+            7 => 'Juli',
+            8 => 'Agustus',
+            9 => 'September',
+            10 => 'Oktober',
+            11 => 'November',
+            12 => 'Desember',
+        ];
+    }
+
+    public function yearOptions(): array
+    {
+        $year = (int) now('Asia/Jakarta')->format('Y');
+
+        return array_combine(range($year - 3, $year + 1), range($year - 3, $year + 1));
+    }
+
     public function onlineRows()
     {
         if (! Schema::hasTable('radacct')) {
-            return collect();
+            return $this->emptyPaginator('onlinePage');
         }
 
-        return HotspotVoucher::query()
-            ->select('hotspot_vouchers.*', 'radacct.framedipaddress', 'radacct.callingstationid', 'radacct.acctstarttime')
+        return $this->sessionQuery(false)->paginate(
+            max(5, min(100, (int) $this->stockPerPage)),
+            ['*'],
+            'onlinePage',
+        );
+    }
+
+    public function offlineRows()
+    {
+        if (! Schema::hasTable('radacct')) {
+            return $this->emptyPaginator('offlinePage');
+        }
+
+        return $this->sessionQuery(true)->paginate(
+            max(5, min(100, (int) $this->stockPerPage)),
+            ['*'],
+            'offlinePage',
+        );
+    }
+
+    protected function sessionQuery(bool $offline): Builder
+    {
+        $query = HotspotVoucher::query()
+            ->with(['profile', 'router', 'radiusServer', 'outlet', 'mitra', 'admin'])
+            ->select(
+                'hotspot_vouchers.*',
+                'radacct.acctsessionid',
+                'radacct.framedipaddress',
+                'radacct.callingstationid',
+                'radacct.acctstarttime',
+                'radacct.acctstoptime',
+                'radacct.acctinputoctets',
+                'radacct.acctoutputoctets',
+                'radacct.nasipaddress',
+            )
             ->join('radacct', 'radacct.username', '=', 'hotspot_vouchers.username')
             ->where('hotspot_vouchers.tenant_id', $this->selectedTenantId())
-            ->whereNull('radacct.acctstoptime')
-            ->latest('radacct.acctstarttime')
-            ->limit(100)
-            ->get();
+            ->when($offline, fn (Builder $query) => $query->whereNotNull('radacct.acctstoptime'))
+            ->when(! $offline, fn (Builder $query) => $query->whereNull('radacct.acctstoptime'))
+            ->when($this->stockProfileId, fn (Builder $query, string $profileId) => $query->where('hotspot_vouchers.profile_id', $profileId))
+            ->when($this->stockRouterId, fn (Builder $query, string $routerId) => $query->where('hotspot_vouchers.router_id', $routerId));
+
+        if ($this->stockPartnerId) {
+            $partner = Mitra::query()->find($this->stockPartnerId);
+
+            $query->where(function (Builder $query) use ($partner): void {
+                $query->where('hotspot_vouchers.mitra_id', $this->stockPartnerId);
+
+                if ($partner) {
+                    $query->orWhere('hotspot_vouchers.partner_name', $partner->name);
+                }
+            });
+        }
+
+        $search = trim($this->stockSearch);
+        if ($search !== '') {
+            $query->where(function (Builder $query) use ($search): void {
+                $query
+                    ->where('hotspot_vouchers.username', 'like', "%{$search}%")
+                    ->orWhere('hotspot_vouchers.partner_name', 'like', "%{$search}%")
+                    ->orWhere('hotspot_vouchers.outlet_name', 'like', "%{$search}%")
+                    ->orWhere('radacct.framedipaddress', 'like', "%{$search}%")
+                    ->orWhere('radacct.callingstationid', 'like', "%{$search}%")
+                    ->orWhereHas('profile', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"))
+                    ->orWhereHas('router', fn (Builder $query) => $query->where('router_name', 'like', "%{$search}%"))
+                    ->orWhereHas('radiusServer', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        return $query->latest($offline ? 'radacct.acctstoptime' : 'radacct.acctstarttime');
+    }
+
+    protected function emptyPaginator(string $pageName): LengthAwarePaginator
+    {
+        return new LengthAwarePaginator([], 0, max(5, min(100, (int) $this->stockPerPage)), 1, [
+            'path' => request()->url(),
+            'pageName' => $pageName,
+        ]);
     }
 
     public function recapRows(): array
     {
         return HotspotVoucher::query()
+            ->with('profile')
             ->where('tenant_id', $this->selectedTenantId())
-            ->where('status', 'sold')
-            ->selectRaw('date(activated_at) as sale_date, partner_name, outlet_name, profile_id, count(*) as qty, sum(commission) as commission, sum(price) as price')
-            ->groupByRaw('date(activated_at), partner_name, outlet_name, profile_id')
-            ->latest('sale_date')
-            ->limit(100)
+            ->whereMonth('created_at', (int) $this->recapMonth)
+            ->whereYear('created_at', (int) $this->recapYear)
+            ->when(trim($this->stockSearch) !== '', function (Builder $query): void {
+                $search = trim($this->stockSearch);
+                $query->where(function (Builder $query) use ($search): void {
+                    $query
+                        ->where('batch_code', 'like', "%{$search}%")
+                        ->orWhere('partner_name', 'like', "%{$search}%")
+                        ->orWhere('outlet_name', 'like', "%{$search}%")
+                        ->orWhereHas('profile', fn (Builder $query) => $query->where('name', 'like', "%{$search}%"));
+                });
+            })
+            ->selectRaw('batch_code, date(created_at) as created_date, partner_name, outlet_name, profile_id, count(*) as qty, sum(case when status = \'stock\' then 1 else 0 end) as stock_qty, sum(case when status in (\'sold\', \'expired\') then 1 else 0 end) as sold_qty, sum(hpp) as hpp, sum(commission) as commission, sum(price) as price')
+            ->groupByRaw('batch_code, date(created_at), partner_name, outlet_name, profile_id')
+            ->latest('created_date')
+            ->limit(max(5, min(100, (int) $this->stockPerPage)))
             ->get()
             ->all();
+    }
+
+    public function exportCreationRecap(): StreamedResponse
+    {
+        $rows = collect($this->recapRows());
+        $filename = 'nex-rekap-pembuatan-voucher-'.now('Asia/Jakarta')->format('Ymd-His').'.csv';
+
+        return response()->streamDownload(function () use ($rows): void {
+            $handle = fopen('php://output', 'w');
+            fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
+            fputcsv($handle, ['Kode', 'Tgl Pembuatan', 'Mitra', 'Outlet', 'Profile', 'Qty', 'Sisa Stok', 'Terjual', 'Total HPP', 'Total Komisi', 'Total Harga']);
+
+            foreach ($rows as $row) {
+                fputcsv($handle, [
+                    $row->batch_code ?: '-',
+                    $row->created_date ?: '-',
+                    $row->partner_name ?: 'SYSTEM',
+                    $row->outlet_name ?: '-',
+                    $row->profile?->name ?: '-',
+                    $row->qty,
+                    $row->stock_qty,
+                    $row->sold_qty,
+                    $row->hpp,
+                    $row->commission,
+                    $row->price,
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename);
     }
 
     public function columns(): array
@@ -787,8 +1053,9 @@ abstract class VoucherPage extends Page
             'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
             'stock' => ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan'],
             'sold' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC AC'],
-            'online' => ['Username', 'IP Address', 'MAC Address', 'Uptime', 'Profile'],
-            'recap' => ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'Komisi', 'Harga Jual'],
+            'online' => ['Username', 'Profile', 'Uptime', 'Upload', 'Download', 'Router', 'Interface', 'Server', 'IP Address', 'MAC Addr', 'Mitra', 'Outlet', 'Last Connected', 'Last Update'],
+            'offline' => ['Username', 'Router', 'Interface', 'Server', 'IP Address', 'Download', 'Upload', 'Last Connected', 'Last Offline', 'Reason'],
+            'recap' => ['#', 'Kode', 'Tgl Pembuatan', 'Mitra', 'Outlet', 'Profile', 'Qty', 'Sisa Stok', 'Terjual', 'Total HPP', 'Total Komisi', 'Total Harga'],
             default => ['Nama Template', 'Hotspot', 'DNS', 'Phone', 'Status'],
         };
     }
@@ -880,6 +1147,43 @@ abstract class VoucherPage extends Page
         return $quotaMb > 0 ? number_format($quotaMb, 0, ',', '.').'MB/UNLIMITED' : '0/UNLIMITED';
     }
 
+    public function bytesLabel(mixed $bytes): string
+    {
+        $bytes = (float) ($bytes ?: 0);
+
+        if ($bytes >= 1073741824) {
+            return number_format($bytes / 1073741824, 2, ',', '.').' GB';
+        }
+
+        if ($bytes >= 1048576) {
+            return number_format($bytes / 1048576, 2, ',', '.').' MB';
+        }
+
+        if ($bytes >= 1024) {
+            return number_format($bytes / 1024, 2, ',', '.').' KB';
+        }
+
+        return number_format($bytes, 0, ',', '.').' B';
+    }
+
+    public function uptimeLabel(mixed $start, mixed $stop = null): string
+    {
+        if (! $start) {
+            return '-';
+        }
+
+        $start = \Illuminate\Support\Carbon::parse($start);
+        $end = $stop ? \Illuminate\Support\Carbon::parse($stop) : now();
+        $seconds = max(0, $start->diffInSeconds($end));
+        $days = intdiv($seconds, 86400);
+        $seconds %= 86400;
+        $hours = intdiv($seconds, 3600);
+        $seconds %= 3600;
+        $minutes = intdiv($seconds, 60);
+
+        return ($days > 0 ? $days.'d ' : '').sprintf('%02d:%02d', $hours, $minutes);
+    }
+
     public function activateProfile(string $profileId): void
     {
         $profile = RadiusProfile::findOrFail($profileId);
@@ -919,7 +1223,10 @@ abstract class VoucherPage extends Page
     public function updatedSelectAllVouchers($value): void
     {
         if ($value) {
-            $rows = $this->voucherRows();
+            $rows = match ($this->pageType) {
+                'online' => $this->onlineRows(),
+                default => $this->voucherRows(),
+            };
             $collection = method_exists($rows, 'getCollection') ? $rows->getCollection() : $rows;
             $this->selectedVouchers = $collection->pluck('id')->map(fn($id) => (string)$id)->toArray();
         } else {
@@ -1104,6 +1411,17 @@ abstract class VoucherPage extends Page
                 $this->importForm['commission'] = $attributes['Commission'] ?? 0;
             }
         }
+    }
+
+    public function updatedEditingTemplateId($value): void
+    {
+        if (blank($value)) {
+            $this->addTemplate();
+
+            return;
+        }
+
+        $this->loadTemplate($value);
     }
 
     public function createUser(): void
