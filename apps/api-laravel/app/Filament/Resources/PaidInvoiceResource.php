@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PaidInvoiceResource\Pages;
 use App\Models\Invoice;
 use App\Models\Service;
+use Carbon\CarbonInterface;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -35,7 +36,7 @@ class PaidInvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('items.service.cid')->label('NO.LAYANAN')->default('-'),
                 Tables\Columns\TextColumn::make('customer.name')->label('PELANGGAN')->searchable(),
                 Tables\Columns\TextColumn::make('items.service.billing_profile_name')->label('PROFILE')->default('-'),
-                Tables\Columns\TextColumn::make('items.service.partner_name')->label('MITRA')->default('-'),
+                Tables\Columns\TextColumn::make('items.service.partner_name')->label('PARTNER')->default('-'),
                 Tables\Columns\TextColumn::make('items.description')->label('KATEGORI')->default('RECURRING')->limit(18),
                 Tables\Columns\TextColumn::make('payments.paid_at')->label('TGL BAYAR')->dateTime('d/m/Y H:i:s'),
                 Tables\Columns\TextColumn::make('admin')->label('ADMIN')->state('SYSTEM'),
@@ -45,6 +46,8 @@ class PaidInvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('subtotal')->label('SUBTOTAL')->state(fn (Invoice $record): string => self::formatRupiah(self::subtotal($record))),
                 Tables\Columns\TextColumn::make('diskon')->label('DISKON')->state('0'),
                 Tables\Columns\TextColumn::make('ppn')->label('PPN')->state(fn (Invoice $record): string => self::formatRupiah(max(0, (float) $record->total_amount - self::subtotal($record)))),
+                Tables\Columns\TextColumn::make('bhp')->label('BHP 0,5%')->state(fn (Invoice $record): string => self::formatRupiah(self::bhpAmount($record))),
+                Tables\Columns\TextColumn::make('uso')->label('USO 1,25%')->state(fn (Invoice $record): string => self::formatRupiah(self::usoAmount($record))),
                 Tables\Columns\TextColumn::make('adm')->label('ADM')->state('0'),
                 Tables\Columns\TextColumn::make('kode')->label('KODE')->state('0'),
                 Tables\Columns\TextColumn::make('total_amount')->label('TOTAL')->formatStateUsing(fn ($state) => self::formatRupiah($state))->sortable(),
@@ -73,6 +76,11 @@ class PaidInvoiceResource extends Resource
         return number_format((float) $state, 0, ',', '.');
     }
 
+    public static function formatCurrency(mixed $state): string
+    {
+        return 'Rp'.self::formatRupiah($state);
+    }
+
     public static function subtotal(Invoice $invoice): float
     {
         $service = $invoice->items->first()?->service;
@@ -84,5 +92,75 @@ class PaidInvoiceResource extends Resource
         }
 
         return (float) $invoice->total_amount;
+    }
+
+    public static function ppnAmount(Invoice $invoice): float
+    {
+        return max(0, (float) $invoice->total_amount - self::subtotal($invoice));
+    }
+
+    public static function bhpAmount(Invoice $invoice): float
+    {
+        return round(self::subtotal($invoice) * 0.005);
+    }
+
+    public static function usoAmount(Invoice $invoice): float
+    {
+        return round(self::subtotal($invoice) * 0.0125);
+    }
+
+    /**
+     * @return array{invoice_count:int,gross:float,dpp:float,ppn:float,bhp:float,uso:float}
+     */
+    public static function financialSummary(?CarbonInterface $start = null, ?CarbonInterface $end = null): array
+    {
+        $invoices = self::paidInvoicesForPeriod($start, $end)->get();
+
+        $dpp = $invoices->sum(fn (Invoice $invoice): float => self::subtotal($invoice));
+        $gross = $invoices->sum(fn (Invoice $invoice): float => (float) $invoice->total_amount);
+
+        return [
+            'invoice_count' => $invoices->count(),
+            'gross' => $gross,
+            'dpp' => $dpp,
+            'ppn' => max(0, $gross - $dpp),
+            'bhp' => round($dpp * 0.005),
+            'uso' => round($dpp * 0.0125),
+        ];
+    }
+
+    /**
+     * @return array{label:string,start:string,end:string,invoice_count:int,gross:float,dpp:float,ppn:float,bhp:float,uso:float}
+     */
+    public static function recapForPeriod(string $period): array
+    {
+        [$label, $start, $end] = match ($period) {
+            'daily' => ['Rekap Harian', now()->startOfDay(), now()->endOfDay()],
+            'weekly' => ['Rekap Mingguan', now()->startOfWeek(), now()->endOfWeek()],
+            'monthly' => ['Rekap Bulanan', now()->startOfMonth(), now()->endOfMonth()],
+            'yearly' => ['Rekap Tahunan', now()->startOfYear(), now()->endOfYear()],
+            default => ['Rekap Harian', now()->startOfDay(), now()->endOfDay()],
+        };
+
+        return [
+            'label' => $label,
+            'start' => $start->format('d/m/Y H:i'),
+            'end' => $end->format('d/m/Y H:i'),
+            ...self::financialSummary($start, $end),
+        ];
+    }
+
+    /**
+     * @return Builder<Invoice>
+     */
+    private static function paidInvoicesForPeriod(?CarbonInterface $start = null, ?CarbonInterface $end = null): Builder
+    {
+        return Invoice::query()
+            ->with(['items.service', 'payments'])
+            ->where('status', 'paid')
+            ->when($start && $end, fn (Builder $query) => $query->whereHas(
+                'payments',
+                fn (Builder $paymentQuery) => $paymentQuery->whereBetween('paid_at', [$start, $end])
+            ));
     }
 }

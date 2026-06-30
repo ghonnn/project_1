@@ -1,0 +1,4909 @@
+<!DOCTYPE html>
+
+<html lang="id">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>PRD - NEX OSS/BSS ISP Cloud Platform</title>
+<style>
+:root {
+  --bg: #f3f6fb;
+  --paper: #ffffff;
+  --ink: #182033;
+  --muted: #64748b;
+  --line: #d9e2ef;
+  --brand: #155eef;
+  --brand-dark: #071a46;
+  --brand-soft: #eef4ff;
+  --accent: #0f766e;
+  --warn-bg: #fff7ed;
+  --warn-line: #fb923c;
+  --shadow: 0 14px 40px rgba(15, 23, 42, .07);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top left, rgba(21,94,239,.09), transparent 34rem),
+    radial-gradient(circle at top right, rgba(15,118,110,.08), transparent 30rem),
+    var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+  line-height: 1.68;
+  letter-spacing: -.01em;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.shell {
+  width: min(1500px, 100%);
+  margin: 0 auto;
+  padding: 24px;
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 24px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 40px);
+  overflow: auto;
+  background: rgba(255, 255, 255, .92);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+.brandbox {
+  padding: 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--brand-dark), #123b8c);
+  color: white;
+  margin-bottom: 18px;
+}
+
+.brandbox .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  opacity: .75;
+  font-weight: 800;
+}
+
+.brandbox h1 {
+  font-size: 18px;
+  line-height: 1.25;
+  margin: 8px 0 0;
+}
+
+.toc-title {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin: 4px 0 10px;
+}
+
+.toc {
+  display: grid;
+  gap: 3px;
+}
+
+.toc a {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 8px;
+  align-items: start;
+  color: #334155;
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+.toc a:hover {
+  background: var(--brand-soft);
+  border-color: #cfe0ff;
+}
+
+.toc span {
+  color: var(--brand);
+  font-weight: 900;
+}
+
+.main {
+  min-width: 0;
+}
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--brand-dark), #123b8c 58%, #155eef);
+  color: white;
+  border-radius: 30px;
+  padding: 48px;
+  box-shadow: 0 22px 60px rgba(2, 6, 23, .22);
+  margin-bottom: 20px;
+}
+
+.hero::after {
+  content: "";
+  position: absolute;
+  width: 420px;
+  height: 420px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .09);
+  right: -120px;
+  top: -160px;
+}
+
+.eyebrow {
+  position: relative;
+  z-index: 1;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .16em;
+  font-weight: 900;
+  opacity: .82;
+}
+
+.hero h1 {
+  position: relative;
+  z-index: 1;
+  max-width: 980px;
+  margin: 14px 0 14px;
+  font-size: clamp(31px, 4vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -.04em;
+}
+
+.meta {
+  position: relative;
+  z-index: 1;
+  color: #dbeafe;
+  margin: 0 0 18px;
+  font-size: 14px;
+}
+
+.summary {
+  position: relative;
+  z-index: 1;
+  max-width: 1010px;
+  color: #f0f7ff;
+  font-size: 17px;
+  margin: 0;
+}
+
+.badges {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  margin-top: 25px;
+}
+
+.badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: #eff6ff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.exec-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.metric {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 10px 24px rgba(15,23,42,.04);
+}
+
+.metric strong {
+  display: block;
+  color: var(--brand-dark);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.metric span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.card {
+  background: rgba(255,255,255,.94);
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 30px;
+  margin-bottom: 18px;
+  box-shadow: 0 10px 28px rgba(15,23,42,.045);
+  scroll-margin-top: 24px;
+}
+
+.card-head {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding-bottom: 14px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.num {
+  display: inline-grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--brand-soft);
+  color: var(--brand);
+  font-weight: 900;
+}
+
+h2 {
+  margin: 3px 0 0;
+  font-size: 27px;
+  line-height: 1.22;
+  color: #0f172a;
+  letter-spacing: -.025em;
+}
+
+h3 {
+  margin: 24px 0 9px;
+  color: #1e3a8a;
+  font-size: 19px;
+  line-height: 1.35;
+}
+
+p {
+  margin: 10px 0;
+}
+
+ul, ol {
+  margin: 10px 0 16px 21px;
+  padding: 0;
+}
+
+li {
+  margin: 6px 0;
+  padding-left: 2px;
+}
+
+li::marker {
+  color: var(--brand);
+  font-weight: 800;
+}
+
+.note {
+  background: var(--warn-bg);
+  border-left: 5px solid var(--warn-line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: #7c2d12;
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  margin: 16px 0 22px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 680px;
+  background: white;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 13px 14px;
+  border-bottom: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  vertical-align: top;
+}
+
+th:last-child, td:last-child {
+  border-right: 0;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+th {
+  background: #eef5ff;
+  color: #0f172a;
+  text-align: left;
+  font-weight: 900;
+}
+
+tr:nth-child(even) td {
+  background: #fbfdff;
+}
+
+.footer {
+  color: var(--muted);
+  text-align: center;
+  padding: 28px 0 42px;
+  font-size: 13px;
+}
+
+.backtop {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  background: var(--brand);
+  color: white;
+  border-radius: 999px;
+  padding: 11px 15px;
+  font-weight: 900;
+  box-shadow: 0 12px 26px rgba(21,94,239,.35);
+}
+
+@media (max-width: 1080px) {
+  .shell {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+  .sidebar {
+    position: relative;
+    top: auto;
+    height: auto;
+  }
+  .exec-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .hero {
+    padding: 32px;
+  }
+}
+
+@media (max-width: 640px) {
+  .exec-grid {
+    grid-template-columns: 1fr;
+  }
+  .card {
+    padding: 22px;
+  }
+  .card-head {
+    grid-template-columns: 1fr;
+  }
+  .hero {
+    padding: 26px;
+    border-radius: 22px;
+  }
+  .toc a {
+    grid-template-columns: 30px 1fr;
+  }
+}
+
+@media print {
+  body {
+    background: white;
+  }
+  .shell {
+    display: block;
+    padding: 0;
+  }
+  .sidebar,
+  .backtop {
+    display: none;
+  }
+  .hero,
+  .card,
+  .metric {
+    box-shadow: none;
+  }
+  .hero {
+    border-radius: 0;
+  }
+  .card {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    page-break-inside: avoid;
+  }
+  a {
+    color: inherit;
+  }
+}
+
+.flow-box{background:#f8fafc;border:1px solid var(--line);border-radius:16px;padding:16px 18px;margin:14px 0 20px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace;white-space:pre-wrap;color:#0f172a;line-height:1.55;font-size:13px;overflow-x:auto}.mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:14px 0}.mini-card{background:#f8fbff;border:1px solid var(--line);border-radius:16px;padding:15px}.mini-card strong{display:block;color:#0f172a;margin-bottom:6px}@media(max-width:720px){.mini-grid{grid-template-columns:1fr}}
+
+@page { size: A4; margin: 14mm; }
+@media print {
+  .card { page-break-inside: avoid; break-inside: avoid; }
+  .table-scroll { overflow: visible; }
+  table { min-width: 0; font-size: 11px; }
+  th, td { padding: 7px 8px; }
+  h2 { font-size: 22px; }
+  h3 { font-size: 16px; }
+  body { font-size: 12px; }
+}
+
+</style>
+
+<style>
+.latest-cover {
+  background: linear-gradient(135deg, #071a46, #155eef);
+  color: white;
+  border-radius: 24px;
+  padding: 34px;
+  margin: 32px 0 24px;
+  box-shadow: var(--shadow);
+}
+.latest-cover .summary,
+.latest-cover .meta {
+  color: rgba(255,255,255,.88);
+}
+.latest-cover .badge {
+  background: rgba(255,255,255,.14);
+  border-color: rgba(255,255,255,.24);
+  color: white;
+}
+.update-content h1 {
+  font-size: 24px;
+  margin-top: 0;
+}
+.update-content h2 {
+  font-size: 20px;
+  margin-top: 26px;
+}
+.update-content h3 {
+  font-size: 16px;
+  margin-top: 20px;
+}
+.update-content pre {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 14px;
+  border-radius: 12px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+}
+.update-content code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+.update-content :not(pre) > code {
+  background: #eef4ff;
+  color: #123b8c;
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+.latest-toc {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.latest-toc a {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f8fbff;
+}
+@media print {
+  .sidebar { display: none; }
+  .shell { display: block; padding: 0; width: 100%; }
+  .main { width: 100%; }
+  .latest-cover { page-break-before: always; }
+  .update-card { page-break-before: always; }
+}
+</style>
+
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar">
+<div class="brandbox">
+<div class="label">PRD Master</div>
+<h1>NEX OSS/BSS ISP Cloud Platform</h1>
+</div>
+<div class="toc-title">Daftar Isi</div>
+<nav class="toc"><a href="#01-executive-summary"><span>01</span><b>1. Executive Summary</b></a><a href="#02-business-goals"><span>02</span><b>2. Business Goals</b></a><a href="#03-scope-produk"><span>03</span><b>3. Scope Produk</b></a><a href="#04-user-roles-and-permission"><span>04</span><b>4. User Roles &amp; Permission</b></a><a href="#05-customer-lifecycle"><span>05</span><b>5. Customer Lifecycle</b></a><a href="#06-system-architecture"><span>06</span><b>6. System Architecture</b></a><a href="#07-crm-and-sales-module"><span>07</span><b>7. CRM &amp; Sales Module</b></a><a href="#08-customer-management-and-kyc"><span>08</span><b>8. Customer Management &amp; KYC</b></a><a href="#09-product-and-service-management"><span>09</span><b>9. Product &amp; Service Management</b></a><a href="#10-oss-module"><span>10</span><b>10. OSS Module</b></a><a href="#11-billing-and-bss-module"><span>11</span><b>11. Billing &amp; BSS Module</b></a><a href="#12-noc-and-monitoring-module"><span>12</span><b>12. NOC &amp; Monitoring Module</b></a><a href="#13-trouble-ticket-and-sla-monitoring"><span>13</span><b>13. Trouble Ticket &amp; SLA Monitoring</b></a><a href="#14-gis-network-management"><span>14</span><b>14. GIS Network Management</b></a><a href="#15-work-order-management"><span>15</span><b>15. Work Order Management</b></a><a href="#16-inventory-fo-and-perangkat"><span>16</span><b>16. Inventory FO &amp; Perangkat</b></a><a href="#17-partner-reseller-and-commission"><span>17</span><b>17. Partner, Reseller &amp; Commission</b></a><a href="#18-customer-portal-and-mobile-app"><span>18</span><b>18. Customer Portal &amp; Mobile App</b></a><a href="#19-whatsapp-gateway-2-arah"><span>19</span><b>19. WhatsApp Gateway 2 Arah</b></a><a href="#20-contract-management-and-e-signature"><span>20</span><b>20. Contract Management &amp; E-Signature</b></a><a href="#21-multi-tenant-saas-architecture"><span>21</span><b>21. Multi-Tenant SaaS Architecture</b></a><a href="#22-license-management-and-saas-billing"><span>22</span><b>22. License Management &amp; SaaS Billing</b></a><a href="#23-marketplace-and-api-platform"><span>23</span><b>23. Marketplace &amp; API Platform</b></a><a href="#24-security-audit-and-compliance"><span>24</span><b>24. Security, Audit &amp; Compliance</b></a><a href="#25-reporting-and-kpi"><span>25</span><b>25. Reporting &amp; KPI</b></a><a href="#26-recommended-tech-stack"><span>26</span><b>26. Recommended Tech Stack</b></a><a href="#27-database-master-entity"><span>27</span><b>27. Database Master Entity</b></a><a href="#28-development-roadmap-step-by-step"><span>28</span><b>28. Development Roadmap - Step by Step</b></a><a href="#29-detailed-first-90-days-plan"><span>29</span><b>29. Detailed First 90 Days Plan</b></a><a href="#30-project-documentation-structure"><span>30</span><b>30. Project Documentation Structure</b></a><a href="#31-acceptance-criteria"><span>31</span><b>31. Acceptance Criteria</b></a><a href="#32-key-risks-and-brutal-reality-check"><span>32</span><b>32. Key Risks &amp; Brutal Reality Check</b></a><a href="#33-final-recommendation"><span>33</span><b>33. Final Recommendation</b></a></nav>
+</aside>
+<main class="main">
+<header class="hero" id="top">
+<div class="eyebrow">Product Requirement Document</div>
+<h1>NEX OSS/BSS ISP Cloud Platform - Billing, OSS, NOC, CRM, SaaS Multi-Tenant</h1>
+<p class="meta">Version: 3.4 Updated | Owner: PT NEX SOLUSI TEKNOLOGI | Status: Consolidated PRD Update | Date: 19 June 2026 | Update: Router-Centric Step 1-9 Revision</p>
+<p class="summary">Dokumen ini menggabungkan kebutuhan billing ISP, OSS/BSS, FreeRadius AAA, GIS Network, Work Order, Project Documentation, serta revisi Router Management sebagai single source of network topology. POP dan BTS tidak lagi dibuat sebagai modul terpisah; keduanya direpresentasikan melalui Router Role seperti POP Router dan BTS Router.</p>
+<div class="badges"><span class="badge">OSS/BSS</span><span class="badge">Billing ISP</span><span class="badge">SaaS Multi-Tenant</span><span class="badge">White Label</span><span class="badge">GIS Network</span><span class="badge">Work Order</span><span class="badge">FreeRadius AAA</span><span class="badge">Router Management</span><span class="badge">SNMP Monitoring</span><span class="badge">ROS Script Generator</span></div>
+</header>
+<section aria-label="Ringkasan cepat" class="exec-grid">
+<div class="metric"><strong>33</strong><span>Bagian PRD utama</span></div>
+<div class="metric"><strong>10</strong><span>Phase roadmap eksekusi</span></div>
+<div class="metric"><strong>SaaS</strong><span>Siap dijual ke ISP lain</span></div>
+<div class="metric"><strong>Router-first</strong><span>Router mewakili POP/BTS</span></div>
+</section>
+<article class="card" id="01-executive-summary">
+<div class="card-head">
+<span class="num">01</span>
+<h2>1. Executive Summary</h2>
+</div>
+<div class="content">
+<p>NEX OSS/BSS ISP Cloud Platform adalah platform terintegrasi untuk mengelola operasional ISP end-to-end: CRM, provisioning, billing, payment, monitoring, ticketing, inventory, GIS, work order, partner portal, customer portal, hingga multi-tenant SaaS untuk dijual kembali kepada ISP lain.</p>
+<p class="note">Kesalahan yang harus dihindari: membangun aplikasi ini sebagai invoice app biasa. Produk ini harus diperlakukan sebagai OSS/BSS platform. Kalau fondasi tenant, customer, service, billing, provisioning, audit, dan API tidak benar sejak awal, biaya rework akan besar ketika pelanggan dan tenant mulai bertambah.</p>
+</div>
+</article>
+<article class="card" id="02-business-goals">
+<div class="card-head">
+<span class="num">02</span>
+<h2>2. Business Goals</h2>
+</div>
+<div class="content">
+<div class="table-scroll"><table><tr><th>Area</th><th>Target Bisnis</th></tr><tr><td>Finance</td><td>Invoice otomatis, payment reconciliation otomatis, AR aging jelas, revenue leakage terdeteksi.</td></tr><tr><td>NOC</td><td>Provisioning, suspend, unsuspend, monitoring, dan impact analysis lebih cepat.</td></tr><tr><td>Sales</td><td>Lead, survey, quotation, contract, dan handover ke teknisi terdokumentasi.</td></tr><tr><td>Management</td><td>Dashboard KPI realtime untuk revenue, customer, SLA, utilisasi jaringan, dan performa tim.</td></tr><tr><td>Product/SaaS</td><td>Platform dapat dijual ke ISP lain dengan white-label, tenant isolation, lisensi, dan usage metering.</td></tr></table></div>
+</div>
+</article>
+<article class="card" id="03-scope-produk">
+<div class="card-head">
+<span class="num">03</span>
+<h2>3. Scope Produk</h2>
+</div>
+<div class="content">
+<h3>3.1 In Scope</h3>
+<ul>
+<li>CRM &amp; Sales Pipeline</li>
+<li>Customer Management &amp; KYC</li>
+<li>Contract Management &amp; E-Signature</li>
+<li>Product &amp; Service Management</li>
+<li>Billing, Invoice, Tax, Payment Gateway</li>
+<li>Suspend/Unsuspend Automation</li>
+<li>OSS: Router Management, Router Interface, Router Link, OLT, ONU, FreeRadius AAA/RADIUS, NAS Management, IPAM, VLAN, CID Generator</li>
+<li>Router Role: Core Router, Aggregation Router, Edge Router, PPPoE Router, BNG, Wireless Gateway, POP Router, BTS Router</li>
+<li>Monitoring: PRTG, LibreNMS, SNMP, GenieACS, Router SNMP Monitoring</li>
+<li>GIS Network Management: Router Layer, Customer Layer, Fiber Layer, ODC/ODP Layer</li>
+<li>Work Order Management</li>
+<li>Trouble Ticket &amp; SLA Monitoring</li>
+<li>Inventory FO &amp; Perangkat</li>
+<li>Partner Portal &amp; Commission Engine</li>
+<li>Customer Portal &amp; Mobile App</li>
+<li>WhatsApp Gateway 2 Arah</li>
+<li>Revenue Assurance</li>
+<li>Router Script Generator untuk MikroTik RouterOS v6 dan v7 agar router dapat terhubung ke FreeRadius</li>
+<li>Multi-Tenant SaaS, White Label, License Management, Marketplace, API Platform</li>
+</ul>
+<h3>3.2 Out of Scope Phase Awal</h3>
+<ul>
+<li>Router Management sebagai modul terpisah dikeluarkan. POP direpresentasikan sebagai Router Role: POP Router.</li>
+<li>Router Management sebagai modul terpisah dikeluarkan. Router Role direpresentasikan sebagai Router Role: BTS Router atau Wireless Gateway.</li>
+<li>MikroTik API Integration dikeluarkan dari phase awal. Autentikasi pelanggan memakai FreeRadius sebagai source of truth.</li>
+<li>AI penuh untuk NOC dan billing - masuk phase lanjutan.</li>
+<li>Marketplace connector komersial lengkap - setelah core platform stabil.</li>
+<li>Multi-country tax engine - setelah pasar Indonesia matang.</li>
+</ul>
+<p class="note">Keputusan arsitektur v3.4: Router menjadi objek utama jaringan. POP dan Router Role tidak dibuat sebagai tabel/modul utama terpisah supaya data model lebih sederhana. Jika satu perangkat atau site berfungsi sebagai Router Role/cukup gunakan Router Role: BTS Router, POP Router, atau Wireless Gateway.</p>
+</div>
+</article>
+<article class="card" id="04-user-roles-and-permission">
+<div class="card-head">
+<span class="num">04</span>
+<h2>4. User Roles &amp; Permission</h2>
+</div>
+<div class="content">
+<div class="table-scroll"><table><tr><th>Role</th><th>Hak Akses Utama</th></tr><tr><td>Platform Owner / NEX Super Admin</td><td>Kelola seluruh tenant, lisensi, audit global, revenue SaaS, marketplace, system configuration.</td></tr><tr><td>Tenant ISP Owner</td><td>Full access untuk tenant miliknya. Tidak dapat melihat tenant lain.</td></tr><tr><td>Tenant Admin</td><td>Operasional tenant: customer, layanan, billing, NOC, user, role, report.</td></tr><tr><td>Finance</td><td>Invoice, payment, tax, AR aging, credit note, report revenue.</td></tr><tr><td>NOC</td><td>Monitoring, provisioning, OLT/ONU, Radius, suspend/unsuspend, ticket teknis.</td></tr><tr><td>Sales</td><td>Lead, survey request, quotation, customer onboarding, pipeline.</td></tr><tr><td>Teknisi / Field Engineer</td><td>Work order, instalasi, maintenance, upload foto, BA digital, GPS check-in/out.</td></tr><tr><td>Partner / Reseller</td><td>Customer miliknya, komisi, ticket, invoice terkait, performa layanan.</td></tr><tr><td>Customer</td><td>Portal customer: invoice, payment, ticket, status layanan, kontrak, faktur.</td></tr></table></div>
+</div>
+</article>
+<article class="card" id="05-customer-lifecycle">
+<div class="card-head">
+<span class="num">05</span>
+<h2>5. Customer Lifecycle</h2>
+</div>
+<div class="content">
+<ol><li>Lead masuk dari Sales/Website/Partner/WhatsApp.</li><li>Sales membuat data prospect dan request survey.</li><li>Sistem membuat Survey Work Order.</li><li>Teknisi melakukan survey, upload foto, GPS, dan hasil feasible/not feasible.</li><li>Sales membuat quotation dan kontrak.</li><li>Customer menyetujui kontrak atau e-signature.</li><li>Sistem membuat Installation Work Order.</li><li>Teknisi melakukan instalasi dan upload BA digital.</li><li>NOC melakukan provisioning: CID, VLAN, IP, Radius/ONU/Router.</li><li>Billing membuat invoice/prorate sesuai tanggal aktivasi.</li><li>Customer aktif.</li><li>Jika overdue melewati policy, sistem suspend otomatis.</li><li>Jika payment diterima, sistem unsuspend otomatis.</li><li>Jika kontrak berakhir atau terminate, sistem melakukan proses terminasi dan asset recovery.</li></ol>
+</div>
+</article>
+<article class="card" id="06-system-architecture">
+<div class="card-head">
+<span class="num">06</span>
+<h2>6. System Architecture</h2>
+</div>
+<div class="content">
+<h3>6.1 Domain Utama</h3>
+<ul><li>CRM Domain</li><li>OSS Domain</li><li>BSS/Billing Domain</li><li>NOC &amp; Monitoring Domain</li><li>GIS Network Domain</li><li>Work Order / Field Service Domain</li><li>Partner &amp; Reseller Domain</li><li>Customer Experience Domain</li><li>SaaS Multi-Tenant Platform Domain</li><li>API &amp; Integration Domain</li><li>Security, Audit &amp; Compliance Domain</li><li>Analytics &amp; AI Domain</li></ul>
+<h3>6.2 Prinsip Arsitektur</h3>
+<ul><li>API-first agar web, mobile, partner portal, dan integrasi pihak ketiga memakai backend yang sama.</li><li>Multi-tenant sejak awal, bukan ditambal belakangan.</li><li>Tenant isolation wajib di level aplikasi, database schema, query, audit, dan storage.</li><li>Event-driven untuk billing, payment, suspend, notification, dan provisioning.</li><li>Audit log untuk semua aksi penting.</li><li>Integrasi perangkat jaringan harus asynchronous dan memakai job queue agar UI tidak lambat.</li></ul>
+</div>
+</article>
+<article class="card" id="07-crm-and-sales-module">
+<div class="card-head">
+<span class="num">07</span>
+<h2>7. CRM &amp; Sales Module</h2>
+</div>
+<div class="content">
+<ul><li>Lead Management: source, PIC sales, status, pipeline, notes, follow-up.</li><li>Survey Request: dibuat dari lead dan otomatis menghasilkan Survey Work Order.</li><li>Quotation: paket, harga, diskon, masa kontrak, SLA, instalasi, PPN.</li><li>Won/Lost Analysis: alasan menang/kalah, kompetitor, nilai deal.</li><li>Handover ke NOC/Teknisi: setelah deal closed dan dokumen lengkap.</li></ul>
+</div>
+</article>
+<article class="card" id="08-customer-management-and-kyc">
+<div class="card-head">
+<span class="num">08</span>
+<h2>8. Customer Management &amp; KYC</h2>
+</div>
+<div class="content">
+<ul><li>Personal Customer: nama, NIK, email, HP, alamat, GPS, dokumen KTP.</li><li>Corporate Customer: nama perusahaan, NPWP, NIB, akta, PIC, alamat legal, alamat instalasi.</li><li>Customer Status: Prospect, Survey, Pending, Active, Suspend, Terminate.</li><li>KYC Workflow: upload dokumen, verifikasi admin, approval/reject, catatan revisi.</li><li>Document Repository: kontrak, PO, BA, KTP, NPWP, NIB, faktur pajak.</li></ul>
+</div>
+</article>
+<article class="card" id="09-product-and-service-management">
+<div class="card-head">
+<span class="num">09</span>
+<h2>9. Product &amp; Service Management</h2>
+</div>
+<div class="content">
+<h3>9.1 Product Catalog</h3>
+<ul>
+<li>Dedicated Internet</li>
+<li>Broadband Internet</li>
+<li>Metro Ethernet</li>
+<li>IP Transit</li>
+<li>Cloud Hosting</li>
+<li>Colocation</li>
+<li>Managed Service</li>
+<li>GPON/FTTx</li>
+<li>Wireless Broadband</li>
+</ul>
+<h3>9.2 Service Data</h3>
+<ul>
+<li>CID/SID</li>
+<li>Customer</li>
+<li>Product</li>
+<li>Service Category</li>
+<li>Bandwidth</li>
+<li>SLA</li>
+<li>Router</li>
+<li>Router Interface</li>
+<li>Router Role</li>
+<li>OLT/ONU/Switch jika relevan</li>
+<li>VLAN</li>
+<li>IP Address</li>
+<li>NAS Device</li>
+<li>Radius Profile</li>
+<li>Radius Username</li>
+<li>Contract Reference</li>
+<li>Billing Status</li>
+<li>Provisioning Status</li>
+<li>Radius Status: Pending, Active, Suspended, Terminated, Sync Failed</li>
+<li>Topology Status: Mapped / Unmapped / Mapping Incomplete</li>
+</ul>
+<h3>9.3 Service Category Flags</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+<tr><td>requires_router_mapping</td><td>BOOLEAN</td><td>Menentukan apakah service wajib dipetakan ke router.</td></tr>
+<tr><td>requires_radius</td><td>BOOLEAN</td><td>Menentukan apakah service membutuhkan FreeRadius authentication.</td></tr>
+<tr><td>requires_ip_assignment</td><td>BOOLEAN</td><td>Menentukan apakah service membutuhkan IP assignment.</td></tr>
+<tr><td>requires_vlan</td><td>BOOLEAN</td><td>Menentukan apakah service membutuhkan VLAN.</td></tr>
+</table>
+</div>
+<div class="table-scroll">
+<table>
+<tr><th>Service Category</th><th>Router Mapping</th><th>Radius</th><th>IP</th><th>VLAN</th></tr>
+<tr><td>Broadband Internet</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Dedicated Internet</td><td>Yes</td><td>Optional</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>GPON FTTH</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Wireless Internet</td><td>Yes</td><td>Yes</td><td>Yes</td><td>Optional</td></tr>
+<tr><td>Metro Ethernet</td><td>Yes</td><td>No</td><td>Optional</td><td>Yes</td></tr>
+<tr><td>IP Transit</td><td>Yes</td><td>No</td><td>Yes</td><td>Optional</td></tr>
+<tr><td>Cloud Hosting</td><td>No</td><td>No</td><td>Yes</td><td>No</td></tr>
+<tr><td>Colocation</td><td>No</td><td>No</td><td>Optional</td><td>No</td></tr>
+<tr><td>Domain / SSL / Email Hosting</td><td>No</td><td>No</td><td>No</td><td>No</td></tr>
+</table>
+</div>
+<p class="note">Router Mapping wajib hanya untuk layanan yang menggunakan akses jaringan pelanggan. Service non-network seperti domain, SSL, email hosting, cloud hosting, VPS, dan colocation tidak wajib memiliki router mapping.</p>
+</div>
+</article>
+<article class="card" id="10-oss-module">
+<div class="card-head">
+<span class="num">10</span>
+<h2>10. OSS Module</h2>
+</div>
+<div class="content">
+<h3>10.1 Router Management</h3>
+<p>Router Management menjadi modul utama untuk merepresentasikan seluruh node jaringan. POP dan BTS tidak dibuat sebagai modul terpisah. Jika sebuah router/site berfungsi sebagai POP atau Router Role, sistem menggunakan field Router Role.</p>
+<h3>10.1.1 Business Objective</h3>
+<ul>
+<li>Mengetahui pelanggan Internet terhubung ke router mana.</li>
+<li>Mengetahui interface pelanggan berada pada router mana.</li>
+<li>Mengetahui router yang menjadi NAS untuk FreeRadius.</li>
+<li>Menampilkan status router up/down.</li>
+<li>Menampilkan status SNMP monitoring router.</li>
+<li>Mengetahui dampak pelanggan jika router down.</li>
+<li>Mengukur utilisasi router untuk capacity planning.</li>
+<li>Menghasilkan script konfigurasi MikroTik RouterOS v6/v7 agar router dapat terhubung ke FreeRadius.</li>
+</ul>
+<h3>10.1.2 Router Role</h3>
+<ul>
+<li>Core Router</li>
+<li>Aggregation Router</li>
+<li>Edge Router</li>
+<li>PPPoE Router</li>
+<li>BNG</li>
+<li>Wireless Gateway</li>
+<li>POP Router</li>
+<li>BTS Router</li>
+</ul>
+<h3>10.1.3 Router Data</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Field</th><th>Description</th></tr>
+<tr><td>Router ID</td><td>Unique router identifier.</td></tr>
+<tr><td>Router Name</td><td>Nama router yang tampil di aplikasi.</td></tr>
+<tr><td>Hostname</td><td>Hostname router.</td></tr>
+<tr><td>Vendor</td><td>MikroTik, Juniper, Cisco, Huawei, Nokia, atau vendor lain.</td></tr>
+<tr><td>Model</td><td>Device model.</td></tr>
+<tr><td>Serial Number</td><td>Nomor seri perangkat.</td></tr>
+<tr><td>Router Role</td><td>Core, Edge, Aggregation, PPPoE Router, BNG, Wireless Gateway, POP Router, BTS Router.</td></tr>
+<tr><td>Site Name</td><td>Nama site/lokasi router.</td></tr>
+<tr><td>Latitude / Longitude</td><td>GPS location.</td></tr>
+<tr><td>Management IP</td><td>IP untuk monitoring/manajemen.</td></tr>
+<tr><td>Loopback IP</td><td>Loopback address untuk routing/monitoring.</td></tr>
+<tr><td>Radius NAS Identifier</td><td>NAS identifier yang dipakai FreeRadius.</td></tr>
+<tr><td>Status</td><td>Online, Offline, Warning, Critical, Maintenance.</td></tr>
+<tr><td>SNMP Status</td><td>Reachable, Unreachable, Auth Failed, Not Configured.</td></tr>
+</table>
+</div>
+<h3>10.1.4 Router Interface Management</h3>
+<ul>
+<li>Interface Name</li>
+<li>Interface Type: Physical / Logical / VLAN / Loopback</li>
+<li>Router Parent</li>
+<li>VLAN ID</li>
+<li>IP Address</li>
+<li>Capacity</li>
+<li>Status: Up / Down / Disabled</li>
+<li>Service Mapping</li>
+<li>Customer Count</li>
+<li>Traffic In / Traffic Out</li>
+<li>Error / Discard</li>
+</ul>
+<h3>10.1.5 Router Link Management</h3>
+<ul>
+<li>Memetakan hubungan Router A ke Router B.</li>
+<li>Link type: Fiber, Metro Ethernet, MPLS, Wireless Backhaul.</li>
+<li>Data link: router_a_id, router_b_id, interface_a_id, interface_b_id, capacity, utilization, status.</li>
+</ul>
+<h3>10.1.6 Customer Mapping</h3>
+<div class="flow-box">Customer
+  ↓
+Service
+  ↓
+Router
+  ↓
+Router Interface
+  ↓
+Radius NAS / FreeRadius</div>
+<ul>
+<li>Customer mapping menampilkan Customer, CID, Service, Router, Interface, Radius User, IP, dan VLAN.</li>
+<li>Jika service Internet belum memiliki router mapping, status service menjadi Mapping Incomplete.</li>
+<li>Service non-network tidak wajib memiliki router mapping.</li>
+</ul>
+<h3>10.1.7 Service Mapping</h3>
+<div class="flow-box">Service
+  ↓
+Router
+  ↓
+Interface
+  ↓
+Radius Profile
+  ↓
+Customer</div>
+<ul>
+<li>Router mapping wajib hanya jika service category requires_router_mapping = true.</li>
+<li>Radius mapping wajib hanya jika service category requires_radius = true.</li>
+<li>Mapping dipakai oleh billing, Radius, NOC, GIS, monitoring, dan impact analysis.</li>
+</ul>
+<h3>10.1.8 Radius Integration</h3>
+<div class="flow-box">Radius User
+  ↓
+NAS Device
+  ↓
+Router
+  ↓
+Service
+  ↓
+Customer</div>
+<ul>
+<li>NAS Device wajib dipetakan ke Router.</li>
+<li>Radius user wajib terhubung ke service dan customer jika requires_radius = true.</li>
+<li>Radius dashboard menampilkan Radius User per Router.</li>
+<li>Failed authentication dapat difilter berdasarkan Router/NAS.</li>
+</ul>
+<h3>10.1.9 SNMP Monitoring Integration</h3>
+<ul>
+<li>Supported source: SNMP, LibreNMS, PRTG, Prometheus.</li>
+<li>Router status: Online, Offline, Warning, Critical, Maintenance.</li>
+<li>SNMP status: Reachable, Unreachable, Auth Failed, Not Configured.</li>
+<li>Metrics: CPU, memory, temperature, uptime, traffic, packet loss, latency.</li>
+<li>Interface metrics: traffic in, traffic out, error, discard, utilization.</li>
+</ul>
+<h3>10.1.10 Router Dashboard Requirement</h3>
+<div class="mini-grid">
+<div class="mini-card"><strong>Router Dashboard</strong><ul><li>Total Router</li><li>Online Router</li><li>Offline Router</li><li>Warning/Critical Router</li><li>Top Utilization</li><li>CPU Highest</li><li>Memory Highest</li><li>Customer per Router</li><li>Radius User per Router</li></ul></div>
+<div class="mini-card"><strong>Capacity Dashboard</strong><ul><li>Customer Count</li><li>Service Count</li><li>Active Session</li><li>Interface Utilization</li><li>CPU Utilization</li><li>Memory Utilization</li><li>Warning 70%</li><li>Critical 85%</li><li>Full 95%</li></ul></div>
+</div>
+<h3>10.1.11 Customer Impact Analysis</h3>
+<div class="flow-box">Router Down
+  ↓
+Find Service Mapping
+  ↓
+Find Customer
+  ↓
+Find Radius User
+  ↓
+Calculate Revenue Impact
+  ↓
+Show Active Ticket</div>
+<ul>
+<li>Router down menampilkan seluruh customer terdampak.</li>
+<li>Router down menampilkan affected service.</li>
+<li>Router down menampilkan affected radius user.</li>
+<li>Router down menampilkan total revenue terdampak.</li>
+<li>Router down menampilkan ticket aktif terkait customer terdampak.</li>
+</ul>
+<h3>10.1.12 MikroTik RouterOS RADIUS Script Generator</h3>
+<p>Sistem menyediakan generator script konfigurasi MikroTik yang dapat diunduh oleh user dalam format .rsc. Script ini digunakan agar router MikroTik dapat terhubung ke FreeRadius.</p>
+<h3>Input Script Generator</h3>
+<ul>
+<li>Router Name</li>
+<li>RouterOS Version: v6 / v7</li>
+<li>Radius Server IP</li>
+<li>Radius Secret</li>
+<li>NAS Identifier</li>
+<li>Service Type: PPPoE / Hotspot</li>
+<li>Accounting Enabled: Yes / No</li>
+<li>Timeout</li>
+</ul>
+<h3>Output Script Generator</h3>
+<ul>
+<li>Download ROS6 PPPoE Radius .rsc</li>
+<li>Download ROS7 PPPoE Radius .rsc</li>
+<li>Download ROS6 Hotspot Radius .rsc</li>
+<li>Download ROS7 Hotspot Radius .rsc</li>
+<li>Copy to Clipboard</li>
+</ul>
+<h3>Sample MikroTik ROS v6 PPPoE Radius Script</h3>
+<div class="flow-box">/radius
+add service=ppp address={{radius_server_ip}} secret="{{radius_secret}}" authentication-port=1812 accounting-port=1813 timeout=300ms
+
+/ppp aaa
+set use-radius=yes accounting=yes interim-update=5m
+
+/system identity
+set name="{{router_name}}"</div>
+<h3>Sample MikroTik ROS v7 PPPoE Radius Script</h3>
+<div class="flow-box">/radius
+add service=ppp address={{radius_server_ip}} secret="{{radius_secret}}" authentication-port=1812 accounting-port=1813 timeout=300ms
+
+/ppp aaa
+set use-radius=yes accounting=yes interim-update=5m
+
+/system identity
+set name="{{router_name}}"</div>
+<p class="note">Script harus dibuat dari template engine, bukan hardcode di source code. Gunakan entity router_script_templates agar nanti bisa menambah template RouterOS v6, RouterOS v7, JunOS, Huawei VRP, dan Cisco IOS tanpa perubahan besar pada aplikasi.</p>
+<h3>10.2 OLT &amp; ONU Management</h3>
+<ul>
+<li>Vendor support: ZTE, Huawei, Fiberhome, VSOL.</li>
+<li>OLT data: IP, vendor, router parent, SNMP/API credential, status.</li>
+<li>ONU data: serial number, ONU ID, PON, RX/TX power, status, customer, service.</li>
+<li>Fitur: discovery, provision, reboot, disable, monitoring optical power, alarm offline.</li>
+</ul>
+<h3>10.3 FreeRadius AAA &amp; RADIUS Management</h3>
+<p>Modul ini mengelola Authentication, Authorization, dan Accounting pelanggan ISP menggunakan FreeRadius sebagai sumber autentikasi utama. MikroTik, BRAS, atau router NAS lain hanya berfungsi sebagai NAS/BNG yang melakukan query ke FreeRadius.</p>
+<h3>10.3.1 Supported Authentication</h3>
+<ul>
+<li>PPPoE Username/Password Authentication</li>
+<li>Single Session dan Multi Session Control</li>
+<li>Simultaneous Use Control</li>
+<li>Session Timeout</li>
+<li>Idle Timeout</li>
+<li>Hotspot User Authentication</li>
+<li>Voucher Authentication</li>
+<li>MAC Authentication / MAC Binding</li>
+<li>Static IP Service Mapping</li>
+<li>VLAN Mapping untuk layanan tertentu</li>
+</ul>
+<h3>10.3.2 RADIUS Architecture</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Layer</th><th>Fungsi</th></tr>
+<tr><td>Customer Device</td><td>Router/ONT pelanggan melakukan koneksi PPPoE/Hotspot.</td></tr>
+<tr><td>NAS / BNG</td><td>Router/NAS meneruskan authentication request ke FreeRadius.</td></tr>
+<tr><td>FreeRadius</td><td>Melakukan authentication, authorization, dan accounting.</td></tr>
+<tr><td>NEX OSS/BSS</td><td>Mengelola customer, service, billing status, radius user, radius profile, router mapping, dan suspend policy.</td></tr>
+<tr><td>PostgreSQL</td><td>Database utama untuk customer, service, billing, radius profile, radius user, router mapping, dan accounting.</td></tr>
+</table>
+</div>
+<h3>10.3.3 Radius Profile Management</h3>
+<ul>
+<li>Profile Name</li>
+<li>Download Speed</li>
+<li>Upload Speed</li>
+<li>Burst Limit</li>
+<li>Burst Threshold</li>
+<li>Burst Time</li>
+<li>Session Timeout</li>
+<li>Idle Timeout</li>
+<li>Simultaneous Use</li>
+<li>Status: Active/Inactive</li>
+</ul>
+<h3>10.3.4 Radius User Management</h3>
+<ul>
+<li>Auto generate username berdasarkan CID atau format tenant.</li>
+<li>Password dapat dibuat otomatis atau manual sesuai policy.</li>
+<li>Assign profile berdasarkan product/service.</li>
+<li>Status user: Pending, Active, Suspended, Terminated.</li>
+<li>Relasi wajib ke tenant, customer, service, dan router jika service membutuhkan akses jaringan.</li>
+</ul>
+<h3>10.3.5 NAS Device Management</h3>
+<ul>
+<li>NAS Name</li>
+<li>NAS Identifier</li>
+<li>NAS IP Address</li>
+<li>Router Mapping</li>
+<li>Radius Secret</li>
+<li>Vendor Type</li>
+<li>Status</li>
+</ul>
+<h3>10.3.6 Service Activation Flow</h3>
+<ol>
+<li>Customer dan Service dibuat.</li>
+<li>Sistem mengecek service category flags.</li>
+<li>Jika requires_router_mapping = true, user wajib memilih Router dan Interface.</li>
+<li>Jika requires_radius = true, Radius username dibuat otomatis.</li>
+<li>Radius profile dipilih berdasarkan paket.</li>
+<li>Radius user dibuat di database FreeRadius.</li>
+<li>Service status berubah menjadi Active.</li>
+</ol>
+<h3>10.3.7 Suspend / Unsuspend Flow</h3>
+<ul>
+<li>Invoice overdue melewati policy → Service Suspended → Radius User Disabled → pelanggan tidak dapat autentikasi.</li>
+<li>Invoice paid → Radius User Enabled → Service Active → pelanggan dapat autentikasi kembali.</li>
+</ul>
+<h3>10.4 IP Address Management (IPAM)</h3>
+<ul>
+<li>IPv4/IPv6 pool, subnet, reservation, assignment customer, duplicate detection.</li>
+<li>Status IP: available, used, reserved, blocked.</li>
+</ul>
+<h3>10.5 VLAN Management</h3>
+<ul>
+<li>VLAN registry, allocation, availability check, service mapping, router mapping.</li>
+<li>Mencegah VLAN bentrok antar layanan dan antar tenant.</li>
+</ul>
+<h3>10.6 CID Generator</h3>
+<p>Format rekomendasi: NEX-[AREA]-[SERVICE]-[YEAR]-[RUNNING]. Contoh: NEX-BDG-INET-2026-000001.</p>
+</div>
+</article>
+<article class="card" id="11-billing-and-bss-module">
+<div class="card-head">
+<span class="num">11</span>
+<h2>11. Billing &amp; BSS Module</h2>
+</div>
+<div class="content">
+<h3>11.1 Billing Engine</h3>
+<ul><li>Recurring invoice bulanan.</li><li>Prorate saat aktivasi tengah bulan.</li><li>PPN, diskon, denda, deposit, credit note, debit note.</li><li>Invoice status: Draft, Open, Paid, Overdue, Cancelled.</li></ul>
+<h3>11.2 Payment Management</h3>
+<ul><li>Payment Gateway: Midtrans, Xendit, Duitku, QRIS, Virtual Account, transfer manual.</li><li>Auto reconciliation dari callback payment gateway.</li><li>Payment receipt dan payment history.</li></ul>
+<h3>11.3 Suspend Engine</h3>
+<ul><li>Default suspend H+7 setelah jatuh tempo, configurable per tenant/customer/product.</li><li>Auto unsuspend setelah payment verified.</li><li>Whitelist customer strategis dengan approval finance.</li></ul>
+<h3>11.4 Revenue Assurance</h3>
+<ul><li>Service aktif tanpa invoice.</li><li>Invoice tanpa service aktif.</li><li>VLAN/IP/ONU aktif tanpa billing.</li><li>Customer aktif tanpa kontrak valid.</li><li>Mismatch harga kontrak vs invoice.</li></ul>
+<h3>11.5 Tax &amp; e-Faktur</h3>
+<ul><li>PPN 11% configurable.</li><li>Export CSV e-Faktur/Coretax.</li><li>Faktur pajak per invoice.</li><li>Tax exemption untuk customer tertentu jika ada dokumen pendukung.</li></ul>
+</div>
+</article>
+<article class="card" id="12-noc-and-monitoring-module">
+<div class="card-head">
+<span class="num">12</span>
+<h2>12. NOC &amp; Monitoring Module</h2>
+</div>
+<div class="content">
+<ul>
+<li>NOC Dashboard 24x7: router online/offline, router warning/critical, customer down, ticket P1/P2/P3.</li>
+<li>Monitoring integrations: PRTG API, LibreNMS API, SNMP, GenieACS.</li>
+<li>RADIUS monitoring: FreeRadius availability, authentication success/failure, accounting status, online session summary.</li>
+<li>Router monitoring: SNMP status, CPU, memory, interface traffic, utilization, latency, packet loss, uptime.</li>
+<li>Customer Impact Analysis: saat router, OLT, ODP, fiber route, atau interface down, sistem menampilkan pelanggan terdampak dan revenue impact.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="13-trouble-ticket-and-sla-monitoring">
+<div class="card-head">
+<span class="num">13</span>
+<h2>13. Trouble Ticket &amp; SLA Monitoring</h2>
+</div>
+<div class="content">
+<ul><li>Kategori: Billing, Technical, Sales, General.</li><li>Status: Open, Assigned, In Progress, Resolved, Closed.</li><li>Priority: P1, P2, P3.</li><li>SLA: P1 4 jam, P2 8 jam, P3 24 jam - configurable per tenant.</li><li>Escalation: SLA countdown, breach alert, supervisor notification.</li></ul>
+</div>
+</article>
+<article class="card" id="14-gis-network-management">
+<div class="card-head">
+<span class="num">14</span>
+<h2>14. GIS Network Management</h2>
+</div>
+<div class="content">
+<p>GIS Network Management digunakan untuk memetakan infrastruktur jaringan ISP secara visual berbasis peta digital. Pada v3.4, Router menjadi node utama jaringan. POP dan BTS tidak menjadi layer wajib terpisah; keduanya direpresentasikan melalui Router Role.</p>
+<h3>14.1 Supported Map</h3>
+<ul><li>OpenStreetMap</li><li>Google Maps</li><li>Mapbox</li></ul>
+<h3>14.2 GIS Objects</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Object</th><th>Data Utama</th></tr>
+<tr><td>Router</td><td>Router ID, hostname, role, GPS, site name, status, utilization.</td></tr>
+<tr><td>ODC</td><td>ODC ID, lokasi, kapasitas core, available core.</td></tr>
+<tr><td>ODP</td><td>ODP ID, lokasi, jumlah port, port terpakai, port tersedia.</td></tr>
+<tr><td>Joint Closure</td><td>Closure ID, lokasi, jumlah core, core digunakan.</td></tr>
+<tr><td>Fiber Route</td><td>Route ID, panjang kabel, jenis kabel, core count, status.</td></tr>
+<tr><td>Customer</td><td>Customer ID, CID, service, lokasi GPS, router terkait.</td></tr>
+</table>
+</div>
+<h3>14.3 GIS Features</h3>
+<ul>
+<li>Layer: Router, Customer, Fiber, ODC, ODP.</li>
+<li>Router Role filter: Core Router, Aggregation Router, Edge Router, PPPoE Router, BNG, Wireless Gateway, POP Router, BTS Router.</li>
+<li>Fiber mapping: backbone, distribusi, dropcore.</li>
+<li>Core allocation, reservation, utilization, availability.</li>
+<li>Coverage area per router/site.</li>
+<li>Capacity planning ODP/ODC/core/router.</li>
+<li>Impact analysis: Router/OLT/ODP/backbone down - tampil pelanggan terdampak.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="15-work-order-management">
+<div class="card-head">
+<span class="num">15</span>
+<h2>15. Work Order Management</h2>
+</div>
+<div class="content">
+<p>Work Order Management mengelola pekerjaan lapangan dari survey sampai terminasi. Modul ini harus dibuat sebelum mobile app teknisi, karena mobile app hanya front-end dari workflow WO.</p>
+<h3>15.1 Work Order Categories</h3>
+<ul><li>Survey</li><li>Instalasi</li><li>Aktivasi</li><li>Relokasi</li><li>Upgrade</li><li>Downgrade</li><li>Maintenance</li><li>Trouble Ticket</li><li>Terminasi</li></ul>
+<h3>15.2 Work Order Lifecycle</h3>
+<p>Open → Assigned → Accepted → On Progress → Completed → Verified → Closed</p>
+<h3>15.3 Field Service Mobile</h3>
+<ul><li>Melihat WO.</li><li>Update status.</li><li>Upload foto sebelum/saat/sesudah pekerjaan.</li><li>Upload berita acara.</li><li>GPS check-in/check-out.</li><li>Customer signature dan technician signature.</li><li>PDF generation untuk BA digital.</li></ul>
+<h3>15.4 Automation</h3>
+<ul><li>Lead Won → Auto create Survey WO.</li><li>Survey Approved → Auto create Installation WO.</li><li>Installation Complete → Auto create Activation WO.</li><li>Technical Ticket → Auto create Trouble WO.</li><li>Termination Approved → Auto create Asset Recovery WO.</li></ul>
+</div>
+</article>
+<article class="card" id="16-inventory-fo-and-perangkat">
+<div class="card-head">
+<span class="num">16</span>
+<h2>16. Inventory FO &amp; Perangkat</h2>
+</div>
+<div class="content">
+<ul>
+<li>Asset category: router, switch, OLT, ONU, server, rack, SFP, radio, kabel FO, patch cord, closure.</li>
+<li>Serial number, asset number, vendor, purchase date, warranty, owner tenant, location, router assignment.</li>
+<li>Stock management, asset assignment, mutation history, asset recovery setelah terminasi.</li>
+<li>Router harus bisa menjadi inventory asset sekaligus network object.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="17-partner-reseller-and-commission">
+<div class="card-head">
+<span class="num">17</span>
+<h2>17. Partner, Reseller &amp; Commission</h2>
+</div>
+<div class="content">
+<ul><li>Partner dapat melihat customer miliknya, invoice terkait, status layanan, ticket, dan komisi.</li><li>Commission type: fixed, percentage, revenue sharing.</li><li>Settlement report, paid/unpaid commission, commission history.</li><li>Reseller SaaS: master reseller dan reseller dapat menjual tenant baru sesuai hak akses.</li></ul>
+</div>
+</article>
+<article class="card" id="18-customer-portal-and-mobile-app">
+<div class="card-head">
+<span class="num">18</span>
+<h2>18. Customer Portal &amp; Mobile App</h2>
+</div>
+<div class="content">
+<ul><li>Customer melihat invoice, melakukan pembayaran, download invoice, download kontrak, download faktur pajak.</li><li>Customer membuat ticket dan melihat status ticket.</li><li>Customer melihat status layanan dasar: active/suspend/down/maintenance.</li><li>Mobile app Android/iOS untuk invoice, payment, ticket, notification, service status.</li></ul>
+</div>
+</article>
+<article class="card" id="19-whatsapp-gateway-2-arah">
+<div class="card-head">
+<span class="num">19</span>
+<h2>19. WhatsApp Gateway 2 Arah</h2>
+</div>
+<div class="content">
+<h3>19.1 Outbound</h3>
+<ul><li>Invoice created</li><li>Payment reminder</li><li>Overdue notice</li><li>Suspend notice</li><li>Unsuspend notice</li><li>Ticket update</li><li>Maintenance notification</li></ul>
+<h3>19.2 Inbound Command</h3>
+<ul><li>CEK TAGIHAN</li><li>STATUS INTERNET</li><li>OPEN TICKET</li><li>CEK PEMBAYARAN</li><li>BICARA CS</li></ul>
+<p>Inbound harus punya human handover. Jangan bikin chatbot sok pintar yang mengunci customer di loop otomatis. Itu bikin customer makin marah.</p>
+</div>
+</article>
+<article class="card" id="20-contract-management-and-e-signature">
+<div class="card-head">
+<span class="num">20</span>
+<h2>20. Contract Management &amp; E-Signature</h2>
+</div>
+<div class="content">
+<ul><li>Contract repository, start/end date, auto-renewal, amendment, versioning.</li><li>Reminder H-90, H-60, H-30, H-14, H-7.</li><li>E-signature dengan OTP verification, signature tracking, status Draft/Sent/Signed/Rejected.</li></ul>
+</div>
+</article>
+<article class="card" id="21-multi-tenant-saas-architecture">
+<div class="card-head">
+<span class="num">21</span>
+<h2>21. Multi-Tenant SaaS Architecture</h2>
+</div>
+<div class="content">
+<p>Platform harus bisa digunakan banyak ISP dalam satu sistem dengan data terisolasi. Ini syarat utama jika produk akan dijual kembali.</p>
+<h3>21.1 Tenant Structure</h3>
+<p>Platform Owner (NEX) → Tenant ISP → Branch/Site → Customer</p>
+<h3>21.2 Tenant Data</h3>
+<ul>
+<li>Tenant ID, company name, brand name, domain/subdomain, logo, NPWP, NIB, address, timezone, currency.</li>
+<li>Data tenant harus terisolasi: customer, billing, invoice, payment, router, OLT, ONU, inventory, partner, monitoring.</li>
+</ul>
+<h3>21.3 White Label</h3>
+<ul>
+<li>Logo, favicon, app name, login page, dashboard theme.</li>
+<li>Custom domain: billing.isp-a.co.id, portal.isp-a.co.id, support.isp-a.co.id.</li>
+<li>SMTP, WhatsApp gateway, invoice template, contract template per tenant.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="22-license-management-and-saas-billing">
+<div class="card-head">
+<span class="num">22</span>
+<h2>22. License Management &amp; SaaS Billing</h2>
+</div>
+<div class="content">
+<div class="table-scroll"><table><tr><th>Package</th><th>Limit Awal</th></tr><tr><td>Trial</td><td>30 hari, maks 100 customer.</td></tr><tr><td>Starter</td><td>Maks 500 customer.</td></tr><tr><td>Professional</td><td>Maks 5.000 customer.</td></tr><tr><td>Enterprise</td><td>Unlimited sesuai kontrak.</td></tr><tr><td>Custom Enterprise</td><td>Dedicated deployment / on-premise / hybrid.</td></tr></table></div>
+<ul>
+<li>Subscription: monthly, quarterly, annual, multi-year.</li>
+<li>Usage metering: customer count, router count, OLT count, ONU count, storage, API usage, WhatsApp usage, ticket count.</li>
+<li>Resource limitation mengikuti paket lisensi.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="23-marketplace-and-api-platform">
+<div class="card-head">
+<span class="num">23</span>
+<h2>23. Marketplace &amp; API Platform</h2>
+</div>
+<div class="content">
+<h3>23.1 Marketplace Addons</h3>
+<ul>
+<li>WhatsApp Gateway</li>
+<li>SMS Gateway</li>
+<li>Payment Gateway</li>
+<li>FreeRadius Connector</li>
+<li>Router SNMP Monitoring Connector</li>
+<li>Huawei Connector</li>
+<li>ZTE Connector</li>
+<li>GenieACS Connector</li>
+<li>PRTG Connector</li>
+<li>LibreNMS Connector</li>
+</ul>
+<p class="note">MikroTik API tidak dimasukkan dalam marketplace phase awal. Fokus awal: FreeRadius Connector, Router SNMP Monitoring, dan Script Generator.</p>
+<h3>23.2 API Platform</h3>
+<ul>
+<li>API key management: generate, revoke, expiry policy.</li>
+<li>OAuth2, JWT, OpenID Connect.</li>
+<li>Webhook events: customer created, invoice created, invoice paid, ticket created, service activated, service suspended, radius user created, radius user suspended, router down, router recovered.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="24-security-audit-and-compliance">
+<div class="card-head">
+<span class="num">24</span>
+<h2>24. Security, Audit &amp; Compliance</h2>
+</div>
+<div class="content">
+<ul><li>RBAC per tenant dan per role.</li><li>2FA untuk admin, finance, NOC, owner.</li><li>Password policy dan session timeout.</li><li>HTTPS only.</li><li>Encryption at rest untuk data sensitif.</li><li>Audit log: login, create, update, delete, suspend, unsuspend, payment, provisioning.</li><li>Data privacy: tenant tidak boleh membaca data tenant lain. Ini non-negotiable.</li></ul>
+</div>
+</article>
+<article class="card" id="25-reporting-and-kpi">
+<div class="card-head">
+<span class="num">25</span>
+<h2>25. Reporting &amp; KPI</h2>
+</div>
+<div class="content">
+<div class="table-scroll"><table><tr><th>Kategori</th><th>Report/KPI</th></tr><tr><td>Financial</td><td>Revenue, MRR, ARR, AR Aging, cashflow, payment success rate.</td></tr><tr><td>Customer</td><td>Growth, churn rate, ARPU, active/suspend/terminate.</td></tr><tr><td>Network</td><td>Availability, utilization, packet loss, latency, router capacity.</td></tr><tr><td>NOC</td><td>MTTR, MTBF, SLA compliance, ticket breach, router outage impact.</td></tr><tr><td>Sales</td><td>Pipeline, conversion, win/loss, revenue per sales.</td></tr><tr><td>Partner</td><td>Commission, revenue share, customer growth.</td></tr><tr><td>SaaS</td><td>Tenant count, tenant retention, license revenue, addon usage.</td></tr></table></div>
+</div>
+</article>
+<article class="card" id="26-recommended-tech-stack">
+<div class="card-head">
+<span class="num">26</span>
+<h2>26. Recommended Tech Stack</h2>
+</div>
+<div class="content">
+<div class="table-scroll"><table><tr><th>Layer</th><th>Recommendation</th></tr><tr><td>Frontend Web</td><td>React / Next.js / Tailwind.</td></tr><tr><td>Mobile</td><td>Flutter untuk Android dan iOS.</td></tr><tr><td>Backend</td><td>Golang atau Laravel API. Untuk skala besar, Golang lebih kuat untuk service integrasi dan concurrency.</td></tr><tr><td>Database</td><td>PostgreSQL.</td></tr><tr><td>Cache</td><td>Redis.</td></tr><tr><td>Queue</td><td>RabbitMQ atau Kafka. Mulai dari RabbitMQ dulu agar tidak over-engineering.</td></tr><tr><td>Auth</td><td>Keycloak atau custom RBAC dengan OAuth2/OIDC.</td></tr><tr><td>Storage</td><td>S3-compatible storage untuk dokumen, foto, kontrak.</td></tr><tr><td>Monitoring</td><td>Prometheus, Grafana, Loki.</td></tr><tr><td>Deployment</td><td>Docker, Kubernetes untuk phase SaaS besar. Awal cukup Docker Compose/VM yang rapi.</td></tr></table></div>
+</div>
+</article>
+<article class="card" id="27-database-master-entity">
+<div class="card-head">
+<span class="num">27</span>
+<h2>27. Database Master Entity</h2>
+</div>
+<div class="content">
+<ul>
+<li>tenants</li>
+<li>users</li>
+<li>roles</li>
+<li>permissions</li>
+<li>customers</li>
+<li>customer_documents</li>
+<li>contracts</li>
+<li>service_categories</li>
+<li>products</li>
+<li>services</li>
+<li>service_resources</li>
+<li>invoices</li>
+<li>invoice_items</li>
+<li>payments</li>
+<li>tax_documents</li>
+<li>tickets</li>
+<li>work_orders</li>
+<li>devices</li>
+<li>routers</li>
+<li>router_interfaces</li>
+<li>router_links</li>
+<li>router_capacity_history</li>
+<li>router_script_templates</li>
+<li>olts</li>
+<li>onus</li>
+<li>ip_pools</li>
+<li>ip_addresses</li>
+<li>vlans</li>
+<li>fiber_routes</li>
+<li>odcs</li>
+<li>odps</li>
+<li>joint_closures</li>
+<li>inventory_assets</li>
+<li>partners</li>
+<li>commissions</li>
+<li>notifications</li>
+<li>audit_logs</li>
+<li>api_keys</li>
+<li>webhooks</li>
+<li>license_plans</li>
+<li>tenant_subscriptions</li>
+<li>usage_metering</li>
+</ul>
+<h3>27.1 Database Entity Tambahan untuk FreeRadius AAA</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Entity</th><th>Field Utama</th><th>Fungsi</th></tr>
+<tr><td>radius_servers</td><td>id, tenant_id, name, ip_address, secret, status, created_at, updated_at</td><td>Master server FreeRadius per tenant.</td></tr>
+<tr><td>nas_devices</td><td>id, tenant_id, radius_server_id, nas_name, nas_identifier, nas_ip_address, vendor_type, router_id, secret, status</td><td>Master NAS/BRAS/Router yang melakukan request ke FreeRadius.</td></tr>
+<tr><td>radius_profiles</td><td>id, tenant_id, profile_name, download_speed, upload_speed, burst_limit, burst_threshold, burst_time, session_timeout, idle_timeout, simultaneous_use, status</td><td>Profile bandwidth dan policy akses pelanggan.</td></tr>
+<tr><td>radius_users</td><td>id, tenant_id, customer_id, service_id, router_id, username, password_hash, profile_id, status, last_login, created_at, updated_at</td><td>User autentikasi PPPoE/Hotspot yang terhubung ke customer, service, dan router.</td></tr>
+<tr><td>radius_accounting</td><td>id, tenant_id, radius_user_id, session_id, nas_identifier, framed_ip, login_time, logout_time, session_time, input_octets, output_octets, terminate_cause</td><td>Data accounting sesi pelanggan.</td></tr>
+<tr><td>radius_sessions</td><td>id, tenant_id, radius_user_id, session_id, status, started_at, stopped_at, last_update_at</td><td>Monitoring session aktif dan histori session.</td></tr>
+<tr><td>radius_sync_logs</td><td>id, tenant_id, entity_type, entity_id, action, status, error_message, created_at</td><td>Audit sinkronisasi data Radius.</td></tr>
+<tr><td>radius_radcheck</td><td>id, username, attribute, op, value</td><td>Kompatibilitas struktur FreeRadius radcheck.</td></tr>
+<tr><td>radius_radreply</td><td>id, username, attribute, op, value</td><td>Kompatibilitas struktur FreeRadius radreply.</td></tr>
+<tr><td>radius_group_check</td><td>id, groupname, attribute, op, value</td><td>Policy check berbasis group/profile.</td></tr>
+<tr><td>radius_group_reply</td><td>id, groupname, attribute, op, value</td><td>Reply attribute berbasis group/profile.</td></tr>
+</table>
+</div>
+<h3>27.2 Database Entity Tambahan untuk Router Management</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Entity</th><th>Field Utama</th><th>Fungsi</th></tr>
+<tr><td>routers</td><td>id, tenant_id, router_name, hostname, vendor, model, serial_number, router_role, site_name, latitude, longitude, management_ip, loopback_ip, radius_nas_identifier, status, snmp_status, created_at, updated_at</td><td>Master router sebagai single source of network topology.</td></tr>
+<tr><td>router_interfaces</td><td>id, tenant_id, router_id, interface_name, interface_type, vlan_id, ip_address, capacity, status, description</td><td>Master interface router dan titik service mapping.</td></tr>
+<tr><td>router_links</td><td>id, tenant_id, router_a_id, router_b_id, interface_a_id, interface_b_id, link_type, capacity, status, utilization</td><td>Relasi antar router dan kapasitas link.</td></tr>
+<tr><td>customer_router_mapping</td><td>id, tenant_id, customer_id, router_id, created_at</td><td>Mapping customer ke router.</td></tr>
+<tr><td>service_router_mapping</td><td>id, tenant_id, service_id, router_id, interface_id, vlan_id, ip_address_id, radius_user_id</td><td>Mapping service ke router/interface.</td></tr>
+<tr><td>router_capacity_history</td><td>id, tenant_id, router_id, cpu, memory, traffic, utilization, customer_count, service_count, session_count, captured_at</td><td>Historical capacity router.</td></tr>
+<tr><td>router_script_templates</td><td>id, tenant_id, vendor, os_version, script_type, template_content, status, created_at, updated_at</td><td>Template generator script konfigurasi router, termasuk MikroTik ROS v6/v7.</td></tr>
+</table>
+</div>
+<h3>27.3 Service Category Flags</h3>
+<div class="table-scroll">
+<table>
+<tr><th>Field</th><th>Type</th><th>Purpose</th></tr>
+<tr><td>requires_router_mapping</td><td>BOOLEAN</td><td>Wajib router mapping atau tidak.</td></tr>
+<tr><td>requires_radius</td><td>BOOLEAN</td><td>Wajib Radius user atau tidak.</td></tr>
+<tr><td>requires_ip_assignment</td><td>BOOLEAN</td><td>Wajib IP assignment atau tidak.</td></tr>
+<tr><td>requires_vlan</td><td>BOOLEAN</td><td>Wajib VLAN atau tidak.</td></tr>
+</table>
+</div>
+</div>
+</article>
+<article class="card" id="28-development-roadmap-step-by-step">
+<div class="card-head">
+<span class="num">28</span>
+<h2>28. Development Roadmap - Step by Step</h2>
+</div>
+<div class="content">
+<p>Ini urutan yang harus diproses. Jangan mulai dari mobile app, GIS, atau AI. Itu terlihat keren, tapi kalau core data model dan billing engine belum benar, semua fitur keren hanya kosmetik mahal.</p>
+<div class="table-scroll"><table><tr><th>Phase</th><th>Prioritas</th><th>Output Utama</th></tr>
+<tr><td>Phase 0 - Discovery &amp; Blueprint</td><td>Paling awal</td><td>Finalisasi proses bisnis, ERD, arsitektur tenant, role matrix, API standard, UI wireframe.</td></tr>
+<tr><td>Phase 1 - Core Foundation</td><td>Wajib</td><td>Auth, RBAC, tenant, customer, service category flags, product, service, CID generator, audit log.</td></tr>
+<tr><td>Phase 2 - Billing MVP</td><td>Wajib</td><td>Invoice, recurring billing, prorate, payment manual, AR aging, customer portal basic.</td></tr>
+<tr><td>Phase 3 - Payment &amp; Notification</td><td>Tinggi</td><td>Payment gateway, QRIS/VA, WhatsApp/email notification, auto reconciliation.</td></tr>
+<tr><td>Phase 4 - Router, FreeRadius AAA &amp; Suspend</td><td>Tinggi</td><td>Router Management, Router Interface, Radius profile, Radius user, NAS management, RouterOS script generator, auto suspend/unsuspend.</td></tr>
+<tr><td>Phase 5 - Ticket &amp; Work Order</td><td>Tinggi</td><td>Ticketing, SLA, Survey WO, Installation WO, Activation WO, BA digital.</td></tr>
+<tr><td>Phase 6 - Monitoring &amp; NOC</td><td>Tinggi</td><td>Router SNMP monitoring, PRTG/LibreNMS/SNMP integration, FreeRadius monitoring, NOC dashboard, customer impact analysis.</td></tr>
+<tr><td>Phase 7 - OSS Advanced</td><td>Sedang</td><td>OLT/ONU management, IPAM, VLAN management, router capacity planning.</td></tr>
+<tr><td>Phase 8 - GIS &amp; Inventory</td><td>Sedang</td><td>Mapping router/fiber/customer, asset tracking, FO core management.</td></tr>
+<tr><td>Phase 9 - Partner &amp; SaaS</td><td>Strategis</td><td>Partner portal, commission, multi-tenant license, white-label, usage metering.</td></tr>
+<tr><td>Phase 10 - Marketplace &amp; AI</td><td>Belakangan</td><td>Addon marketplace, AI NOC, anomaly detection, predictive churn.</td></tr>
+</table></div>
+<p class="note">MikroTik API Integration tidak masuk Phase 4. Yang masuk Phase 4 adalah RouterOS script generator untuk konfigurasi RADIUS, bukan kontrol router via API.</p>
+</div>
+</article>
+<article class="card" id="29-detailed-first-90-days-plan">
+<div class="card-head">
+<span class="num">29</span>
+<h2>29. Detailed First 90 Days Plan</h2>
+</div>
+<div class="content">
+<h3>Week 1-2: Business Process &amp; Data Blueprint</h3>
+<ul>
+<li>Lock scope MVP: customer, service, billing, payment, suspend, notification, dan desain FreeRadius AAA.</li>
+<li>Buat flow actual Finance, NOC, Sales, Teknisi.</li>
+<li>Buat ERD awal dan role permission matrix.</li>
+<li>Tentukan tenant strategy: shared DB + tenant_id atau schema per tenant. Rekomendasi awal: shared DB dengan tenant_id dan row-level guard yang ketat.</li>
+<li>Tentukan flow Radius: service active, radius user active, invoice overdue, suspend, paid, unsuspend.</li>
+</ul>
+<h3>Week 3-4: UX/Wireframe &amp; API Contract</h3>
+<ul>
+<li>Wireframe dashboard, customer, service, invoice, payment, ticket, WO, radius profile, radius user, NAS device.</li>
+<li>Buat API contract OpenAPI/Swagger.</li>
+<li>Tentukan event: invoice.created, payment.paid, service.suspended, service.activated, radius.user.created, radius.user.suspended.</li>
+</ul>
+<h3>Week 5-8: Core Foundation Development</h3>
+<ul>
+<li>Build auth, RBAC, tenant, customer, product, service, audit log.</li>
+<li>Build CID generator, status lifecycle, document upload.</li>
+<li>Build base dashboard internal.</li>
+<li>Build database awal untuk radius_profiles, radius_users, radius_servers, nas_devices.</li>
+</ul>
+<h3>Week 9-12: Billing MVP</h3>
+<ul>
+<li>Build recurring invoice, prorate, invoice PDF, payment manual.</li>
+<li>Build customer portal basic.</li>
+<li>Build WhatsApp/email notification basic.</li>
+<li>Build suspend flag di service dan radius user status, belum wajib disconnect session via API.</li>
+<li>UAT dengan data customer NEX real sample.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="30-project-documentation-structure"><div class="card-head"><span class="num">30</span><h2>30. Project Documentation Structure</h2></div><div class="content">
+<p>Bagian ini menjadi panduan resmi struktur file dokumentasi proyek NEX OSS/BSS ISP Cloud Platform. Tujuannya agar PRD tidak berhenti sebagai dokumen fitur, tetapi menjadi blueprint eksekusi yang bisa dipakai product owner, developer, QA, AI coding assistant, project manager, dan tim operasional.</p>
+<p class="note">Brutal reality: kalau semua kebutuhan hanya ditumpuk dalam satu PRD besar, development akan cepat kacau. Setiap output kerja harus punya file sendiri, format sendiri, dan urutan pembuatan yang jelas.</p>
+<h3>30.1 Repository Structure</h3><div class="flow-box">NEX-OSS-BSS/
+01-Business/
+├── Customer-Lifecycle.md
+├── Billing-Flow.md
+├── Payment-Flow.md
+├── Suspend-Flow.md
+├── NOC-Flow.md
+├── Ticket-Flow.md
+├── WorkOrder-Flow.md
+├── Partner-Commission-Flow.md
+├── Contract-Flow.md
+├── FreeRadius-Activation-Flow.md
+└── Router-Router Role-Topology-Flow.md
+02-Architecture/
+├── PRD-Master.html
+├── PRD-Master.pdf
+├── System-Architecture.md
+├── Network-Topology.md
+├── C4-Context.drawio
+├── C4-Container.drawio
+├── C4-Component.drawio
+└── Event-Driven-Flow.drawio
+03-Database/
+├── ERD.drawio
+├── ERD.md
+├── Database-Schema.sql
+├── Migration-Plan.md
+├── Role-Matrix.xlsx
+└── Role-Matrix.md
+04-API/
+├── openapi.yaml
+├── swagger.json
+├── postman-collection.json
+├── API-Guideline.md
+├── Auth-API.md
+├── Customer-API.md
+├── Billing-API.md
+├── Radius-API.md
+├── Router-Router Role-API.md
+└── Ticket-API.md
+05-UI-UX/
+├── Dashboard.fig
+├── Customer.fig
+├── Service.fig
+├── Billing.fig
+├── Radius.fig
+├── Router-Router Role.fig
+├── Ticket.fig
+└── NOC.fig</div>
+<h3>30.2 Document Creation Priority</h3><div class="table-scroll"><table><tr><th>Priority</th><th>Dokumen</th><th>Tujuan</th><th>Status Sebelum Coding</th></tr><tr><td>Priority 1</td><td>Business Flow</td><td>Menentukan perjalanan customer, billing, payment, suspend, ticket, WO, contract.</td><td>Wajib selesai.</td></tr><tr><td>Priority 1</td><td>Router-Router Role-Topology-Flow.md</td><td>Menentukan hubungan POP - Router - Router Role - Service - Customer.</td><td>Wajib selesai.</td></tr><tr><td>Priority 1</td><td>ERD.drawio / ERD.md</td><td>Fondasi database dan relasi antar domain.</td><td>Wajib selesai.</td></tr><tr><td>Priority 1</td><td>Role-Matrix.xlsx</td><td>Hak akses per role dan tenant isolation.</td><td>Wajib selesai.</td></tr><tr><td>Priority 1</td><td>openapi.yaml</td><td>Kontrak resmi backend, frontend, mobile, dan integrasi.</td><td>Wajib selesai.</td></tr><tr><td>Priority 2</td><td>Wireframe Figma</td><td>Acuan UI sebelum frontend dibuat.</td><td>Sebelum frontend development.</td></tr></table></div>
+<h3>30.3 AI Development Workflow</h3><div class="flow-box">PRD
+↓
+Business Flow
+↓
+Router Topology Flow
+↓
+ERD
+↓
+Role Matrix
+↓
+API Contract
+↓
+Wireframe
+↓
+OpenAPI Specification
+↓
+Generate Backend via AI / Codex
+↓
+Generate Frontend via AI / Codex
+↓
+Developer Review
+↓
+QA &amp; UAT
+↓
+Production</div>
+<h3>30.4 Golden Rule Before Coding</h3><div class="table-scroll"><table><tr><th>Gate</th><th>Wajib Selesai</th><th>Alasan</th></tr><tr><td>Gate 1</td><td>Business Flow</td><td>Developer harus paham proses nyata, bukan hanya CRUD.</td></tr><tr><td>Gate 2</td><td>ERD</td><td>Database salah akan merusak billing, Radius, Router mapping, dan service lifecycle.</td></tr><tr><td>Gate 3</td><td>Role Matrix</td><td>Multi-tenant SaaS gagal jika permission dan tenant isolation tidak jelas.</td></tr><tr><td>Gate 4</td><td>API Contract</td><td>Frontend, backend, mobile, dan integrasi harus memakai kontrak yang sama.</td></tr><tr><td>Gate 5</td><td>Acceptance Criteria</td><td>Tanpa acceptance criteria, developer bisa merasa selesai padahal bisnis belum bisa jalan.</td></tr></table></div>
+</div></article><article class="card" id="31-acceptance-criteria">
+<div class="card-head">
+<span class="num">31</span>
+<h2>31. Acceptance Criteria</h2>
+</div>
+<div class="content">
+<ul>
+<li>User tenant tidak bisa melihat data tenant lain.</li>
+<li>Invoice bulanan otomatis dibuat sesuai billing cycle.</li>
+<li>Prorate berjalan untuk aktivasi tengah bulan.</li>
+<li>Payment mengubah status invoice menjadi Paid.</li>
+<li>Suspend otomatis berjalan sesuai policy.</li>
+<li>Unsuspend otomatis setelah payment verified.</li>
+<li>Service wajib memiliki Router Mapping hanya untuk service category yang menggunakan akses jaringan pelanggan.</li>
+<li>Service non-network seperti Cloud Hosting, VPS, Domain, SSL, Email Hosting, dan Colocation tidak wajib memiliki Router Mapping.</li>
+<li>Radius NAS wajib memiliki Router Mapping.</li>
+<li>Radius User wajib terhubung ke Customer, Service, Router, dan Radius Profile jika service membutuhkan authentication.</li>
+<li>Router dapat ditambahkan melalui menu Router.</li>
+<li>Router dapat menampilkan status Online, Offline, Warning, Critical, dan Maintenance.</li>
+<li>Router dapat dimonitor melalui SNMP.</li>
+<li>Router SNMP status dapat menampilkan Reachable, Unreachable, Auth Failed, dan Not Configured.</li>
+<li>Customer layanan Internet dapat ditelusuri sampai Router.</li>
+<li>Router Down menampilkan Customer Impact, Service Impact, Radius User Impact, Revenue Impact, dan Active Ticket.</li>
+<li>Router Dashboard tersedia.</li>
+<li>Capacity Dashboard tersedia.</li>
+<li>Radius Dashboard tersedia.</li>
+<li>Sistem dapat menghasilkan script MikroTik RouterOS v6 PPPoE Radius.</li>
+<li>Sistem dapat menghasilkan script MikroTik RouterOS v7 PPPoE Radius.</li>
+<li>Sistem dapat menghasilkan script MikroTik Hotspot Radius jika service membutuhkan Hotspot.</li>
+<li>Script dapat di-download dalam format .rsc dan dapat di-copy ke clipboard.</li>
+<li>CID, VLAN, IP, dan Radius Username tidak boleh duplikat dalam scope tenant yang sama.</li>
+<li>Ticket P1/P2/P3 memiliki SLA countdown dan escalation.</li>
+<li>WO bisa dibuat, di-assign, diselesaikan, diverifikasi, dan ditutup.</li>
+<li>GIS dapat menampilkan minimal Router, Customer, Fiber Route, ODP, dan ODC.</li>
+<li>Audit log mencatat semua aksi kritikal.</li>
+<li>Multi-Tenant Isolation tetap berjalan untuk Router, Radius, Customer, Service, Billing, dan Monitoring.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="32-key-risks-and-brutal-reality-check">
+<div class="card-head">
+<span class="num">32</span>
+<h2>32. Key Risks &amp; Brutal Reality Check</h2>
+</div>
+<div class="content">
+<ul>
+<li>Risiko terbesar bukan coding. Risiko terbesar adalah data model buruk dan proses bisnis tidak dipaksa rapi.</li>
+<li>Jangan membangun semua modul sekaligus. Itu akan membuat proyek lambat, mahal, dan tidak selesai.</li>
+<li>Billing, customer, service, service category flags, router mapping, Radius status, tenant, role, dan audit adalah fondasi.</li>
+<li>POP dan Router Role sebagai modul terpisah akan memperberat model. Router Role lebih fleksibel dan cukup mewakili POP Router maupun BTS Router.</li>
+<li>FreeRadius harus menjadi source of truth untuk authentication phase awal. Jangan membuat logic dobel antara OSS/BSS, FreeRadius, dan router.</li>
+<li>MikroTik API Integration sengaja dikeluarkan dari phase awal agar MVP tidak melebar dan tidak terjebak masalah compatibility router.</li>
+<li>Script Generator lebih aman untuk fase awal dibanding API control, karena user tetap menginput konfigurasi ke router secara sadar.</li>
+<li>Integrasi OLT/ONU dan monitoring harus dibuat modular. Vendor command berbeda-beda; jangan hardcode ke satu vendor saja.</li>
+<li>SaaS multi-tenant harus dipikirkan dari hari pertama walaupun dijual ke ISP lain baru dilakukan belakangan.</li>
+</ul>
+</div>
+</article>
+<article class="card" id="33-final-recommendation">
+<div class="card-head">
+<span class="num">33</span>
+<h2>33. Final Recommendation</h2>
+</div>
+<div class="content">
+<p>Nama produk sebaiknya tidak lagi memakai kata Billing sebagai positioning utama. Nama yang lebih tepat: NEX ISP Cloud Platform, NEX OSS/BSS Cloud, NEXCore ISP Platform, atau NEX ISP Suite. Kata Billing terlalu sempit dan akan mengecilkan persepsi pasar terhadap nilai produk.</p>
+<p>Urutan eksekusi paling rasional: Core Foundation → Billing MVP → Payment/Notification → Router Management + FreeRadius AAA → Ticket/WO → Router SNMP Monitoring/NOC → OSS Advanced → GIS/Inventory → SaaS/White Label → AI/Marketplace.</p>
+<p class="note">Untuk v3.4, Router menjadi single source of topology. POP dan BTS tidak dibuat sebagai modul terpisah. Gunakan Router Role: POP Router, BTS Router, Wireless Gateway, BNG, PPPoE Router, Edge Router, Aggregation Router, dan Core Router.</p>
+</div>
+</article>
+<div class="footer">PRD NEX OSS/BSS ISP Cloud Platform · PT NEX SOLUSI TEKNOLOGI</div>
+
+<section class="latest-cover" id="latest-update">
+  <div class="eyebrow">Update PRD Terbaru</div>
+  <h1>NEX OSS/BSS ISP Cloud Platform v3.4 - Router-Centric Update</h1>
+  <p class="meta">Generated: 2026-06-19 | Source: PRD_NEX_OSS_BSS_Platform_v3.4_ROUTER_ONLY.html + Revisi Step 1-9</p>
+  <p class="summary">Bagian ini adalah konsolidasi terbaru dari gap analysis dan revisi Step 1 sampai Step 9. Prinsip arsitektur yang dikunci: <strong>Customer -> Service -> Router -> Router Interface -> Radius NAS -> FreeRadius</strong>. POP dan BTS tidak menjadi modul/tabel utama; keduanya hanya Router Role.</p>
+  <div class="badges">
+    <span class="badge">Router-Centric</span>
+    <span class="badge">FreeRadius AAA</span>
+    <span class="badge">SNMP Monitoring</span>
+    <span class="badge">Customer Impact Analysis</span>
+    <span class="badge">RouterOS Script Generator</span>
+  </div>
+</section>
+<article class="card" id="latest-summary">
+  <div class="card-head"><span class="num">UP</span><h2>Kesimpulan Update Terbaru</h2></div>
+  <div class="content">
+    <ul>
+      <li>Router menjadi single source of network topology.</li>
+      <li>Customer tidak terhubung langsung ke POP/BTS; customer ditelusuri melalui Service -> Router.</li>
+      <li>Service Internet wajib memiliki Router Mapping; service non-network tidak wajib.</li>
+      <li>Radius NAS dan Radius User wajib dapat ditelusuri ke Router untuk layanan jaringan.</li>
+      <li>Router Down wajib menampilkan affected customer, affected service, affected radius user, revenue impact, dan incident.</li>
+      <li>Roadmap mengikuti Phase 0 sampai Phase 10 dengan Phase 4 sebagai Router Management, FreeRadius AAA, dan Suspend Engine.</li>
+      <li>UI wajib memiliki menu Network: Router, Router Interface, Router Link, Capacity Dashboard, Impact Analysis, dan SNMP Monitoring.</li>
+    </ul>
+  </div>
+</article>
+<article class="card" id="latest-update-toc">
+  <div class="card-head"><span class="num">TOC</span><h2>Daftar Update Step 1-9</h2></div>
+  <div class="content"><nav class="toc latest-toc"><a href="#update-step-1-business-flow"><span>01</span><b>Step 1 - Business Flow</b></a>
+<a href="#update-step-2-database-erd"><span>02</span><b>Step 2 - Database / ERD</b></a>
+<a href="#update-step-3-role-matrix"><span>03</span><b>Step 3 - Role Matrix</b></a>
+<a href="#update-step-4-api-contract"><span>04</span><b>Step 4 - API Contract</b></a>
+<a href="#update-step-5-development-roadmap"><span>05</span><b>Step 5 - Development Roadmap</b></a>
+<a href="#update-step-6-event-driven-architecture"><span>06</span><b>Step 6 - Event Driven Architecture</b></a>
+<a href="#update-step-7-state-machine"><span>07</span><b>Step 7 - State Machine</b></a>
+<a href="#update-step-8-wireframes"><span>08</span><b>Step 8 - Wireframes</b></a>
+<a href="#update-step-9-acceptance-criteria"><span>09</span><b>Step 9 - Acceptance Criteria</b></a></nav></div>
+</article>
+<article class="card update-card" id="update-step-1-business-flow">
+  <div class="card-head">
+    <span class="num">U01</span>
+    <h2>Step 1 - Business Flow</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-flow-bisnis-utama-v34-router-centric">PRD NEX OSS/BSS - Flow Bisnis Utama v3.4 Router-Centric</h1>
+<p>Peran: Senior Business Analyst OSS/BSS ISP</p>
+<p>Dokumen ini merevisi flow Step 1 agar konsisten dengan PRD v3.4. Prinsip topologi wajib:</p>
+<p><code>Customer -&gt; Service -&gt; Router -&gt; Router Interface -&gt; Radius NAS -&gt; FreeRadius</code></p>
+<p>Router adalah node utama jaringan. POP dan BTS tidak menjadi modul/tabel utama; keduanya hanya nilai <code>router_role</code> seperti <code>POP Router</code> dan <code>BTS Router</code>.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Topologi</td>
+<td>Flow belum menempatkan router sebagai node utama</td>
+<td>Semua provisioning dan NOC menelusuri dampak dari Service ke Router/Interface/NAS</td>
+</tr>
+<tr>
+<td>POP/BTS</td>
+<td>Berisiko dianggap modul utama</td>
+<td>POP/BTS hanya role pada Router</td>
+</tr>
+<tr>
+<td>FreeRadius</td>
+<td>Aktivasi AAA belum wajib terkait router</td>
+<td>Radius user wajib terkait service dan router untuk layanan jaringan</td>
+</tr>
+<tr>
+<td>NOC</td>
+<td>Incident belum menghitung dampak pelanggan dan revenue dari router down</td>
+<td>Ditambahkan Customer Impact Analysis Flow</td>
+</tr>
+<tr>
+<td>Provisioning</td>
+<td>Belum ada flow khusus router</td>
+<td>Ditambahkan Router Provisioning Flow</td>
+</tr>
+</tbody>
+</table>
+<h2 id="aturan-umum-flow">Aturan Umum Flow</h2>
+<ul>
+<li>Billing hanya berjalan untuk customer dengan contract valid dan service aktif.</li>
+<li>Service Internet wajib memiliki Router Mapping.</li>
+<li>Service non-network tidak wajib Router Mapping.</li>
+<li>Radius user dibuat dari service yang membutuhkan AAA dan harus dapat ditelusuri ke router.</li>
+<li>Router Down wajib menghasilkan daftar customer terdampak, radius user terdampak, revenue impact, dan incident/ticket.</li>
+</ul>
+<h2 id="1-customer-lifecycle">1. Customer Lifecycle</h2>
+<p>Diagram:</p>
+<p><code>Prospect -&gt; Lead -&gt; Survey Work Order -&gt; Feasible -&gt; Quotation -&gt; Contract Signed -&gt; Installation Work Order -&gt; Service Provisioning -&gt; Router Mapping -&gt; Radius User Active -&gt; Billing Active -&gt; Active Customer -&gt; Suspend/Terminate</code></p>
+<p>Status:</p>
+<ul>
+<li><code>prospect</code></li>
+<li><code>lead</code></li>
+<li><code>survey_requested</code></li>
+<li><code>feasible</code> / <code>not_feasible</code></li>
+<li><code>quoted</code></li>
+<li><code>contract_signed</code></li>
+<li><code>installation_scheduled</code></li>
+<li><code>provisioning</code></li>
+<li><code>active</code></li>
+<li><code>suspended</code></li>
+<li><code>terminated</code></li>
+</ul>
+<p>Actor:</p>
+<ul>
+<li>Sales</li>
+<li>Customer</li>
+<li>Teknisi</li>
+<li>NOC</li>
+<li>Billing</li>
+<li>Partner jika customer berasal dari partner</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Customer master</li>
+<li>Contract</li>
+<li>Service instance</li>
+<li>Installation work order</li>
+<li>Router/service mapping</li>
+<li>Radius user jika layanan membutuhkan AAA</li>
+<li>Billing account</li>
+</ul>
+<h2 id="2-billing-flow">2. Billing Flow</h2>
+<p>Diagram:</p>
+<p><code>Service Active -&gt; Validate Contract -&gt; Validate Service Category -&gt; Validate Router Mapping if Internet -&gt; Generate Invoice -&gt; Deliver Invoice -&gt; Dunning -&gt; Paid or Suspend</code></p>
+<p>Trigger:</p>
+<ul>
+<li>Billing cycle</li>
+<li>Service activation</li>
+<li>One-time installation charge</li>
+<li>Contract renewal or amendment</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>Service harus <code>active</code>.</li>
+<li>Service Internet wajib memiliki <code>service_router_mapping</code>.</li>
+<li>Invoice item harus mengacu ke service yang valid.</li>
+<li>Invoice overdue memicu Suspend Flow sesuai policy tenant.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Invoice</li>
+<li>Invoice item</li>
+<li>AR aging</li>
+<li><code>invoice.created</code></li>
+<li><code>invoice.overdue</code></li>
+<li><code>invoice.paid</code></li>
+</ul>
+<h2 id="3-payment-flow">3. Payment Flow</h2>
+<p>Diagram:</p>
+<p><code>Invoice Issued -&gt; Payment Initiated -&gt; Payment Captured -&gt; Reconciliation -&gt; Invoice Paid -&gt; Unsuspend Evaluation -&gt; Service/Radius Reactivation</code></p>
+<p>Trigger:</p>
+<ul>
+<li>Payment gateway callback</li>
+<li>Manual payment</li>
+<li>Partner collection</li>
+<li>Customer portal payment</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Payment record</li>
+<li>Receipt</li>
+<li>Invoice status update</li>
+<li>Unsuspend event jika invoice terkait service suspended</li>
+</ul>
+<h2 id="4-suspend-unsuspend-flow">4. Suspend / Unsuspend Flow</h2>
+<p>Diagram:</p>
+<p><code>Invoice Overdue -&gt; Dunning Policy -&gt; Suspend Service -&gt; Disable Radius User -&gt; Notify Customer -&gt; Payment Reconciled -&gt; Enable Radius User -&gt; Unsuspend Service</code></p>
+<p>Rules:</p>
+<ul>
+<li>Suspend dilakukan pada service, bukan langsung pada customer global kecuali policy tenant mengatur full-account suspension.</li>
+<li>Service suspend wajib mencatat alasan, invoice, dan actor/system trigger.</li>
+<li>Radius user terkait service diubah menjadi <code>suspended</code>.</li>
+<li>Unsuspend hanya dilakukan setelah payment cleared atau approval manual.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Service status <code>suspended</code> atau <code>active</code></li>
+<li>Radius user status <code>suspended</code> atau <code>active</code></li>
+<li>Audit log</li>
+<li>Notification</li>
+</ul>
+<h2 id="5-noc-flow">5. NOC Flow</h2>
+<p>Diagram:</p>
+<p><code>Monitoring Alert -&gt; Identify Router/Interface -&gt; Customer Impact Analysis -&gt; Incident Created -&gt; Triage -&gt; Escalation -&gt; Work Order if Field Needed -&gt; Resolution -&gt; RCA -&gt; Closure</code></p>
+<p>Trigger:</p>
+<ul>
+<li>SNMP alert</li>
+<li>PRTG/LibreNMS alert</li>
+<li>Radius authentication anomaly</li>
+<li>Customer ticket</li>
+<li>Manual NOC report</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Incident</li>
+<li>Ticket</li>
+<li>Impact list</li>
+<li>Work order</li>
+<li>RCA</li>
+</ul>
+<h2 id="6-ticket-flow">6. Ticket Flow</h2>
+<p>Diagram:</p>
+<p><code>Ticket Created -&gt; Categorize -&gt; Link Customer/Service/Router -&gt; Assign -&gt; Investigate -&gt; Resolve -&gt; Customer Confirmation -&gt; Close</code></p>
+<p>Rules:</p>
+<ul>
+<li>Ticket teknis harus dapat mengacu ke customer, service, router, atau incident.</li>
+<li>Ticket dari Router Down dapat dibuat otomatis dari incident.</li>
+<li>Ticket billing tetap mengacu ke invoice/payment, tetapi dapat mengait ke service bila berdampak suspend.</li>
+</ul>
+<h2 id="7-work-order-flow">7. Work Order Flow</h2>
+<p>Diagram:</p>
+<p><code>Work Order Created -&gt; Scope Router/Service/Customer -&gt; Assign Technician -&gt; Schedule -&gt; Execute -&gt; Upload Evidence -&gt; Verify -&gt; Close</code></p>
+<p>Rules:</p>
+<ul>
+<li>Work order instalasi harus mengacu ke customer dan service.</li>
+<li>Work order network harus dapat mengacu ke router, router interface, atau router link.</li>
+<li>Completion report wajib memuat foto, GPS, checklist, dan hasil provisioning/repair.</li>
+</ul>
+<h2 id="8-partner-commission-flow">8. Partner Commission Flow</h2>
+<p>Diagram:</p>
+<p><code>Partner Sale -&gt; Contract Signed -&gt; Service Active -&gt; Invoice Issued -&gt; Payment Reconciled -&gt; Commission Calculated -&gt; Approval -&gt; Payout</code></p>
+<p>Rules:</p>
+<ul>
+<li>Komisi tidak dihitung dari invoice unpaid, cancelled, atau written-off.</li>
+<li>Komisi recurring mengacu ke payment yang sudah reconciled.</li>
+<li>Partner tidak mendapat akses ke router detail kecuali data ringkas layanan milik customer partner.</li>
+</ul>
+<h2 id="9-contract-flow">9. Contract Flow</h2>
+<p>Diagram:</p>
+<p><code>Offer Accepted -&gt; Draft Contract -&gt; Review -&gt; E-Signature -&gt; Active Terms -&gt; Service Order -&gt; Renewal/Amendment/Termination</code></p>
+<p>Rules:</p>
+<ul>
+<li>Contract signed wajib ada sebelum billing recurring aktif.</li>
+<li>SLA dan service category flags disimpan sebagai term yang memengaruhi provisioning.</li>
+<li>Contract dapat menentukan apakah service wajib router mapping dan radius user.</li>
+</ul>
+<h2 id="10-freeradius-activation-flow">10. FreeRadius Activation Flow</h2>
+<p>Diagram:</p>
+<p><code>Service Provisioning -&gt; Validate Router Mapping -&gt; Select Radius Profile -&gt; Create Radius User -&gt; Link Router/NAS -&gt; Sync FreeRadius -&gt; Test Authentication -&gt; Activate Service</code></p>
+<p>Rules:</p>
+<ul>
+<li>FreeRadius adalah source of truth untuk authentication phase awal.</li>
+<li>Radius user wajib mengacu ke customer, service, router, dan radius profile jika service membutuhkan akses jaringan.</li>
+<li>Radius NAS wajib mengacu ke router.</li>
+<li>Secret disimpan terenkripsi dan hanya ditampilkan saat creation/reset.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Radius user</li>
+<li>Radius profile assignment</li>
+<li>NAS mapping</li>
+<li>Authentication test result</li>
+<li><code>radius.user.created</code></li>
+</ul>
+<h2 id="11-router-provisioning-flow">11. Router Provisioning Flow</h2>
+<p>Diagram:</p>
+<p><code>Create Router -&gt; Assign Router Role -&gt; Create Interface -&gt; Assign SNMP Monitoring -&gt; Assign Radius NAS -&gt; Map Service -&gt; Map Customer</code></p>
+<p>Router role:</p>
+<ul>
+<li>Core Router</li>
+<li>Aggregation Router</li>
+<li>Edge Router</li>
+<li>PPPoE Router</li>
+<li>BNG</li>
+<li>Wireless Gateway</li>
+<li>POP Router</li>
+<li>BTS Router</li>
+</ul>
+<p>Rules:</p>
+<ul>
+<li>Router wajib memiliki tenant, hostname/router name, role, status, dan management IP.</li>
+<li>Interface dibuat di bawah router.</li>
+<li>SNMP dapat berstatus <code>Reachable</code>, <code>Unreachable</code>, <code>Auth Failed</code>, atau <code>Not Configured</code>.</li>
+<li>Radius NAS dibuat jika router berperan sebagai NAS/BNG/PPPoE/Hotspot gateway.</li>
+</ul>
+<h2 id="12-customer-impact-analysis-flow">12. Customer Impact Analysis Flow</h2>
+<p>Diagram:</p>
+<p><code>Router Down -&gt; Find Service Mapping -&gt; Find Customer -&gt; Find Radius User -&gt; Calculate Revenue Impact -&gt; Generate Incident</code></p>
+<p>Rules:</p>
+<ul>
+<li>Impact dihitung dari <code>service_router_mapping</code>, <code>customer_router_mapping</code>, dan radius user terkait.</li>
+<li>Revenue impact menggunakan MRR/recurring amount dari service aktif terdampak.</li>
+<li>Incident harus memuat severity, router, interface jika diketahui, customer count, service count, radius user count, dan revenue impact.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Router impact report</li>
+<li>Incident</li>
+<li>Optional ticket/work order</li>
+<li>Customer notification batch</li>
+</ul>
+<h2 id="dependency-antar-flow">Dependency Antar Flow</h2>
+<ul>
+<li>Customer Lifecycle -&gt; Contract -&gt; Work Order -&gt; Router Provisioning -&gt; FreeRadius Activation -&gt; Billing.</li>
+<li>Billing -&gt; Suspend -&gt; Radius disable.</li>
+<li>Payment -&gt; Unsuspend -&gt; Radius enable.</li>
+<li>Router Provisioning -&gt; NOC Monitoring.</li>
+<li>Router Down -&gt; Customer Impact Analysis -&gt; Incident -&gt; Ticket/Work Order.</li>
+<li>Partner Commission bergantung pada Contract, Invoice, dan Payment Reconciled.</li>
+</ul>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li>Tidak ada flow yang menghubungkan customer langsung ke POP atau BTS.</li>
+<li>Semua layanan jaringan melewati Service -&gt; Router -&gt; Router Interface.</li>
+<li>POP Router dan BTS Router hanya role pada Router.</li>
+<li>Router Down menghasilkan customer impact, radius impact, revenue impact, dan incident.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-2-database-erd">
+  <div class="card-head">
+    <span class="num">U02</span>
+    <h2>Step 2 - Database / ERD</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-database-design-v34-router-centric">PRD NEX OSS/BSS - Database Design v3.4 Router-Centric</h1>
+<p>Peran: Senior Database Architect</p>
+<p>Tujuan dokumen ini adalah merevisi desain database Step 2 agar konsisten dengan PRD v3.4 Router-Centric.</p>
+<p>Prinsip topologi wajib:</p>
+<p><code>Customer -&gt; Service -&gt; Router -&gt; Router Interface -&gt; Radius NAS -&gt; FreeRadius</code></p>
+<p>POP dan BTS tidak boleh menjadi tabel/modul utama. Keduanya hanya direpresentasikan sebagai nilai <code>router_role</code> pada tabel <code>routers</code>.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Router</td>
+<td>Belum menjadi entity topology utama</td>
+<td>Ditambahkan <code>routers</code>, <code>router_interfaces</code>, <code>router_links</code></td>
+</tr>
+<tr>
+<td>Mapping</td>
+<td>Radius user hanya terkait service</td>
+<td>Ditambahkan service/customer mapping ke router dan interface</td>
+</tr>
+<tr>
+<td>Capacity</td>
+<td>Belum ada histori kapasitas router</td>
+<td>Ditambahkan <code>router_capacity_history</code></td>
+</tr>
+<tr>
+<td>Script</td>
+<td>Belum ada template script RouterOS</td>
+<td>Ditambahkan <code>router_script_templates</code></td>
+</tr>
+<tr>
+<td>POP/BTS</td>
+<td>Berisiko menjadi tabel terpisah</td>
+<td>Dilarang membuat <code>bts</code>, <code>bts_sites</code>, <code>pop</code>, <code>pop_sites</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="tabel-utama">Tabel Utama</h2>
+<ul>
+<li><code>tenants</code></li>
+<li><code>users</code></li>
+<li><code>roles</code></li>
+<li><code>permissions</code></li>
+<li><code>role_permissions</code></li>
+<li><code>user_roles</code></li>
+<li><code>customers</code></li>
+<li><code>products</code></li>
+<li><code>service_categories</code></li>
+<li><code>services</code></li>
+<li><code>contracts</code></li>
+<li><code>invoices</code></li>
+<li><code>invoice_items</code></li>
+<li><code>payments</code></li>
+<li><code>tickets</code></li>
+<li><code>work_orders</code></li>
+<li><code>radius_profiles</code></li>
+<li><code>radius_users</code></li>
+<li><code>nas_devices</code></li>
+<li><code>routers</code></li>
+<li><code>router_interfaces</code></li>
+<li><code>router_links</code></li>
+<li><code>customer_router_mapping</code></li>
+<li><code>service_router_mapping</code></li>
+<li><code>router_capacity_history</code></li>
+<li><code>router_script_templates</code></li>
+<li><code>audit_logs</code></li>
+</ul>
+<h2 id="tabel-yang-dilarang">Tabel yang Dilarang</h2>
+<p>Tabel berikut tidak boleh dibuat karena digantikan oleh <code>routers.router_role</code>:</p>
+<ul>
+<li><code>bts</code></li>
+<li><code>bts_sites</code></li>
+<li><code>pop</code></li>
+<li><code>pop_sites</code></li>
+</ul>
+<h2 id="relasi-wajib">Relasi Wajib</h2>
+<ul>
+<li>Customer -&gt; Service</li>
+<li>Service -&gt; Router melalui <code>service_router_mapping</code></li>
+<li>Service -&gt; Router Interface melalui <code>service_router_mapping.interface_id</code></li>
+<li>Router -&gt; Radius NAS melalui <code>nas_devices.router_id</code></li>
+<li>Radius User -&gt; Router melalui <code>radius_users.router_id</code></li>
+<li>Radius User -&gt; Service melalui <code>radius_users.service_id</code></li>
+<li>Customer -&gt; Router melalui <code>customer_router_mapping</code> untuk query impact cepat</li>
+</ul>
+<h2 id="enum-controlled-values">Enum / Controlled Values</h2>
+<h3 id="router_role">router_role</h3>
+<ul>
+<li><code>core_router</code></li>
+<li><code>aggregation_router</code></li>
+<li><code>edge_router</code></li>
+<li><code>pppoe_router</code></li>
+<li><code>bng</code></li>
+<li><code>wireless_gateway</code></li>
+<li><code>pop_router</code></li>
+<li><code>bts_router</code></li>
+</ul>
+<h3 id="router_status">router_status</h3>
+<ul>
+<li><code>draft</code></li>
+<li><code>provisioning</code></li>
+<li><code>active</code></li>
+<li><code>warning</code></li>
+<li><code>critical</code></li>
+<li><code>maintenance</code></li>
+<li><code>offline</code></li>
+<li><code>retired</code></li>
+</ul>
+<h3 id="snmp_status">snmp_status</h3>
+<ul>
+<li><code>reachable</code></li>
+<li><code>unreachable</code></li>
+<li><code>auth_failed</code></li>
+<li><code>not_configured</code></li>
+</ul>
+<h3 id="router_interface_status">router_interface_status</h3>
+<ul>
+<li><code>provisioning</code></li>
+<li><code>up</code></li>
+<li><code>down</code></li>
+<li><code>disabled</code></li>
+</ul>
+<h3 id="radius_user_status">radius_user_status</h3>
+<ul>
+<li><code>pending</code></li>
+<li><code>active</code></li>
+<li><code>suspended</code></li>
+<li><code>terminated</code></li>
+</ul>
+<h2 id="sql-skeleton">SQL Skeleton</h2>
+<pre><code class="language-sql">CREATE TABLE tenants (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL,
+  org_number text,
+  plan text,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz
+);
+
+CREATE TABLE customers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  external_ref text,
+  type text NOT NULL,
+  name text NOT NULL,
+  billing_contact jsonb,
+  status text NOT NULL DEFAULT 'prospect',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz,
+  UNIQUE (tenant_id, external_ref)
+);
+
+CREATE TABLE service_categories (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  code text NOT NULL,
+  name text NOT NULL,
+  requires_router_mapping boolean NOT NULL DEFAULT false,
+  requires_radius boolean NOT NULL DEFAULT false,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, code)
+);
+
+CREATE TABLE products (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  service_category_id uuid REFERENCES service_categories(id),
+  sku text NOT NULL,
+  name text NOT NULL,
+  pricing jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, sku)
+);
+
+CREATE TABLE contracts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  customer_id uuid NOT NULL REFERENCES customers(id),
+  status text NOT NULL DEFAULT 'draft',
+  start_date date,
+  end_date date,
+  terms jsonb NOT NULL DEFAULT '{}'::jsonb,
+  signed_at timestamptz,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE services (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  customer_id uuid NOT NULL REFERENCES customers(id),
+  product_id uuid REFERENCES products(id),
+  service_category_id uuid REFERENCES service_categories(id),
+  contract_id uuid REFERENCES contracts(id),
+  cid text,
+  status text NOT NULL DEFAULT 'requested',
+  activated_at timestamptz,
+  suspended_at timestamptz,
+  terminated_at timestamptz,
+  metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz,
+  UNIQUE (tenant_id, cid)
+);
+
+CREATE TABLE routers (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  router_name text NOT NULL,
+  hostname text NOT NULL,
+  vendor text,
+  model text,
+  serial_number text,
+  router_role text NOT NULL,
+  site_name text,
+  management_ip inet,
+  latitude numeric(10,7),
+  longitude numeric(10,7),
+  status text NOT NULL DEFAULT 'draft',
+  snmp_status text NOT NULL DEFAULT 'not_configured',
+  snmp_profile jsonb,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz,
+  deleted_at timestamptz,
+  UNIQUE (tenant_id, hostname)
+);
+
+CREATE TABLE router_interfaces (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  router_id uuid NOT NULL REFERENCES routers(id),
+  interface_name text NOT NULL,
+  interface_type text,
+  mac_address text,
+  ip_address inet,
+  vlan_id integer,
+  speed_mbps integer,
+  status text NOT NULL DEFAULT 'provisioning',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz,
+  UNIQUE (tenant_id, router_id, interface_name)
+);
+
+CREATE TABLE router_links (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  router_a_id uuid NOT NULL REFERENCES routers(id),
+  router_b_id uuid NOT NULL REFERENCES routers(id),
+  interface_a_id uuid REFERENCES router_interfaces(id),
+  interface_b_id uuid REFERENCES router_interfaces(id),
+  link_type text,
+  status text NOT NULL DEFAULT 'active',
+  capacity_mbps integer,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE service_router_mapping (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  service_id uuid NOT NULL REFERENCES services(id),
+  router_id uuid NOT NULL REFERENCES routers(id),
+  interface_id uuid REFERENCES router_interfaces(id),
+  vlan_id integer,
+  is_primary boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, service_id, router_id, interface_id)
+);
+
+CREATE TABLE customer_router_mapping (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  customer_id uuid NOT NULL REFERENCES customers(id),
+  router_id uuid NOT NULL REFERENCES routers(id),
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, customer_id, router_id)
+);
+
+CREATE TABLE radius_profiles (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  name text NOT NULL,
+  attributes jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, name)
+);
+
+CREATE TABLE nas_devices (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  router_id uuid NOT NULL REFERENCES routers(id),
+  hostname text NOT NULL,
+  nas_ip_address inet NOT NULL,
+  vendor_type text,
+  secret text NOT NULL,
+  status text NOT NULL DEFAULT 'active',
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, nas_ip_address)
+);
+
+CREATE TABLE radius_users (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  customer_id uuid NOT NULL REFERENCES customers(id),
+  service_id uuid NOT NULL REFERENCES services(id),
+  router_id uuid REFERENCES routers(id),
+  profile_id uuid REFERENCES radius_profiles(id),
+  username text NOT NULL,
+  secret text NOT NULL,
+  status text NOT NULL DEFAULT 'pending',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz,
+  UNIQUE (tenant_id, username)
+);
+
+CREATE TABLE router_capacity_history (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid NOT NULL REFERENCES tenants(id),
+  router_id uuid NOT NULL REFERENCES routers(id),
+  cpu_percent numeric(5,2),
+  memory_percent numeric(5,2),
+  traffic_in_bps bigint,
+  traffic_out_bps bigint,
+  utilization_percent numeric(5,2),
+  recorded_at timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE router_script_templates (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  tenant_id uuid REFERENCES tenants(id),
+  vendor text NOT NULL DEFAULT 'mikrotik',
+  os_version text NOT NULL,
+  script_type text NOT NULL,
+  template_body text NOT NULL,
+  variables_schema jsonb NOT NULL DEFAULT '{}'::jsonb,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (tenant_id, vendor, os_version, script_type)
+);
+</code></pre>
+<h2 id="erd-teks">ERD Teks</h2>
+<pre><code class="language-text">tenants
+  +-- customers
+  |     +-- services
+  |           +-- service_router_mapping -- routers -- router_interfaces
+  |           +-- radius_users -----------+
+  |
+  +-- routers
+  |     +-- router_interfaces
+  |     +-- router_links
+  |     +-- nas_devices
+  |     +-- router_capacity_history
+  |
+  +-- customer_router_mapping
+  +-- radius_profiles
+  +-- router_script_templates
+</code></pre>
+<h2 id="index-dan-constraint-penting">Index dan Constraint Penting</h2>
+<ul>
+<li><code>services(tenant_id, customer_id, status)</code></li>
+<li><code>service_router_mapping(tenant_id, router_id)</code></li>
+<li><code>customer_router_mapping(tenant_id, router_id)</code></li>
+<li><code>radius_users(tenant_id, service_id)</code></li>
+<li><code>radius_users(tenant_id, router_id)</code></li>
+<li><code>router_capacity_history(tenant_id, router_id, recorded_at DESC)</code></li>
+<li><code>routers(tenant_id, router_role, status)</code></li>
+</ul>
+<p>Constraint aplikasi:</p>
+<ul>
+<li>Jika <code>service_categories.requires_router_mapping = true</code>, service aktif wajib memiliki <code>service_router_mapping</code>.</li>
+<li>Jika <code>service_categories.requires_radius = true</code>, service aktif wajib memiliki <code>radius_users</code>.</li>
+<li>Jika radius user dibuat untuk layanan jaringan, <code>radius_users.router_id</code> wajib terisi.</li>
+<li><code>nas_devices.router_id</code> wajib mengacu ke router yang berperan sebagai NAS/BNG/PPPoE/Hotspot gateway.</li>
+</ul>
+<h2 id="risiko-dan-mitigasi">Risiko dan Mitigasi</h2>
+<ul>
+<li>Cross-tenant leakage: wajib RLS atau middleware tenant enforcement.</li>
+<li>Secret Radius/NAS bocor: simpan terenkripsi via KMS, jangan masuk log/plain backup.</li>
+<li>Impact query lambat: gunakan mapping table dan index router/customer/service.</li>
+<li>Data topology tidak sinkron: semua perubahan router/interface/mapping harus menghasilkan audit log dan event.</li>
+</ul>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li><code>routers</code>, <code>router_interfaces</code>, <code>router_links</code>, <code>customer_router_mapping</code>, <code>service_router_mapping</code>, <code>router_capacity_history</code>, dan <code>router_script_templates</code> tersedia.</li>
+<li>Tidak ada tabel <code>bts</code>, <code>bts_sites</code>, <code>pop</code>, atau <code>pop_sites</code>.</li>
+<li>Customer tidak terhubung langsung ke POP/BTS.</li>
+<li>Service Internet wajib dapat ditelusuri ke router dan interface.</li>
+<li>Radius NAS dan Radius User dapat ditelusuri ke router.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-3-role-matrix">
+  <div class="card-head">
+    <span class="num">U03</span>
+    <h2>Step 3 - Role Matrix</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-role-permission-matrix-v34-router-centric">PRD NEX OSS/BSS - Role Permission Matrix v3.4 Router-Centric</h1>
+<p>Dokumen ini merevisi Step 3 agar seluruh permission mengikuti PRD v3.4 Router-Centric.</p>
+<p>Legenda:</p>
+<ul>
+<li>Y = full allowed</li>
+<li>R = tenant-scoped/restricted</li>
+<li>S = self-only</li>
+<li>N = no access</li>
+</ul>
+<p>Tenant-scoped roles hanya boleh membaca/mengubah data dengan <code>tenant_id</code> yang sama. Platform Owner dapat mengelola lintas tenant.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network permission</td>
+<td>Belum ada Router Management lengkap</td>
+<td>Ditambahkan Router, Interface, Link, SNMP, Capacity, Impact, Script Generator</td>
+</tr>
+<tr>
+<td>Role NOC</td>
+<td>Akses router belum eksplisit</td>
+<td>NOC mendapat akses operasional router dan monitoring</td>
+</tr>
+<tr>
+<td>POP/BTS</td>
+<td>Berpotensi menjadi permission terpisah</td>
+<td>Tidak ada permission POP/BTS; gunakan Router Role</td>
+</tr>
+<tr>
+<td>Impact</td>
+<td>Belum ada izin customer impact</td>
+<td>Ditambahkan Customer Impact Analysis</td>
+</tr>
+</tbody>
+</table>
+<h2 id="matrix">Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th style="text-align: right;">Action/Permission</th>
+<th style="text-align: center;">Platform Owner</th>
+<th style="text-align: center;">Tenant Owner</th>
+<th style="text-align: center;">Tenant Admin</th>
+<th style="text-align: center;">Finance</th>
+<th style="text-align: center;">NOC</th>
+<th style="text-align: center;">Sales</th>
+<th style="text-align: center;">Teknisi</th>
+<th style="text-align: center;">Partner</th>
+<th style="text-align: center;">Customer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Customer</td>
+<td style="text-align: right;">Create customer</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Customer</td>
+<td style="text-align: right;">Read customer</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Customer</td>
+<td style="text-align: right;">Update customer</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Customer</td>
+<td style="text-align: right;">Delete customer</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Service</td>
+<td style="text-align: right;">Create service</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Service</td>
+<td style="text-align: right;">Read service</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Service</td>
+<td style="text-align: right;">Update service</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Service</td>
+<td style="text-align: right;">Suspend/unsuspend service</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Management</td>
+<td style="text-align: right;">Create router</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Management</td>
+<td style="text-align: right;">Read router</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Management</td>
+<td style="text-align: right;">Update router</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Management</td>
+<td style="text-align: right;">Retire/deactivate router</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Interface Management</td>
+<td style="text-align: right;">Create interface</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Interface Management</td>
+<td style="text-align: right;">Read interface</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Interface Management</td>
+<td style="text-align: right;">Update interface</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Link Management</td>
+<td style="text-align: right;">Create router link</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Link Management</td>
+<td style="text-align: right;">Read router link</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Link Management</td>
+<td style="text-align: right;">Update router link</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>SNMP Monitoring</td>
+<td style="text-align: right;">Configure SNMP</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>SNMP Monitoring</td>
+<td style="text-align: right;">Read SNMP status</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Capacity Dashboard</td>
+<td style="text-align: right;">Read capacity</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Customer Impact Analysis</td>
+<td style="text-align: right;">Run impact analysis</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Router Script Generator</td>
+<td style="text-align: right;">Generate script</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Radius</td>
+<td style="text-align: right;">Create profile</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Radius</td>
+<td style="text-align: right;">Manage radius user</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Radius</td>
+<td style="text-align: right;">Read accounting</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Radius</td>
+<td style="text-align: right;">Manage NAS device</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Billing</td>
+<td style="text-align: right;">Generate invoice</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Billing</td>
+<td style="text-align: right;">Read invoice</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Billing</td>
+<td style="text-align: right;">Adjust invoice</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Payment</td>
+<td style="text-align: right;">Record payment</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Payment</td>
+<td style="text-align: right;">Reconcile payment</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Ticket</td>
+<td style="text-align: right;">Create ticket</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Ticket</td>
+<td style="text-align: right;">Read ticket</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Ticket</td>
+<td style="text-align: right;">Update/resolve ticket</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Work Order</td>
+<td style="text-align: right;">Create work order</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Work Order</td>
+<td style="text-align: right;">Assign/schedule</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Work Order</td>
+<td style="text-align: right;">Execute/report</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Contract</td>
+<td style="text-align: right;">Draft contract</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Contract</td>
+<td style="text-align: right;">Sign/activate contract</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Contract</td>
+<td style="text-align: right;">Read contract</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">S</td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td style="text-align: right;">Read inventory</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Inventory</td>
+<td style="text-align: right;">Update inventory</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>GIS</td>
+<td style="text-align: right;">View map</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>GIS</td>
+<td style="text-align: right;">Edit map</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Report</td>
+<td style="text-align: right;">Run operational reports</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Audit Log</td>
+<td style="text-align: right;">Read audit log</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+<tr>
+<td>Tenant Setting</td>
+<td style="text-align: right;">Manage tenant settings</td>
+<td style="text-align: center;">Y</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">R</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+<td style="text-align: center;">N</td>
+</tr>
+</tbody>
+</table>
+<h2 id="role-yang-wajib-memiliki-akses-router-centric">Role yang Wajib Memiliki Akses Router-Centric</h2>
+<ul>
+<li>Platform Owner: semua permission router, monitoring, impact, script.</li>
+<li>Tenant Owner: semua permission router dalam tenant.</li>
+<li>Tenant Admin: semua permission router operasional dalam tenant.</li>
+<li>NOC Technician/NOC: router management, interface, link, SNMP monitoring, capacity dashboard, customer impact analysis, router script generator.</li>
+</ul>
+<h2 id="catatan-implementasi">Catatan Implementasi</h2>
+<ul>
+<li>Tidak ada permission khusus POP/BTS. Gunakan permission Router Management dengan filter <code>router_role</code>.</li>
+<li>Aksi generate script wajib masuk audit log karena dapat mengubah konfigurasi router saat diterapkan.</li>
+<li>Finance boleh melihat capacity dan impact untuk estimasi revenue impact, tetapi tidak boleh mengubah router.</li>
+<li>Partner dan Customer tidak boleh melihat detail topologi router tenant.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-4-api-contract">
+  <div class="card-head">
+    <span class="num">U04</span>
+    <h2>Step 4 - API Contract</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-api-contract-mvp-v34-router-centric">PRD NEX OSS/BSS - API Contract MVP v3.4 Router-Centric</h1>
+<p>Base path: <code>/api/v1</code></p>
+<p>Auth: Bearer token. Tenant-scoped request menggunakan tenant dari token atau path <code>{tenant_id}</code>. Semua endpoint harus menegakkan tenant isolation.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Router endpoint</td>
+<td>Belum tersedia</td>
+<td>Ditambahkan <code>/routers</code>, <code>/router-interfaces</code>, <code>/router-links</code></td>
+</tr>
+<tr>
+<td>Impact/capacity/SNMP</td>
+<td>Belum tersedia</td>
+<td>Ditambahkan endpoint impact, capacity, SNMP</td>
+</tr>
+<tr>
+<td>Script generator</td>
+<td>Belum tersedia</td>
+<td>Ditambahkan <code>POST /router-script-generator</code></td>
+</tr>
+<tr>
+<td>Radius mapping</td>
+<td>Radius user belum eksplisit ke router</td>
+<td>Request/response radius user memuat <code>router_id</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="common-errors">Common Errors</h2>
+<ul>
+<li>400: validation error</li>
+<li>401: missing/invalid token</li>
+<li>403: insufficient permission</li>
+<li>404: resource not found</li>
+<li>409: business conflict</li>
+<li>500: server error</li>
+</ul>
+<h2 id="auth">Auth</h2>
+<h3 id="post-authlogin">POST /auth/login</h3>
+<p>Request:</p>
+<pre><code class="language-json">{&quot;username&quot;:&quot;string&quot;,&quot;password&quot;:&quot;string&quot;}
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">{&quot;access_token&quot;:&quot;string&quot;,&quot;token_type&quot;:&quot;bearer&quot;,&quot;expires_in&quot;:3600,&quot;refresh_token&quot;:&quot;string&quot;}
+</code></pre>
+<h2 id="customer">Customer</h2>
+<h3 id="get-tenantstenant_idcustomers">GET /tenants/{tenant_id}/customers</h3>
+<p>Permission: Tenant Owner, Tenant Admin, Sales, NOC restricted.</p>
+<h3 id="post-tenantstenant_idcustomers">POST /tenants/{tenant_id}/customers</h3>
+<p>Permission: Tenant Owner, Tenant Admin, Sales, Partner restricted.</p>
+<h3 id="get-tenantstenant_idcustomerscustomer_id">GET /tenants/{tenant_id}/customers/{customer_id}</h3>
+<p>Response includes service and router mapping summary for authorized internal roles.</p>
+<h2 id="service">Service</h2>
+<h3 id="post-tenantstenant_idservices">POST /tenants/{tenant_id}/services</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;customer_id&quot;: &quot;uuid&quot;,
+  &quot;product_id&quot;: &quot;uuid&quot;,
+  &quot;contract_id&quot;: &quot;uuid&quot;,
+  &quot;service_category_id&quot;: &quot;uuid&quot;,
+  &quot;cid&quot;: &quot;CID-001&quot;,
+  &quot;metadata&quot;: {}
+}
+</code></pre>
+<p>Validation:</p>
+<ul>
+<li>Customer, product, contract, and service category must belong to tenant.</li>
+<li>Signed/active contract is required for recurring billing.</li>
+<li>If service category requires router mapping, mapping must exist before activation.</li>
+</ul>
+<h3 id="patch-tenantstenant_idservicesservice_id">PATCH /tenants/{tenant_id}/services/{service_id}</h3>
+<p>Allowed operations: activate, suspend, unsuspend, terminate, update metadata.</p>
+<h2 id="router-management">Router Management</h2>
+<h3 id="get-tenantstenant_idrouters">GET /tenants/{tenant_id}/routers</h3>
+<p>Query params:</p>
+<ul>
+<li><code>role</code></li>
+<li><code>status</code></li>
+<li><code>snmp_status</code></li>
+<li><code>q</code></li>
+<li><code>limit</code></li>
+<li><code>offset</code></li>
+</ul>
+<p>Permission: Platform Owner, Tenant Owner, Tenant Admin, NOC, Teknisi read-only.</p>
+<p>Response model: <code>RouterStatus[]</code>.</p>
+<h3 id="post-tenantstenant_idrouters">POST /tenants/{tenant_id}/routers</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;router_name&quot;: &quot;BNG Jakarta 01&quot;,
+  &quot;hostname&quot;: &quot;bng-jkt-01&quot;,
+  &quot;vendor&quot;: &quot;MikroTik&quot;,
+  &quot;model&quot;: &quot;CCR&quot;,
+  &quot;serial_number&quot;: &quot;string&quot;,
+  &quot;router_role&quot;: &quot;bng&quot;,
+  &quot;site_name&quot;: &quot;Jakarta POP&quot;,
+  &quot;management_ip&quot;: &quot;10.0.0.1&quot;,
+  &quot;latitude&quot;: -6.200000,
+  &quot;longitude&quot;: 106.816666,
+  &quot;snmp_profile&quot;: {}
+}
+</code></pre>
+<p>Validation:</p>
+<ul>
+<li><code>router_role</code> must be one of Core Router, Aggregation Router, Edge Router, PPPoE Router, BNG, Wireless Gateway, POP Router, BTS Router.</li>
+<li>Hostname unique per tenant.</li>
+</ul>
+<h3 id="put-tenantstenant_idroutersid">PUT /tenants/{tenant_id}/routers/{id}</h3>
+<p>Updates router identity, role, SNMP profile, status, or location.</p>
+<h3 id="get-tenantstenant_idroutersidimpact">GET /tenants/{tenant_id}/routers/{id}/impact</h3>
+<p>Response model: <code>RouterImpact</code>.</p>
+<p>Returns customer count, service count, radius user count, revenue impact, and incident recommendation.</p>
+<h3 id="get-tenantstenant_idroutersidcapacity">GET /tenants/{tenant_id}/routers/{id}/capacity</h3>
+<p>Response model: <code>RouterCapacity</code>.</p>
+<p>Returns CPU, memory, traffic, utilization history, capacity warning, and capacity critical status.</p>
+<h3 id="get-tenantstenant_idroutersidsnmp">GET /tenants/{tenant_id}/routers/{id}/snmp</h3>
+<p>Response model: <code>SNMPStatus</code>.</p>
+<p>Returns <code>Reachable</code>, <code>Unreachable</code>, <code>Auth Failed</code>, or <code>Not Configured</code>.</p>
+<h2 id="router-interface">Router Interface</h2>
+<h3 id="get-tenantstenant_idrouter-interfaces">GET /tenants/{tenant_id}/router-interfaces</h3>
+<p>Query params: <code>router_id</code>, <code>status</code>, <code>interface_type</code>.</p>
+<h3 id="post-tenantstenant_idrouter-interfaces">POST /tenants/{tenant_id}/router-interfaces</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;interface_name&quot;: &quot;ether1&quot;,
+  &quot;interface_type&quot;: &quot;ethernet&quot;,
+  &quot;ip_address&quot;: &quot;10.0.0.2&quot;,
+  &quot;vlan_id&quot;: 100,
+  &quot;speed_mbps&quot;: 1000
+}
+</code></pre>
+<h2 id="router-link">Router Link</h2>
+<h3 id="get-tenantstenant_idrouter-links">GET /tenants/{tenant_id}/router-links</h3>
+<p>Query params: <code>router_id</code>, <code>status</code>, <code>link_type</code>.</p>
+<h3 id="post-tenantstenant_idrouter-links">POST /tenants/{tenant_id}/router-links</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;router_a_id&quot;: &quot;uuid&quot;,
+  &quot;router_b_id&quot;: &quot;uuid&quot;,
+  &quot;interface_a_id&quot;: &quot;uuid&quot;,
+  &quot;interface_b_id&quot;: &quot;uuid&quot;,
+  &quot;link_type&quot;: &quot;backbone&quot;,
+  &quot;capacity_mbps&quot;: 10000
+}
+</code></pre>
+<h2 id="service-router-mapping">Service Router Mapping</h2>
+<h3 id="post-tenantstenant_idservicesservice_idrouter-mapping">POST /tenants/{tenant_id}/services/{service_id}/router-mapping</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;interface_id&quot;: &quot;uuid&quot;,
+  &quot;vlan_id&quot;: 200,
+  &quot;is_primary&quot;: true
+}
+</code></pre>
+<p>Validation:</p>
+<ul>
+<li>Required for Internet/network services.</li>
+<li>Optional for non-network services.</li>
+<li>Router and interface must belong to tenant.</li>
+</ul>
+<h2 id="radius">Radius</h2>
+<h3 id="post-tenantstenant_idradiusprofiles">POST /tenants/{tenant_id}/radius/profiles</h3>
+<p>Creates Radius profile.</p>
+<h3 id="post-tenantstenant_idradiususers">POST /tenants/{tenant_id}/radius/users</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;customer_id&quot;: &quot;uuid&quot;,
+  &quot;service_id&quot;: &quot;uuid&quot;,
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;profile_id&quot;: &quot;uuid&quot;,
+  &quot;username&quot;: &quot;string&quot;,
+  &quot;secret&quot;: &quot;string&quot;
+}
+</code></pre>
+<p>Validation:</p>
+<ul>
+<li>Username unique per tenant.</li>
+<li>Service must belong to customer and tenant.</li>
+<li>Router is required if service category requires router mapping.</li>
+</ul>
+<h3 id="post-tenantstenant_idnas">POST /tenants/{tenant_id}/nas</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;hostname&quot;: &quot;bng-jkt-01&quot;,
+  &quot;nas_ip_address&quot;: &quot;10.0.0.1&quot;,
+  &quot;vendor_type&quot;: &quot;mikrotik&quot;,
+  &quot;secret&quot;: &quot;encrypted-or-plain-input&quot;
+}
+</code></pre>
+<h2 id="router-script-generator">Router Script Generator</h2>
+<h3 id="post-tenantstenant_idrouter-script-generator">POST /tenants/{tenant_id}/router-script-generator</h3>
+<p>Request:</p>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;os_version&quot;: &quot;ROS7&quot;,
+  &quot;script_type&quot;: &quot;PPPoE&quot;,
+  &quot;radius_server_ip&quot;: &quot;10.10.10.10&quot;,
+  &quot;radius_secret&quot;: &quot;string&quot;,
+  &quot;service_profile&quot;: &quot;100M&quot;
+}
+</code></pre>
+<p>Response model: <code>GeneratedScript</code>.</p>
+<p>Supported output:</p>
+<ul>
+<li>ROS6 PPPoE</li>
+<li>ROS7 PPPoE</li>
+<li>ROS6 Hotspot</li>
+<li>ROS7 Hotspot</li>
+</ul>
+<h2 id="response-models">Response Models</h2>
+<h3 id="routerstatus">RouterStatus</h3>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;uuid&quot;,
+  &quot;router_name&quot;: &quot;string&quot;,
+  &quot;hostname&quot;: &quot;string&quot;,
+  &quot;router_role&quot;: &quot;bng&quot;,
+  &quot;status&quot;: &quot;active&quot;,
+  &quot;snmp_status&quot;: &quot;Reachable&quot;,
+  &quot;management_ip&quot;: &quot;10.0.0.1&quot;
+}
+</code></pre>
+<h3 id="routercapacity">RouterCapacity</h3>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;cpu_percent&quot;: 40.5,
+  &quot;memory_percent&quot;: 62.1,
+  &quot;traffic_in_bps&quot;: 1000000,
+  &quot;traffic_out_bps&quot;: 2000000,
+  &quot;utilization_percent&quot;: 70.2,
+  &quot;level&quot;: &quot;normal|warning|critical&quot;
+}
+</code></pre>
+<h3 id="routerimpact">RouterImpact</h3>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;affected_customers&quot;: 120,
+  &quot;affected_services&quot;: 126,
+  &quot;affected_radius_users&quot;: 118,
+  &quot;revenue_impact_monthly&quot;: 25000000,
+  &quot;incident_severity&quot;: &quot;P1&quot;
+}
+</code></pre>
+<h3 id="snmpstatus">SNMPStatus</h3>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;status&quot;: &quot;Reachable&quot;,
+  &quot;last_checked_at&quot;: &quot;2026-06-18T00:00:00Z&quot;,
+  &quot;latency_ms&quot;: 12
+}
+</code></pre>
+<h3 id="generatedscript">GeneratedScript</h3>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;os_version&quot;: &quot;ROS7&quot;,
+  &quot;script_type&quot;: &quot;PPPoE&quot;,
+  &quot;script&quot;: &quot;/radius add ...&quot;,
+  &quot;warnings&quot;: []
+}
+</code></pre>
+<h2 id="billing-payment-ticket-work-order">Billing, Payment, Ticket, Work Order</h2>
+<p>Existing MVP endpoints remain valid with these additions:</p>
+<ul>
+<li>Invoice generation validates service active state.</li>
+<li>Suspend triggers Radius user suspended.</li>
+<li>Ticket can reference <code>router_id</code>, <code>interface_id</code>, and <code>incident_id</code>.</li>
+<li>Work order can reference <code>router_id</code>, <code>interface_id</code>, and <code>router_link_id</code>.</li>
+</ul>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li>Endpoint wajib ada: <code>GET /routers</code>, <code>POST /routers</code>, <code>PUT /routers/{id}</code>.</li>
+<li>Endpoint wajib ada: <code>GET /router-interfaces</code>, <code>POST /router-interfaces</code>.</li>
+<li>Endpoint wajib ada: <code>GET /router-links</code>, <code>POST /router-links</code>.</li>
+<li>Endpoint wajib ada: <code>GET /routers/{id}/impact</code>, <code>GET /routers/{id}/capacity</code>, <code>GET /routers/{id}/snmp</code>.</li>
+<li>Endpoint wajib ada: <code>POST /router-script-generator</code>.</li>
+<li>Response model wajib ada: <code>RouterStatus</code>, <code>RouterCapacity</code>, <code>RouterImpact</code>, <code>SNMPStatus</code>, <code>GeneratedScript</code>.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-5-development-roadmap">
+  <div class="card-head">
+    <span class="num">U05</span>
+    <h2>Step 5 - Development Roadmap</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-development-roadmap-v34-router-centric">PRD NEX OSS/BSS - Development Roadmap v3.4 Router-Centric</h1>
+<p>Peran: Technical Product Owner</p>
+<p>Roadmap ini merevisi Step 5 agar mengikuti PRD v3.4. Urutan phase lama diganti penuh dengan Phase 0 sampai Phase 10 berikut.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 4</td>
+<td>Fokus FreeRadius dan suspend saja</td>
+<td>Menjadi Router Management, FreeRadius AAA, Suspend Engine</td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td>Belum eksplisit Router SNMP</td>
+<td>Phase 6 fokus Monitoring &amp; NOC dengan Router SNMP</td>
+</tr>
+<tr>
+<td>GIS</td>
+<td>Belum router layer sebagai dasar</td>
+<td>Phase 8 GIS &amp; Inventory memakai router/fiber/customer layer</td>
+</tr>
+<tr>
+<td>Marketplace</td>
+<td>Belum membatasi MikroTik API</td>
+<td>Marketplace awal fokus FreeRadius Connector, Router SNMP, Script Generator</td>
+</tr>
+</tbody>
+</table>
+<h2 id="phase-summary">Phase Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Nama</th>
+<th>Prioritas</th>
+<th>Output Utama</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 0</td>
+<td>Discovery &amp; Blueprint</td>
+<td>Wajib</td>
+<td>Scope lock, process map, data model baseline, integration blueprint</td>
+</tr>
+<tr>
+<td>Phase 1</td>
+<td>Core Foundation</td>
+<td>Wajib</td>
+<td>Auth, RBAC, tenant, customer, product, service category flags</td>
+</tr>
+<tr>
+<td>Phase 2</td>
+<td>Billing MVP</td>
+<td>Wajib</td>
+<td>Invoice, recurring billing, prorate, AR aging, manual payment</td>
+</tr>
+<tr>
+<td>Phase 3</td>
+<td>Payment &amp; Notification</td>
+<td>Wajib</td>
+<td>Payment gateway, reconciliation, WhatsApp/email notification</td>
+</tr>
+<tr>
+<td>Phase 4</td>
+<td>Router Management FreeRadius AAA Suspend Engine</td>
+<td>Tinggi</td>
+<td>Router, interface, NAS, Radius profile/user, RouterOS script, suspend/unsuspend</td>
+</tr>
+<tr>
+<td>Phase 5</td>
+<td>Ticket &amp; Work Order</td>
+<td>Tinggi</td>
+<td>Ticket, SLA, work order, field report, installation/maintenance flow</td>
+</tr>
+<tr>
+<td>Phase 6</td>
+<td>Monitoring &amp; NOC</td>
+<td>Tinggi</td>
+<td>Router SNMP, PRTG/LibreNMS, NOC dashboard, impact analysis</td>
+</tr>
+<tr>
+<td>Phase 7</td>
+<td>OSS Advanced</td>
+<td>Sedang</td>
+<td>OLT/ONU, IPAM, VLAN, capacity planning, revenue assurance</td>
+</tr>
+<tr>
+<td>Phase 8</td>
+<td>GIS &amp; Inventory</td>
+<td>Sedang</td>
+<td>Router/customer/fiber map, ODC/ODP, asset tracking</td>
+</tr>
+<tr>
+<td>Phase 9</td>
+<td>Partner &amp; SaaS</td>
+<td>Strategis</td>
+<td>Partner portal, commission, white label, license, usage metering</td>
+</tr>
+<tr>
+<td>Phase 10</td>
+<td>Marketplace &amp; AI</td>
+<td>Belakangan</td>
+<td>Addon marketplace, AI NOC, anomaly detection, predictive churn</td>
+</tr>
+</tbody>
+</table>
+<h2 id="phase-0-discovery-blueprint">Phase 0 - Discovery &amp; Blueprint</h2>
+<p>Objective:</p>
+<ul>
+<li>Mengunci scope MVP dan blueprint router-centric.</li>
+</ul>
+<p>Deliverables:</p>
+<ul>
+<li>Business process map.</li>
+<li>Tenant and RBAC blueprint.</li>
+<li>Router-centric data model.</li>
+<li>Billing and payment policy.</li>
+<li>FreeRadius integration design.</li>
+<li>Monitoring integration decision.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>POP/BTS disepakati sebagai Router Role, bukan modul utama.</li>
+<li>Service category flags <code>requires_router_mapping</code> dan <code>requires_radius</code> disetujui.</li>
+<li>Flow Radius: service active, radius user active, invoice overdue, suspend, paid, unsuspend disetujui.</li>
+</ul>
+<h2 id="phase-1-core-foundation">Phase 1 - Core Foundation</h2>
+<p>Objective:</p>
+<ul>
+<li>Membangun fondasi SaaS multi-tenant.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Auth and session.</li>
+<li>Tenant management.</li>
+<li>RBAC and permission matrix.</li>
+<li>Customer master.</li>
+<li>Product catalog.</li>
+<li>Service category.</li>
+<li>Service instance.</li>
+<li>Audit log.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Data tenant terisolasi.</li>
+<li>Customer dan service dapat dibuat.</li>
+<li>Service category memiliki flags router/radius.</li>
+<li>Audit log mencatat aksi penting.</li>
+</ul>
+<h2 id="phase-2-billing-mvp">Phase 2 - Billing MVP</h2>
+<p>Objective:</p>
+<ul>
+<li>Menghasilkan billing MVP yang benar untuk ISP.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Invoice.</li>
+<li>Invoice items.</li>
+<li>Recurring billing.</li>
+<li>Prorate.</li>
+<li>AR aging.</li>
+<li>Manual payment record.</li>
+<li>Basic finance reports.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Invoice hanya dibuat untuk service valid.</li>
+<li>Invoice item mengacu ke service.</li>
+<li>Payment mengubah outstanding balance.</li>
+<li>AR aging dapat ditampilkan.</li>
+</ul>
+<h2 id="phase-3-payment-notification">Phase 3 - Payment &amp; Notification</h2>
+<p>Objective:</p>
+<ul>
+<li>Menghubungkan pembayaran dan komunikasi pelanggan.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Payment gateway integration.</li>
+<li>Payment webhook.</li>
+<li>Reconciliation.</li>
+<li>Receipt.</li>
+<li>WhatsApp/email notification.</li>
+<li>Dunning notification.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Payment reconciled dapat menandai invoice paid.</li>
+<li>Paid invoice dapat memicu unsuspend evaluation.</li>
+<li>Notifikasi invoice, overdue, paid, dan suspend terkirim.</li>
+</ul>
+<h2 id="phase-4-router-management-freeradius-aaa-suspend-engine">Phase 4 - Router Management FreeRadius AAA Suspend Engine</h2>
+<p>Objective:</p>
+<ul>
+<li>Membangun inti OSS network activation berbasis router.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Router Management.</li>
+<li>Router Interface Management.</li>
+<li>Router Link Management.</li>
+<li>Radius NAS mapped to Router.</li>
+<li>Radius Profile.</li>
+<li>Radius User.</li>
+<li>Service Router Mapping.</li>
+<li>Customer Router Mapping.</li>
+<li>RouterOS Script Generator.</li>
+<li>Suspend/Unsuspend Engine.</li>
+</ul>
+<p>Tasks Backend:</p>
+<ul>
+<li>CRUD <code>routers</code>, <code>router_interfaces</code>, <code>router_links</code>.</li>
+<li>CRUD <code>nas_devices</code>, <code>radius_profiles</code>, <code>radius_users</code>.</li>
+<li>Service activation validation for router mapping.</li>
+<li>Generate ROS6/ROS7 PPPoE and Hotspot scripts.</li>
+<li>Suspend service and disable Radius user.</li>
+<li>Unsuspend service and enable Radius user.</li>
+</ul>
+<p>Tasks Frontend:</p>
+<ul>
+<li>Router Dashboard.</li>
+<li>Router Detail.</li>
+<li>Interface and link screens.</li>
+<li>Radius profile/user screens.</li>
+<li>Script Generator screen.</li>
+<li>Suspend/unsuspend controls.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Router dapat dibuat, diubah, dinonaktifkan.</li>
+<li>Router memiliki role Core, Aggregation, Edge, PPPoE, BNG, Wireless Gateway, POP Router, BTS Router.</li>
+<li>Service Internet wajib memiliki router mapping.</li>
+<li>Radius user aktif setelah service provisioning valid.</li>
+<li>Script generator menghasilkan ROS6 PPPoE, ROS7 PPPoE, ROS6 Hotspot, ROS7 Hotspot.</li>
+<li>Suspend mematikan Radius user; unsuspend mengaktifkannya kembali.</li>
+</ul>
+<h2 id="phase-5-ticket-work-order">Phase 5 - Ticket &amp; Work Order</h2>
+<p>Objective:</p>
+<ul>
+<li>Menghubungkan support, NOC, dan field operation.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Ticket.</li>
+<li>SLA.</li>
+<li>Work Order.</li>
+<li>Technician assignment.</li>
+<li>Installation report.</li>
+<li>Maintenance report.</li>
+<li>Photo/GPS evidence.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Ticket dapat mengacu ke customer, service, router, incident.</li>
+<li>Work order dapat mengacu ke router, interface, link, atau service.</li>
+<li>Field report dapat diverifikasi dan ditutup.</li>
+</ul>
+<h2 id="phase-6-monitoring-noc">Phase 6 - Monitoring &amp; NOC</h2>
+<p>Objective:</p>
+<ul>
+<li>Memberi visibility operasional jaringan dan dampak pelanggan.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Router SNMP Monitoring.</li>
+<li>Capacity Dashboard.</li>
+<li>PRTG/LibreNMS/SNMP integration.</li>
+<li>FreeRadius availability monitoring.</li>
+<li>NOC Dashboard.</li>
+<li>Customer Impact Analysis.</li>
+<li>Incident generation.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>SNMP status menampilkan Reachable, Unreachable, Auth Failed, Not Configured.</li>
+<li>Router Down menampilkan customer terdampak, radius user terdampak, revenue impact.</li>
+<li>Capacity warning/critical memicu event.</li>
+<li>Incident dapat dibuat otomatis dari router down.</li>
+</ul>
+<h2 id="phase-7-oss-advanced">Phase 7 - OSS Advanced</h2>
+<p>Objective:</p>
+<ul>
+<li>Memperluas OSS setelah core router/radius stabil.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>OLT/ONU management.</li>
+<li>IPAM.</li>
+<li>VLAN management.</li>
+<li>CID generator.</li>
+<li>Capacity planning.</li>
+<li>Revenue assurance.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>VLAN dan CID tidak duplikat per tenant.</li>
+<li>IPAM dapat mengacu ke service/router/interface.</li>
+<li>Capacity planning membaca histori router.</li>
+</ul>
+<h2 id="phase-8-gis-inventory">Phase 8 - GIS &amp; Inventory</h2>
+<p>Objective:</p>
+<ul>
+<li>Menyediakan peta dan inventory berbasis topology.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>GIS Router Layer.</li>
+<li>GIS Customer Layer.</li>
+<li>Fiber Layer.</li>
+<li>ODC/ODP Layer.</li>
+<li>Inventory asset.</li>
+<li>Router as inventory asset and network object.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>GIS menampilkan router, customer, fiber, ODC, ODP.</li>
+<li>Customer dapat ditelusuri ke router.</li>
+<li>Asset router dapat dikaitkan dengan object router.</li>
+</ul>
+<h2 id="phase-9-partner-saas">Phase 9 - Partner &amp; SaaS</h2>
+<p>Objective:</p>
+<ul>
+<li>Menyiapkan model partner dan SaaS multi-tenant untuk dijual ke ISP lain.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>Partner portal.</li>
+<li>Commission engine.</li>
+<li>White label.</li>
+<li>License management.</li>
+<li>Usage metering.</li>
+<li>Tenant billing.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Komisi dihitung dari payment reconciled.</li>
+<li>Usage metering mencakup customer count, router count, storage, API usage, WhatsApp usage.</li>
+<li>Tenant isolation berlaku untuk router, radius, customer, service, billing, monitoring.</li>
+</ul>
+<h2 id="phase-10-marketplace-ai">Phase 10 - Marketplace &amp; AI</h2>
+<p>Objective:</p>
+<ul>
+<li>Menambahkan addon dan AI setelah platform stabil.</li>
+</ul>
+<p>Scope:</p>
+<ul>
+<li>FreeRadius Connector.</li>
+<li>Router SNMP Monitoring Connector.</li>
+<li>Notification connector.</li>
+<li>AI NOC.</li>
+<li>Anomaly detection.</li>
+<li>Predictive churn.</li>
+</ul>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Marketplace connector dapat diaktifkan per tenant.</li>
+<li>MikroTik API Integration tidak masuk phase awal.</li>
+<li>Script Generator tetap menjadi mekanisme RouterOS awal, bukan kontrol router via API.</li>
+</ul>
+<h2 id="critical-path">Critical Path</h2>
+<ol>
+<li>Core Foundation harus selesai sebelum billing dan router.</li>
+<li>Billing harus selesai sebelum suspend engine.</li>
+<li>Router Management dan FreeRadius menjadi prasyarat NOC monitoring.</li>
+<li>Ticket/Work Order menjadi prasyarat eskalasi incident operasional.</li>
+<li>SaaS dan Marketplace dilakukan setelah tenant isolation stabil.</li>
+</ol>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li>Roadmap memakai Phase 0 sampai Phase 10 sesuai PRD v3.4.</li>
+<li>Phase 4 berisi Router Management, FreeRadius AAA, dan Suspend Engine.</li>
+<li>Phase 6 berisi Router SNMP Monitoring, NOC, dan Impact Analysis.</li>
+<li>POP/BTS tidak menjadi phase atau modul terpisah.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-6-event-driven-architecture">
+  <div class="card-head">
+    <span class="num">U06</span>
+    <h2>Step 6 - Event Driven Architecture</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-event-driven-architecture-v34-router-centric">PRD NEX OSS/BSS - Event Driven Architecture v3.4 Router-Centric</h1>
+<p>Peran: Solution Architect OSS/BSS ISP</p>
+<p>Dokumen ini merevisi Step 6 agar event system mendukung PRD v3.4 Router-Centric.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Router events</td>
+<td>Belum ada event router lifecycle</td>
+<td>Ditambahkan <code>router.created</code>, <code>router.updated</code>, <code>router.deleted</code></td>
+</tr>
+<tr>
+<td>Monitoring</td>
+<td>Belum ada router up/down/capacity/SNMP</td>
+<td>Ditambahkan event monitoring router</td>
+</tr>
+<tr>
+<td>Mapping</td>
+<td>Service mapping belum event-driven</td>
+<td>Ditambahkan <code>service.router.mapped</code></td>
+</tr>
+<tr>
+<td>Impact</td>
+<td>Customer impact belum otomatis</td>
+<td>Ditambahkan <code>customer.impact.detected</code> dan <code>incident.created</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="event-envelope">Event Envelope</h2>
+<p>Semua event menggunakan envelope berikut:</p>
+<pre><code class="language-json">{
+  &quot;event_id&quot;: &quot;uuid&quot;,
+  &quot;event_name&quot;: &quot;router.down&quot;,
+  &quot;schema_version&quot;: &quot;1.0&quot;,
+  &quot;tenant_id&quot;: &quot;uuid&quot;,
+  &quot;occurred_at&quot;: &quot;2026-06-18T00:00:00Z&quot;,
+  &quot;trace_id&quot;: &quot;uuid&quot;,
+  &quot;producer&quot;: &quot;router-service&quot;,
+  &quot;payload&quot;: {}
+}
+</code></pre>
+<h2 id="event-table">Event Table</h2>
+<table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Producer</th>
+<th>Consumer</th>
+<th>Payload Utama</th>
+<th>Retry Strategy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>customer.created</code></td>
+<td>Customer Service</td>
+<td>Billing, CRM, Audit</td>
+<td><code>customer_id</code>, <code>tenant_id</code>, <code>status</code></td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>customer.updated</code></td>
+<td>Customer Service</td>
+<td>CRM, Audit, Impact Cache</td>
+<td><code>customer_id</code>, changed fields</td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>service.created</code></td>
+<td>Service Service</td>
+<td>Provisioning, Billing, Audit</td>
+<td><code>service_id</code>, <code>customer_id</code>, <code>category_id</code></td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>service.activated</code></td>
+<td>Service Service</td>
+<td>Billing, Radius, Notification, Audit</td>
+<td><code>service_id</code>, <code>customer_id</code>, <code>requires_radius</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>service.suspended</code></td>
+<td>Service Service</td>
+<td>Radius, Notification, Audit</td>
+<td><code>service_id</code>, <code>reason</code>, <code>invoice_id</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>service.unsuspended</code></td>
+<td>Service Service</td>
+<td>Radius, Notification, Audit</td>
+<td><code>service_id</code>, <code>reason</code>, <code>payment_id</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>service.router.mapped</code></td>
+<td>Provisioning Service</td>
+<td>Router, Radius, Billing, Audit</td>
+<td><code>service_id</code>, <code>router_id</code>, <code>interface_id</code>, <code>vlan_id</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>router.created</code></td>
+<td>Router Service</td>
+<td>NOC, GIS, Audit</td>
+<td><code>router_id</code>, <code>router_role</code>, <code>hostname</code>, <code>status</code></td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>router.updated</code></td>
+<td>Router Service</td>
+<td>NOC, GIS, Impact Cache, Audit</td>
+<td><code>router_id</code>, changed fields</td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>router.deleted</code></td>
+<td>Router Service</td>
+<td>NOC, GIS, Audit</td>
+<td><code>router_id</code>, <code>deleted_at</code></td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>router.up</code></td>
+<td>Monitoring Service</td>
+<td>NOC, Incident, Notification, Audit</td>
+<td><code>router_id</code>, <code>snmp_status</code>, <code>recovered_at</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>router.down</code></td>
+<td>Monitoring Service</td>
+<td>Impact Analysis, NOC, Incident, Notification</td>
+<td><code>router_id</code>, <code>detected_at</code>, <code>interface_id</code></td>
+<td>10 retries, DLQ, alert on fail</td>
+</tr>
+<tr>
+<td><code>router.capacity.warning</code></td>
+<td>Capacity Service</td>
+<td>NOC, Reporting, Notification</td>
+<td><code>router_id</code>, <code>utilization_percent</code>, metrics</td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>router.capacity.critical</code></td>
+<td>Capacity Service</td>
+<td>NOC, Incident, Notification</td>
+<td><code>router_id</code>, <code>utilization_percent</code>, metrics</td>
+<td>10 retries, DLQ, alert on fail</td>
+</tr>
+<tr>
+<td><code>router.snmp.failed</code></td>
+<td>Monitoring Service</td>
+<td>NOC, Router Service, Audit</td>
+<td><code>router_id</code>, <code>snmp_status</code>, error</td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>radius.user.created</code></td>
+<td>Radius Service</td>
+<td>FreeRadius Sync, Audit</td>
+<td><code>radius_user_id</code>, <code>service_id</code>, <code>router_id</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>radius.user.suspended</code></td>
+<td>Radius Service</td>
+<td>FreeRadius Sync, Audit</td>
+<td><code>radius_user_id</code>, <code>service_id</code>, reason</td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>radius.user.activated</code></td>
+<td>Radius Service</td>
+<td>FreeRadius Sync, Audit</td>
+<td><code>radius_user_id</code>, <code>service_id</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>customer.impact.detected</code></td>
+<td>Impact Analysis Service</td>
+<td>Incident, NOC, Notification, Reporting</td>
+<td><code>router_id</code>, customer/service/radius counts, revenue impact</td>
+<td>10 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>incident.created</code></td>
+<td>Incident Service</td>
+<td>Ticket, Work Order, Notification, Audit</td>
+<td><code>incident_id</code>, <code>severity</code>, <code>router_id</code>, impact summary</td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>invoice.created</code></td>
+<td>Billing Service</td>
+<td>Notification, Payment, Audit</td>
+<td><code>invoice_id</code>, <code>customer_id</code>, amount</td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>invoice.paid</code></td>
+<td>Payment Service</td>
+<td>Billing, Service, Radius, Notification</td>
+<td><code>invoice_id</code>, <code>payment_id</code>, <code>customer_id</code></td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>payment.reconciled</code></td>
+<td>Payment Service</td>
+<td>Billing, Service, Radius, Audit</td>
+<td><code>payment_id</code>, <code>invoice_id</code>, amount</td>
+<td>5 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>ticket.created</code></td>
+<td>Ticket Service</td>
+<td>NOC, Work Order, Notification, Audit</td>
+<td><code>ticket_id</code>, <code>customer_id</code>, <code>router_id</code></td>
+<td>3 retries, DLQ</td>
+</tr>
+<tr>
+<td><code>work_order.created</code></td>
+<td>Work Order Service</td>
+<td>Technician, Notification, Audit</td>
+<td><code>work_order_id</code>, <code>router_id</code>, <code>service_id</code></td>
+<td>3 retries, DLQ</td>
+</tr>
+</tbody>
+</table>
+<h2 id="router-down-cascade">Router Down Cascade</h2>
+<pre><code class="language-text">router.down
+  -&gt; Impact Analysis Service
+  -&gt; customer.impact.detected
+  -&gt; Incident Service
+  -&gt; incident.created
+  -&gt; Ticket Service / Work Order Service / Notification Service
+</code></pre>
+<p>Payload <code>customer.impact.detected</code>:</p>
+<pre><code class="language-json">{
+  &quot;router_id&quot;: &quot;uuid&quot;,
+  &quot;affected_customer_count&quot;: 120,
+  &quot;affected_service_count&quot;: 126,
+  &quot;affected_radius_user_count&quot;: 118,
+  &quot;revenue_impact_monthly&quot;: 25000000,
+  &quot;severity&quot;: &quot;P1&quot;
+}
+</code></pre>
+<h2 id="service-activation-cascade">Service Activation Cascade</h2>
+<pre><code class="language-text">service.created
+  -&gt; service.router.mapped
+  -&gt; radius.user.created
+  -&gt; service.activated
+  -&gt; invoice schedule active
+</code></pre>
+<p>Rules:</p>
+<ul>
+<li><code>service.router.mapped</code> wajib sebelum activation untuk layanan Internet.</li>
+<li><code>radius.user.created</code> wajib untuk service dengan <code>requires_radius = true</code>.</li>
+<li>Billing recurring hanya aktif setelah service activation valid.</li>
+</ul>
+<h2 id="capacity-warning-cascade">Capacity Warning Cascade</h2>
+<pre><code class="language-text">router.capacity.warning
+  -&gt; NOC Dashboard
+  -&gt; Capacity Dashboard
+  -&gt; optional ticket
+</code></pre>
+<pre><code class="language-text">router.capacity.critical
+  -&gt; Incident Service
+  -&gt; NOC escalation
+  -&gt; optional Work Order
+</code></pre>
+<h2 id="topic-naming">Topic Naming</h2>
+<ul>
+<li><code>customer.events</code></li>
+<li><code>service.events</code></li>
+<li><code>router.events</code></li>
+<li><code>router.monitoring.events</code></li>
+<li><code>radius.events</code></li>
+<li><code>billing.events</code></li>
+<li><code>payment.events</code></li>
+<li><code>incident.events</code></li>
+<li><code>ticket.events</code></li>
+<li><code>work_order.events</code></li>
+</ul>
+<h2 id="retry-and-dlq-rules">Retry and DLQ Rules</h2>
+<ul>
+<li>Idempotency key: <code>event_id</code>.</li>
+<li>Consumers must be idempotent by target entity and event version.</li>
+<li>Retry uses exponential backoff.</li>
+<li>DLQ must preserve full envelope and error message.</li>
+<li>Monitoring events that fail after retry must alert NOC.</li>
+</ul>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li>Event wajib ada: <code>router.created</code>, <code>router.updated</code>, <code>router.deleted</code>.</li>
+<li>Event wajib ada: <code>router.up</code>, <code>router.down</code>.</li>
+<li>Event wajib ada: <code>router.capacity.warning</code>, <code>router.capacity.critical</code>.</li>
+<li>Event wajib ada: <code>router.snmp.failed</code>.</li>
+<li>Event wajib ada: <code>service.router.mapped</code>.</li>
+<li>Event wajib ada: <code>radius.user.created</code>.</li>
+<li>Event wajib ada: <code>customer.impact.detected</code>.</li>
+<li>Event wajib ada: <code>incident.created</code>.</li>
+<li>Setiap event menampilkan producer, consumer, payload, dan retry strategy.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-7-state-machine">
+  <div class="card-head">
+    <span class="num">U07</span>
+    <h2>Step 7 - State Machine</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-state-machine-diagrams-v34-router-centric">PRD NEX OSS/BSS - State Machine Diagrams v3.4 Router-Centric</h1>
+<p>Peran: Enterprise Solution Architect</p>
+<p>Dokumen ini merevisi Step 7 agar state machine konsisten dengan PRD v3.4 Router-Centric.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Router</td>
+<td>Belum ada state machine Router</td>
+<td>Ditambahkan Router: Draft sampai Retired</td>
+</tr>
+<tr>
+<td>Router Interface</td>
+<td>Belum ada state interface</td>
+<td>Ditambahkan Provisioning, Up, Down, Disabled</td>
+</tr>
+<tr>
+<td>Radius User</td>
+<td>State lama tidak sama dengan PRD v3.4</td>
+<td>Diganti menjadi Pending, Active, Suspended, Terminated</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>Belum mewajibkan router mapping untuk Internet</td>
+<td>Ditambahkan validation router mapping</td>
+</tr>
+</tbody>
+</table>
+<h2 id="customer">Customer</h2>
+<p>States:</p>
+<ul>
+<li><code>prospect</code></li>
+<li><code>lead</code></li>
+<li><code>qualified</code></li>
+<li><code>contracted</code></li>
+<li><code>active</code></li>
+<li><code>suspended</code></li>
+<li><code>terminated</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>prospect -&gt; lead</code></li>
+<li><code>lead -&gt; qualified</code></li>
+<li><code>qualified -&gt; contracted</code></li>
+<li><code>contracted -&gt; active</code></li>
+<li><code>active -&gt; suspended</code></li>
+<li><code>suspended -&gt; active</code></li>
+<li><code>active -&gt; terminated</code></li>
+<li><code>suspended -&gt; terminated</code></li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li><code>contracted</code> requires signed contract.</li>
+<li><code>active</code> requires at least one active service.</li>
+<li><code>terminated</code> requires service cleanup and final billing handling.</li>
+</ul>
+<h2 id="service">Service</h2>
+<p>States:</p>
+<ul>
+<li><code>requested</code></li>
+<li><code>provisioning</code></li>
+<li><code>active</code></li>
+<li><code>suspended</code></li>
+<li><code>terminated</code></li>
+<li><code>failed</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>requested -&gt; provisioning</code></li>
+<li><code>provisioning -&gt; active</code></li>
+<li><code>provisioning -&gt; failed</code></li>
+<li><code>active -&gt; suspended</code></li>
+<li><code>suspended -&gt; active</code></li>
+<li><code>active -&gt; terminated</code></li>
+<li><code>suspended -&gt; terminated</code></li>
+<li><code>failed -&gt; terminated</code></li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li><code>active</code> requires contract and valid product/service category.</li>
+<li>Internet/network service requires <code>service_router_mapping</code>.</li>
+<li>Service with <code>requires_radius = true</code> requires active radius user.</li>
+<li><code>suspended</code> requires reason and audit record.</li>
+</ul>
+<h2 id="router">Router</h2>
+<p>States:</p>
+<ul>
+<li><code>Draft</code></li>
+<li><code>Provisioning</code></li>
+<li><code>Active</code></li>
+<li><code>Warning</code></li>
+<li><code>Critical</code></li>
+<li><code>Maintenance</code></li>
+<li><code>Offline</code></li>
+<li><code>Retired</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>Draft -&gt; Provisioning</code></li>
+<li><code>Provisioning -&gt; Active</code></li>
+<li><code>Provisioning -&gt; Offline</code></li>
+<li><code>Active -&gt; Warning</code></li>
+<li><code>Warning -&gt; Active</code></li>
+<li><code>Warning -&gt; Critical</code></li>
+<li><code>Critical -&gt; Warning</code></li>
+<li><code>Critical -&gt; Offline</code></li>
+<li><code>Active -&gt; Maintenance</code></li>
+<li><code>Warning -&gt; Maintenance</code></li>
+<li><code>Critical -&gt; Maintenance</code></li>
+<li><code>Maintenance -&gt; Active</code></li>
+<li><code>Active -&gt; Offline</code></li>
+<li><code>Offline -&gt; Active</code></li>
+<li><code>Offline -&gt; Retired</code></li>
+<li><code>Maintenance -&gt; Retired</code></li>
+</ul>
+<p>Triggers:</p>
+<ul>
+<li><code>Draft -&gt; Provisioning</code>: router record completed.</li>
+<li><code>Provisioning -&gt; Active</code>: interface/SNMP/NAS setup completed.</li>
+<li><code>Active -&gt; Warning</code>: capacity warning or degraded SNMP.</li>
+<li><code>Warning -&gt; Critical</code>: capacity critical or severe packet loss.</li>
+<li><code>Critical -&gt; Offline</code>: router down.</li>
+<li><code>Active -&gt; Offline</code>: SNMP unreachable or manual outage.</li>
+<li><code>Offline -&gt; Active</code>: router recovered.</li>
+<li><code>Any non-retired -&gt; Maintenance</code>: planned maintenance.</li>
+<li><code>Offline/Maintenance -&gt; Retired</code>: decommission approved.</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li><code>Provisioning</code> requires hostname, router role, management IP, and tenant.</li>
+<li><code>Active</code> requires at least one interface or explicit exception.</li>
+<li><code>Warning/Critical</code> requires metric or monitoring evidence.</li>
+<li><code>Retired</code> requires no primary active service mapping.</li>
+</ul>
+<h2 id="router-interface">Router Interface</h2>
+<p>States:</p>
+<ul>
+<li><code>Provisioning</code></li>
+<li><code>Up</code></li>
+<li><code>Down</code></li>
+<li><code>Disabled</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>Provisioning -&gt; Up</code></li>
+<li><code>Provisioning -&gt; Down</code></li>
+<li><code>Up -&gt; Down</code></li>
+<li><code>Down -&gt; Up</code></li>
+<li><code>Up -&gt; Disabled</code></li>
+<li><code>Down -&gt; Disabled</code></li>
+<li><code>Disabled -&gt; Provisioning</code></li>
+</ul>
+<p>Triggers:</p>
+<ul>
+<li>Interface created</li>
+<li>SNMP interface status update</li>
+<li>Admin disable/enable</li>
+<li>Repair completed</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li><code>Up</code> requires parent router not retired.</li>
+<li><code>Disabled</code> requires admin reason.</li>
+<li>Interface used by active service cannot be disabled without override and impact confirmation.</li>
+</ul>
+<h2 id="radius-user">Radius User</h2>
+<p>States:</p>
+<ul>
+<li><code>Pending</code></li>
+<li><code>Active</code></li>
+<li><code>Suspended</code></li>
+<li><code>Terminated</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>Pending -&gt; Active</code></li>
+<li><code>Active -&gt; Suspended</code></li>
+<li><code>Suspended -&gt; Active</code></li>
+<li><code>Active -&gt; Terminated</code></li>
+<li><code>Suspended -&gt; Terminated</code></li>
+<li><code>Pending -&gt; Terminated</code></li>
+</ul>
+<p>Triggers:</p>
+<ul>
+<li><code>Pending -&gt; Active</code>: FreeRadius sync and auth test successful.</li>
+<li><code>Active -&gt; Suspended</code>: service suspended or billing overdue.</li>
+<li><code>Suspended -&gt; Active</code>: payment reconciled or manual unsuspend.</li>
+<li><code>Active/Suspended -&gt; Terminated</code>: service termination.</li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li><code>Active</code> requires customer, service, profile, and router when network service requires mapping.</li>
+<li><code>Suspended</code> requires linked service suspend reason.</li>
+<li><code>Terminated</code> requires service termination or cleanup approval.</li>
+</ul>
+<h2 id="invoice">Invoice</h2>
+<p>States:</p>
+<ul>
+<li><code>draft</code></li>
+<li><code>issued</code></li>
+<li><code>overdue</code></li>
+<li><code>partial_paid</code></li>
+<li><code>paid</code></li>
+<li><code>written_off</code></li>
+<li><code>cancelled</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>draft -&gt; issued</code></li>
+<li><code>issued -&gt; overdue</code></li>
+<li><code>issued -&gt; partial_paid</code></li>
+<li><code>partial_paid -&gt; paid</code></li>
+<li><code>issued -&gt; paid</code></li>
+<li><code>overdue -&gt; paid</code></li>
+<li><code>overdue -&gt; written_off</code></li>
+<li><code>draft -&gt; cancelled</code></li>
+<li><code>issued -&gt; cancelled</code></li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li><code>issued</code> requires invoice number, due date, and items.</li>
+<li><code>paid</code> requires paid amount equals total amount.</li>
+<li><code>written_off</code> requires approval and audit.</li>
+</ul>
+<h2 id="payment">Payment</h2>
+<p>States:</p>
+<ul>
+<li><code>initiated</code></li>
+<li><code>authorized</code></li>
+<li><code>captured</code></li>
+<li><code>reconciled</code></li>
+<li><code>failed</code></li>
+<li><code>refunded</code></li>
+<li><code>cancelled</code></li>
+</ul>
+<p>Transitions:</p>
+<ul>
+<li><code>initiated -&gt; authorized</code></li>
+<li><code>authorized -&gt; captured</code></li>
+<li><code>captured -&gt; reconciled</code></li>
+<li><code>initiated -&gt; failed</code></li>
+<li><code>captured -&gt; failed</code></li>
+<li><code>reconciled -&gt; refunded</code></li>
+<li><code>authorized -&gt; cancelled</code></li>
+</ul>
+<h2 id="ticket">Ticket</h2>
+<p>States:</p>
+<ul>
+<li><code>new</code></li>
+<li><code>acknowledged</code></li>
+<li><code>assigned</code></li>
+<li><code>in_progress</code></li>
+<li><code>resolved</code></li>
+<li><code>awaiting_customer</code></li>
+<li><code>closed</code></li>
+<li><code>escalated</code></li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>Ticket from router incident must include <code>router_id</code> or <code>incident_id</code>.</li>
+<li><code>resolved</code> requires resolution note.</li>
+</ul>
+<h2 id="work-order">Work Order</h2>
+<p>States:</p>
+<ul>
+<li><code>created</code></li>
+<li><code>planned</code></li>
+<li><code>scheduled</code></li>
+<li><code>executing</code></li>
+<li><code>completed</code></li>
+<li><code>verified</code></li>
+<li><code>closed</code></li>
+<li><code>cancelled</code></li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>Network work order can reference router, interface, or router link.</li>
+<li>Completion requires report, photo/GPS evidence where field work applies.</li>
+</ul>
+<h2 id="contract">Contract</h2>
+<p>States:</p>
+<ul>
+<li><code>draft</code></li>
+<li><code>negotiation</code></li>
+<li><code>signed</code></li>
+<li><code>active</code></li>
+<li><code>renewal_pending</code></li>
+<li><code>expired</code></li>
+<li><code>terminated</code></li>
+</ul>
+<p>Validation:</p>
+<ul>
+<li>Service activation requires signed or active contract unless explicitly waived by tenant policy.</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<pre><code class="language-text">Router: Draft -&gt; Provisioning -&gt; Active -&gt; Warning/Critical -&gt; Offline -&gt; Active -&gt; Retired
+Router Interface: Provisioning -&gt; Up -&gt; Down -&gt; Up / Disabled
+Radius User: Pending -&gt; Active -&gt; Suspended -&gt; Active / Terminated
+Service: requested -&gt; provisioning -&gt; active -&gt; suspended -&gt; active / terminated
+</code></pre>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li>Router state tersedia: Draft, Provisioning, Active, Warning, Critical, Maintenance, Offline, Retired.</li>
+<li>Router Interface state tersedia: Provisioning, Up, Down, Disabled.</li>
+<li>Radius User state tersedia: Pending, Active, Suspended, Terminated.</li>
+<li>Service Internet tidak bisa aktif tanpa router mapping.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-8-wireframes">
+  <div class="card-head">
+    <span class="num">U08</span>
+    <h2>Step 8 - Wireframes</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-wireframes-v34-router-centric">PRD NEX OSS/BSS - Wireframes v3.4 Router-Centric</h1>
+<p>Peran: Product Designer dan Business Analyst</p>
+<p>Dokumen ini merevisi Step 8 agar UI mengikuti PRD v3.4 Router-Centric.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Navigation</td>
+<td>Belum ada menu Network router-centric</td>
+<td>Ditambahkan Network dengan Router, Interface, Link, Capacity, Impact, SNMP</td>
+</tr>
+<tr>
+<td>Router pages</td>
+<td>Belum lengkap</td>
+<td>Ditambahkan Router Dashboard, Detail, Capacity, Impact, Script Generator</td>
+</tr>
+<tr>
+<td>Responsive</td>
+<td>Belum mencakup halaman router</td>
+<td>Ditambahkan desktop, tablet, mobile</td>
+</tr>
+<tr>
+<td>POP/BTS</td>
+<td>Berpotensi menjadi menu terpisah</td>
+<td>POP/BTS hanya filter Router Role</td>
+</tr>
+</tbody>
+</table>
+<h2 id="navigation">Navigation</h2>
+<pre><code class="language-text">Dashboard
+Customer
+Service
+Billing
+Payment
+Network
+  Router
+  Router Interface
+  Router Link
+  Capacity Dashboard
+  Impact Analysis
+  SNMP Monitoring
+Radius
+Ticket
+Work Order
+Inventory
+GIS
+Partner
+Report
+Settings
+</code></pre>
+<p>Tidak ada menu POP atau BTS terpisah. Gunakan filter <code>Router Role</code> pada halaman Router.</p>
+<h2 id="global-desktop-shell">Global Desktop Shell</h2>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| NEX OSS/BSS | Search...                                      Tenant | User      |
++--------------+-----------------------------------------------------------------+
+| Dashboard    | Page Title                                      Actions          |
+| Customer     |-----------------------------------------------------------------|
+| Service      | Content Area                                                     |
+| Billing      |                                                                 |
+| Payment      |                                                                 |
+| Network &gt;    |                                                                 |
+| Radius       |                                                                 |
+| Ticket       |                                                                 |
+| Work Order   |                                                                 |
+| Settings     |                                                                 |
++--------------+-----------------------------------------------------------------+
+</code></pre>
+<h2 id="global-tablet-shell">Global Tablet Shell</h2>
+<pre><code class="language-text">+----------------------------------------------------------------+
+| Menu | NEX OSS/BSS | Search                         | User      |
++----------------------------------------------------------------+
+| Page Title                                      Actions          |
+|----------------------------------------------------------------|
+| Content in 2-column or stacked layout                           |
++----------------------------------------------------------------+
+</code></pre>
+<h2 id="global-mobile-shell">Global Mobile Shell</h2>
+<pre><code class="language-text">+--------------------------------+
+| Menu | NEX OSS/BSS | User      |
++--------------------------------+
+| Page Title                     |
+| Primary Action                 |
+|--------------------------------|
+| Stacked content                |
++--------------------------------+
+</code></pre>
+<h2 id="router-dashboard">Router Dashboard</h2>
+<p>Purpose:</p>
+<ul>
+<li>Memberi ringkasan kesehatan router, capacity, SNMP, dan impact.</li>
+</ul>
+<p>Desktop:</p>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Router Dashboard                                      [+ Router] [Generate]      |
++--------------------------------------------------------------------------------+
+| Total Router | Active | Warning | Critical | Offline | SNMP Failed              |
++--------------------------------------------------------------------------------+
+| Filters: Role [All] Status [All] SNMP [All] Search [____________]               |
++--------------------------------------------------------------------------------+
+| Router Table                                                                  |
+| Hostname     Role        Status    SNMP          Utilization   Impact Actions  |
+| bng-jkt-01   BNG         Active    Reachable     64%           0      View     |
+| pop-bdg-01   POP Router  Warning   Reachable     82%           45     View     |
+| bts-01       BTS Router  Offline   Unreachable   -             120    View     |
++--------------------------------------------------------------------------------+
+</code></pre>
+<p>Tablet:</p>
+<pre><code class="language-text">+------------------------------------------------+
+| Router Dashboard                     [+]       |
+| Total | Active | Warning | Offline             |
+| Filters                                        |
+| Router list cards                              |
+| bng-jkt-01 | BNG | Active | 64% | View         |
++------------------------------------------------+
+</code></pre>
+<p>Mobile:</p>
+<pre><code class="language-text">+------------------------------+
+| Router Dashboard          +  |
+| Search                       |
+| Role | Status                |
+| bng-jkt-01                  |
+| BNG | Active | Reachable     |
+| Utilization 64% | Impact 0   |
++------------------------------+
+</code></pre>
+<h2 id="router-detail">Router Detail</h2>
+<p>Purpose:</p>
+<ul>
+<li>Menampilkan identitas router, role, status, interface, NAS, service mapping, dan event timeline.</li>
+</ul>
+<p>Desktop:</p>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Router Detail: bng-jkt-01                         [Edit] [Maintenance] [Retire] |
++--------------------------------------------------------------------------------+
+| Summary: Role BNG | Status Active | SNMP Reachable | IP 10.0.0.1 | Site Jakarta |
++--------------------------------------------------------------------------------+
+| Interfaces                     | Radius NAS                                      |
+| ether1 Up 1G VLAN 100          | NAS IP 10.0.0.1 Vendor MikroTik Status Active    |
+| ether2 Up 1G VLAN 200          | Secret: ********                                |
++--------------------------------------------------------------------------------+
+| Service Mapping                                                                 |
+| CID        Customer        Service        Interface        VLAN       Status     |
++--------------------------------------------------------------------------------+
+| Timeline                                                                       |
++--------------------------------------------------------------------------------+
+</code></pre>
+<p>Mobile:</p>
+<pre><code class="language-text">+------------------------------+
+| bng-jkt-01              Edit |
+| BNG | Active | Reachable     |
+| IP 10.0.0.1                  |
+| Tabs: Summary Interfaces NAS |
+| Service Mapping              |
+| Timeline                     |
++------------------------------+
+</code></pre>
+<h2 id="router-interface">Router Interface</h2>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Router Interface                                      [+ Interface]             |
++--------------------------------------------------------------------------------+
+| Filters: Router [All] Status [All] Type [All]                                  |
+| Interface    Router       Type       IP          VLAN     Status    Actions     |
+| ether1       bng-jkt-01   ethernet   10.0.0.2    100      Up        Edit        |
++--------------------------------------------------------------------------------+
+</code></pre>
+<p>States shown:</p>
+<ul>
+<li>Provisioning</li>
+<li>Up</li>
+<li>Down</li>
+<li>Disabled</li>
+</ul>
+<h2 id="router-link">Router Link</h2>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Router Link                                             [+ Link]                |
++--------------------------------------------------------------------------------+
+| Router A      Interface A     Router B      Interface B     Capacity Status     |
+| bng-jkt-01    ether1          core-jkt-01   ether2          10G      Active     |
++--------------------------------------------------------------------------------+
+</code></pre>
+<h2 id="router-capacity">Router Capacity</h2>
+<p>Purpose:</p>
+<ul>
+<li>Menampilkan capacity history dan warning/critical.</li>
+</ul>
+<p>Desktop:</p>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Capacity Dashboard                                      Role [All] Site [All]   |
++--------------------------------------------------------------------------------+
+| Top Utilization | CPU Warning | Memory Warning | Traffic Critical              |
++--------------------------------------------------------------------------------+
+| Router Utilization Chart                                                        |
++--------------------------------------------------------------------------------+
+| Router       CPU    Memory    In/Out Traffic     Utilization     Level          |
+| pop-bdg-01   72%    68%       900M/850M          82%             Warning        |
++--------------------------------------------------------------------------------+
+</code></pre>
+<p>Mobile:</p>
+<pre><code class="language-text">+------------------------------+
+| Capacity                     |
+| pop-bdg-01                   |
+| CPU 72% | Mem 68% | 82% Warn |
++------------------------------+
+</code></pre>
+<h2 id="router-impact">Router Impact</h2>
+<p>Purpose:</p>
+<ul>
+<li>Menghitung customer/service/radius/revenue impact dari router down.</li>
+</ul>
+<p>Desktop:</p>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Impact Analysis                                  Router [bts-01] [Run Analysis] |
++--------------------------------------------------------------------------------+
+| Affected Customers | Affected Services | Radius Users | Monthly Revenue Impact  |
+| 120                | 126               | 118          | IDR 25,000,000          |
++--------------------------------------------------------------------------------+
+| Impacted Customers                                                              |
+| Customer      CID       Service       Radius User       Status       MRR         |
++--------------------------------------------------------------------------------+
+| [Create Incident] [Create Ticket] [Export]                                      |
++--------------------------------------------------------------------------------+
+</code></pre>
+<p>Mobile:</p>
+<pre><code class="language-text">+------------------------------+
+| Impact Analysis              |
+| Router: bts-01               |
+| Customers 120                |
+| Services 126                 |
+| Radius Users 118             |
+| Revenue IDR 25,000,000       |
+| Create Incident              |
++------------------------------+
+</code></pre>
+<h2 id="router-script-generator">Router Script Generator</h2>
+<p>Purpose:</p>
+<ul>
+<li>Menghasilkan script RouterOS untuk integrasi FreeRadius tanpa MikroTik API.</li>
+</ul>
+<p>Desktop:</p>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Router Script Generator                                                        |
++--------------------------------------------------------------------------------+
+| Router [bng-jkt-01] OS [ROS7] Type [PPPoE] Radius Server [10.10.10.10]          |
+| Secret [********] Service Profile [100M]                         [Generate]     |
++--------------------------------------------------------------------------------+
+| Generated Script                                                               |
+| /radius add address=10.10.10.10 ...                                            |
+|                                                                                |
+| [Copy] [Download] [Audit Log]                                                   |
++--------------------------------------------------------------------------------+
+</code></pre>
+<p>Supported script:</p>
+<ul>
+<li>ROS6 PPPoE</li>
+<li>ROS7 PPPoE</li>
+<li>ROS6 Hotspot</li>
+<li>ROS7 Hotspot</li>
+</ul>
+<p>Mobile:</p>
+<pre><code class="language-text">+------------------------------+
+| Script Generator             |
+| Router                       |
+| OS Version                   |
+| Script Type                  |
+| Radius Server                |
+| Secret                       |
+| Generate                     |
+| Script output                |
++------------------------------+
+</code></pre>
+<h2 id="snmp-monitoring-dashboard">SNMP Monitoring Dashboard</h2>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| SNMP Monitoring                                      Status [All] [Refresh]     |
++--------------------------------------------------------------------------------+
+| Reachable | Unreachable | Auth Failed | Not Configured                          |
++--------------------------------------------------------------------------------+
+| Router       Status          Last Check              Latency       Action       |
+| bng-jkt-01   Reachable       2026-06-18 09:00        12 ms         Detail       |
+| pop-bdg-01   Auth Failed     2026-06-18 09:00        -             Fix SNMP     |
++--------------------------------------------------------------------------------+
+</code></pre>
+<h2 id="radius-screen-update">Radius Screen Update</h2>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| Radius                                                                         |
++--------------------------------------------------------------------------------+
+| Profiles | Users | NAS Devices                                                 |
++--------------------------------------------------------------------------------+
+| Radius Users: Username | Customer | Service | Router | Profile | Status        |
+| NAS Devices: Hostname | Router | NAS IP | Vendor | Status                      |
++--------------------------------------------------------------------------------+
+</code></pre>
+<h2 id="noc-dashboard-update">NOC Dashboard Update</h2>
+<pre><code class="language-text">+--------------------------------------------------------------------------------+
+| NOC Dashboard                                                                  |
++--------------------------------------------------------------------------------+
+| Router Online | Router Warning | Router Critical | Customer Down | Open P1      |
++--------------------------------------------------------------------------------+
+| Active Incidents                                                               |
+| Incident | Router | Impact Customer | Revenue Impact | SLA | Action            |
++--------------------------------------------------------------------------------+
+</code></pre>
+<h2 id="gis-update">GIS Update</h2>
+<p>Layers:</p>
+<ul>
+<li>Router</li>
+<li>Customer</li>
+<li>Fiber</li>
+<li>ODC</li>
+<li>ODP</li>
+</ul>
+<p>Filters:</p>
+<ul>
+<li>Router Role</li>
+<li>Status</li>
+<li>SNMP Status</li>
+<li>Customer Impact</li>
+</ul>
+<h2 id="responsive-rules">Responsive Rules</h2>
+<ul>
+<li>Desktop uses sidebar navigation and wide tables.</li>
+<li>Tablet uses collapsible navigation and two-column panels.</li>
+<li>Mobile uses stacked cards, sticky primary action, and tabs for dense detail.</li>
+<li>Router tables collapse into summary cards on mobile.</li>
+<li>Impact Analysis keeps metrics visible before detailed list on all viewports.</li>
+</ul>
+<h2 id="qc-checklist">QC Checklist</h2>
+<ul>
+<li>Menu Network tersedia dengan Router, Router Interface, Router Link, Capacity Dashboard, Impact Analysis, SNMP Monitoring.</li>
+<li>Halaman tersedia: Router Dashboard, Router Detail, Router Capacity, Router Impact, Router Script Generator, SNMP Monitoring Dashboard.</li>
+<li>Desktop, tablet, dan mobile tersedia.</li>
+<li>Tidak ada menu POP/BTS terpisah.</li>
+</ul>
+  </div>
+</article><article class="card update-card" id="update-step-9-acceptance-criteria">
+  <div class="card-head">
+    <span class="num">U09</span>
+    <h2>Step 9 - Acceptance Criteria</h2>
+  </div>
+  <div class="content update-content">
+    <h1 id="prd-nex-ossbss-mvp-acceptance-criteria-v34-router-centric">PRD NEX OSS/BSS - MVP Acceptance Criteria v3.4 Router-Centric</h1>
+<p>Peran: QA Lead dan Technical Product Owner</p>
+<p>Dokumen ini merevisi Step 9 agar acceptance criteria konsisten dengan PRD v3.4.</p>
+<h2 id="gap-analysis-v34">Gap Analysis v3.4</h2>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Gap Lama</th>
+<th>Revisi v3.4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Router</td>
+<td>Belum menjadi acceptance criteria utama</td>
+<td>Ditambahkan CRUD router, role, SNMP, impact, capacity</td>
+</tr>
+<tr>
+<td>Service</td>
+<td>Router mapping belum wajib untuk Internet</td>
+<td>Ditambahkan rule wajib mapping untuk service Internet</td>
+</tr>
+<tr>
+<td>Radius</td>
+<td>Radius belum dikaitkan ke router</td>
+<td>Radius user wajib terkait service dan router jika layanan jaringan</td>
+</tr>
+<tr>
+<td>Script</td>
+<td>Belum ada output script generator</td>
+<td>Ditambahkan ROS6/ROS7 PPPoE/Hotspot</td>
+</tr>
+</tbody>
+</table>
+<h2 id="customer-and-service">Customer and Service</h2>
+<p>Feature: Customer and Service Lifecycle</p>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Customer dapat dibuat, diubah, dibaca, dan dinonaktifkan sesuai role.</li>
+<li>Service dapat dibuat untuk customer dengan product dan contract valid.</li>
+<li>Service Internet wajib memiliki Router Mapping sebelum status <code>active</code>.</li>
+<li>Service non-network tidak wajib Router Mapping.</li>
+<li>Service dengan <code>requires_radius = true</code> wajib memiliki Radius User.</li>
+<li>Customer tidak pernah dihubungkan langsung ke POP/BTS; relasi selalu melalui Service -&gt; Router.</li>
+</ul>
+<p>Test Cases:</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Activate Internet service tanpa router mapping</td>
+<td>Ditolak dengan validation error</td>
+</tr>
+<tr>
+<td>Activate non-network service tanpa router mapping</td>
+<td>Berhasil jika rule lain valid</td>
+</tr>
+<tr>
+<td>Read customer impact summary</td>
+<td>Menampilkan service dan router terkait untuk role internal</td>
+</tr>
+</tbody>
+</table>
+<h2 id="router-management">Router Management</h2>
+<p>Feature: Router CRUD and Role</p>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Router dapat dibuat, diubah, dan dinonaktifkan.</li>
+<li>Router memiliki role:</li>
+<li>Core Router</li>
+<li>Aggregation Router</li>
+<li>Edge Router</li>
+<li>PPPoE Router</li>
+<li>BNG</li>
+<li>Wireless Gateway</li>
+<li>POP Router</li>
+<li>BTS Router</li>
+<li>Hostname router unik per tenant.</li>
+<li>Router dapat memiliki interface.</li>
+<li>Router dapat memiliki router link.</li>
+<li>Router dapat dikaitkan ke Radius NAS.</li>
+<li>POP dan BTS tidak tersedia sebagai tabel/modul terpisah.</li>
+</ul>
+<p>Test Cases:</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Create router role POP Router</td>
+<td>Router tersimpan sebagai <code>router_role</code>, bukan POP entity</td>
+</tr>
+<tr>
+<td>Create duplicate hostname dalam tenant sama</td>
+<td>Ditolak dengan conflict</td>
+</tr>
+<tr>
+<td>Deactivate router yang masih punya primary active service mapping</td>
+<td>Ditolak atau butuh override approval</td>
+</tr>
+</tbody>
+</table>
+<h2 id="router-interface-and-link">Router Interface and Link</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Router Interface dapat dibuat, diubah, dibaca.</li>
+<li>Router Interface memiliki state Provisioning, Up, Down, Disabled.</li>
+<li>Router Link dapat menghubungkan dua router dan optional interface.</li>
+<li>Interface yang digunakan active service tidak boleh disabled tanpa impact confirmation.</li>
+</ul>
+<h2 id="snmp-monitoring">SNMP Monitoring</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>SNMP Status dapat ditampilkan:</li>
+<li>Reachable</li>
+<li>Unreachable</li>
+<li>Auth Failed</li>
+<li>Not Configured</li>
+<li>Router SNMP status dapat diperbarui oleh monitoring service.</li>
+<li>SNMP failed menghasilkan event <code>router.snmp.failed</code>.</li>
+<li>Router Down menghasilkan event <code>router.down</code>.</li>
+</ul>
+<p>Test Cases:</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SNMP credential salah</td>
+<td>Status <code>Auth Failed</code></td>
+</tr>
+<tr>
+<td>Router tidak bisa dihubungi</td>
+<td>Status <code>Unreachable</code>, router menjadi Offline/Critical sesuai rule</td>
+</tr>
+<tr>
+<td>SNMP belum dikonfigurasi</td>
+<td>Status <code>Not Configured</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="capacity-dashboard">Capacity Dashboard</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Dashboard menampilkan CPU, memory, traffic, utilization.</li>
+<li>Utilization warning menghasilkan <code>router.capacity.warning</code>.</li>
+<li>Utilization critical menghasilkan <code>router.capacity.critical</code>.</li>
+<li>Data histori tersimpan pada <code>router_capacity_history</code>.</li>
+</ul>
+<h2 id="customer-impact-analysis">Customer Impact Analysis</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Router Down wajib menampilkan customer terdampak.</li>
+<li>Router Down wajib menampilkan service terdampak.</li>
+<li>Router Down wajib menampilkan radius user terdampak.</li>
+<li>Router Down wajib menampilkan revenue impact.</li>
+<li>Router Down wajib dapat menghasilkan incident.</li>
+</ul>
+<p>Test Cases:</p>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Expected Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Router down dengan 100 service aktif</td>
+<td>Impact menampilkan 100 service dan customer terkait</td>
+</tr>
+<tr>
+<td>Router down dengan radius users</td>
+<td>Impact menampilkan radius user terdampak</td>
+</tr>
+<tr>
+<td>Impact calculated</td>
+<td>Revenue impact bulanan dihitung dari service aktif terdampak</td>
+</tr>
+</tbody>
+</table>
+<h2 id="radius-and-freeradius-aaa">Radius and FreeRadius AAA</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Radius profile dapat dibuat dan diubah.</li>
+<li>Radius user dapat dibuat untuk service.</li>
+<li>Radius user memiliki state Pending, Active, Suspended, Terminated.</li>
+<li>Radius User wajib terhubung ke Customer, Service, Router, dan Radius Profile jika service membutuhkan akses jaringan.</li>
+<li>Radius NAS wajib memiliki Router Mapping.</li>
+<li>Suspend service mengubah Radius User menjadi Suspended.</li>
+<li>Unsuspend service mengubah Radius User menjadi Active.</li>
+<li>Secret disimpan terenkripsi dan tidak tampil ulang kecuali saat creation/reset.</li>
+</ul>
+<h2 id="router-script-generator">Router Script Generator</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Script Generator wajib menghasilkan:</li>
+<li>ROS6 PPPoE</li>
+<li>ROS7 PPPoE</li>
+<li>ROS6 Hotspot</li>
+<li>ROS7 Hotspot</li>
+<li>Output script memuat konfigurasi Radius server, secret, dan service profile sesuai input.</li>
+<li>Generate script wajib masuk audit log.</li>
+<li>MikroTik API Integration tidak wajib pada MVP phase awal.</li>
+</ul>
+<h2 id="billing-payment-suspend">Billing, Payment, Suspend</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Invoice dapat dibuat untuk service aktif.</li>
+<li>Payment reconciled mengubah invoice menjadi paid.</li>
+<li>Invoice overdue dapat memicu suspend.</li>
+<li>Payment paid dapat memicu unsuspend.</li>
+<li>Suspend/unsuspend harus sinkron dengan Radius user.</li>
+</ul>
+<h2 id="ticket-and-work-order">Ticket and Work Order</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Ticket dapat dibuat dari customer, NOC alert, atau incident.</li>
+<li>Ticket teknis dapat mengacu ke router, interface, service, dan customer.</li>
+<li>Work Order dapat dibuat dari ticket atau incident.</li>
+<li>Work Order field report memuat bukti pekerjaan.</li>
+</ul>
+<h2 id="event-driven-acceptance">Event-Driven Acceptance</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Event router lifecycle tersedia: <code>router.created</code>, <code>router.updated</code>, <code>router.deleted</code>.</li>
+<li>Event monitoring tersedia: <code>router.up</code>, <code>router.down</code>, <code>router.capacity.warning</code>, <code>router.capacity.critical</code>, <code>router.snmp.failed</code>.</li>
+<li>Event mapping tersedia: <code>service.router.mapped</code>.</li>
+<li>Event impact tersedia: <code>customer.impact.detected</code>, <code>incident.created</code>.</li>
+<li>Semua consumer idempotent dan memiliki retry/DLQ.</li>
+</ul>
+<h2 id="security-and-tenant-isolation">Security and Tenant Isolation</h2>
+<p>Acceptance Criteria:</p>
+<ul>
+<li>Semua entity tenant-scoped memiliki <code>tenant_id</code>.</li>
+<li>User tenant tidak dapat membaca router/radius/customer tenant lain.</li>
+<li>Platform Owner dapat mengakses lintas tenant untuk operasi platform.</li>
+<li>Semua aksi sensitif masuk audit log.</li>
+</ul>
+<h2 id="final-mvp-gate">Final MVP Gate</h2>
+<p>MVP v3.4 dianggap lolos jika:</p>
+<ul>
+<li>Service Internet bisa diaktifkan end-to-end sampai Router Mapping dan Radius User.</li>
+<li>Router Down dapat dihitung dampaknya sampai customer, radius user, revenue impact, dan incident.</li>
+<li>Billing, payment, suspend, dan unsuspend sinkron dengan Radius.</li>
+<li>Tidak ada konsep POP/BTS sebagai modul utama atau tabel terpisah.</li>
+</ul>
+  </div>
+</article>
+
+</main>
+</div>
+<a class="backtop" href="#top">Top</a>
+</body>
+</html>

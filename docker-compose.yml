@@ -8,7 +8,7 @@ services:
     volumes:
       - .:/var/www/html
     ports:
-      - "8000:8000"
+      - "${APP_PORT:-8000}:8000"
     environment:
       APP_ENV: local
       APP_DEBUG: "true"
@@ -23,18 +23,21 @@ services:
       FREERADIUS_AUTH_PORT: 1812
       FREERADIUS_ACCT_PORT: 1813
       FREERADIUS_TEST_SECRET: testing123
-      FREERADIUS_SYNC_MODE: simulated
+      FREERADIUS_SYNC_MODE: database
       MIKROTIK_TEST_PUBLIC_IP: 103.142.202.226
     depends_on:
       - postgres
       - redis
-    command: php artisan serve --host=0.0.0.0 --port=8000
+    command: >
+      sh -c "mkdir -p storage/framework/sessions storage/framework/views storage/framework/cache/data bootstrap/cache
+      && chmod -R 775 storage bootstrap/cache
+      && php artisan serve --host=0.0.0.0 --port=8000"
 
   postgres:
     image: postgres:16-alpine
     container_name: nex_postgres
     ports:
-      - "5432:5432"
+      - "${POSTGRES_BIND:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_DB: nex_oss_bss
       POSTGRES_USER: nex
@@ -45,8 +48,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: nex_redis
-    ports:
-      - "6379:6379"
 
   pgadmin:
     image: dpage/pgadmin4:latest
@@ -54,7 +55,7 @@ services:
     ports:
       - "8080:80"
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@nex.local
+      PGADMIN_DEFAULT_EMAIL: admin@nexbil.id
       PGADMIN_DEFAULT_PASSWORD: password
     depends_on:
       - postgres

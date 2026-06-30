@@ -6,7 +6,9 @@ use App\Filament\Resources\RadiusServerResource\Pages;
 use App\Filament\Resources\RadiusServerResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
 use App\Models\RadiusServer;
+use App\Services\FreeRadiusService;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -33,14 +35,14 @@ class RadiusServerResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable(),
-                Forms\Components\TextInput::make('name')->required()->maxLength(255),
-                Forms\Components\TextInput::make('host')->required()->maxLength(255),
+                Forms\Components\TextInput::make('name')->required()->maxLength(80),
+                Forms\Components\TextInput::make('host')->required()->maxLength(120),
                 Forms\Components\TextInput::make('auth_port')->numeric()->default(1812)->required(),
                 Forms\Components\TextInput::make('acct_port')->numeric()->default(1813)->required(),
-                Forms\Components\TextInput::make('shared_secret')->password()->revealable()->required()->maxLength(255),
+                Forms\Components\TextInput::make('shared_secret')->password()->revealable()->required()->maxLength(80),
                 Forms\Components\Select::make('status')
                     ->options(['active' => 'Active', 'inactive' => 'Inactive'])
                     ->default('active')
@@ -76,6 +78,23 @@ class RadiusServerResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('test')
+                    ->label('Test')
+                    ->icon('heroicon-o-signal')
+                    ->color('info')
+                    ->action(function (RadiusServer $record): void {
+                        $result = app(FreeRadiusService::class)->testServerConnection($record);
+
+                        Notification::make()
+                            ->title('Test Radius selesai')
+                            ->body($result['message'])
+                            ->color(match ($result['status']) {
+                                'success' => 'success',
+                                'failed' => 'danger',
+                                default => 'warning',
+                            })
+                            ->send();
+                    }),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

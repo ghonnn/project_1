@@ -37,6 +37,10 @@ class Product extends NexModel
     protected static function booted(): void
     {
         static::saving(function (Product $product): void {
+            if (blank($product->mikrotik_group) || $product->mikrotik_group === 'RLRADIUS') {
+                $product->mikrotik_group = static::radiusGroupName($product->sku ?: $product->name);
+            }
+
             $hpp = (float) $product->hpp;
 
             $product->price = $product->ppn_enabled ? round($hpp * 1.11) : $hpp;
@@ -63,5 +67,12 @@ class Product extends NexModel
                 ]
             );
         });
+    }
+
+    private static function radiusGroupName(string $value): string
+    {
+        $value = strtoupper(preg_replace('/[^A-Za-z0-9_-]+/', '-', trim($value)) ?: 'NEX-PROFILE');
+
+        return substr($value, 0, 50);
     }
 }

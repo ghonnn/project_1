@@ -1,73 +1,87 @@
 <x-filament-panels::page>
-    <div class="grid gap-4 md:grid-cols-3">
+    <div class="nex-dashboard-grid">
         @php
             $cards = [
-                ['label' => 'Pemasukan voucher', 'value' => 'Rp'.number_format($voucherIncomeToday, 0, ',', '.'), 'icon' => 'heroicon-o-circle-stack', 'color' => '#0891b2'],
-                ['label' => 'Pemasukan invoice', 'value' => 'Rp'.number_format($invoiceToday, 0, ',', '.'), 'icon' => 'heroicon-o-calendar-days', 'color' => '#16a34a'],
-                ['label' => 'Pengeluaran', 'value' => 'Rp'.number_format($expenseToday, 0, ',', '.'), 'icon' => 'heroicon-o-calendar', 'color' => '#f59e0b'],
-                ['label' => 'Voucher Online', 'value' => number_format($voucherOnline, 0, ',', '.'), 'icon' => 'heroicon-o-wifi', 'color' => '#16a34a'],
-                ['label' => 'Langganan Online', 'value' => number_format($subscriptionOnline, 0, ',', '.'), 'icon' => 'heroicon-o-user-group', 'color' => '#0891b2'],
-                ['label' => 'Pelanggan Terisolir', 'value' => number_format($isolatedCustomers, 0, ',', '.'), 'icon' => 'heroicon-o-calendar-date-range', 'color' => '#6b7280'],
+                ['label' => 'Pemasukan voucher', 'value' => 'Rp'.number_format($voucherIncomeToday, 0, ',', '.'), 'icon' => 'heroicon-o-circle-stack', 'color' => '#0891b2', 'soft' => '#ecfeff', 'hint' => 'Pendapatan voucher hari ini'],
+                ['label' => 'Pemasukan invoice', 'value' => 'Rp'.number_format($invoiceToday, 0, ',', '.'), 'icon' => 'heroicon-o-banknotes', 'color' => '#059669', 'soft' => '#ecfdf5', 'hint' => 'Pembayaran invoice masuk'],
+                ['label' => 'Pengeluaran', 'value' => 'Rp'.number_format($expenseToday, 0, ',', '.'), 'icon' => 'heroicon-o-arrow-trending-down', 'color' => '#f59e0b', 'soft' => '#fffbeb', 'hint' => 'Biaya tercatat hari ini'],
+                ['label' => 'Voucher Online', 'value' => number_format($voucherOnline, 0, ',', '.'), 'icon' => 'heroicon-o-wifi', 'color' => '#10b981', 'soft' => '#ecfdf5', 'hint' => 'Hotspot aktif dari RADIUS'],
+                ['label' => 'Langganan Online', 'value' => number_format($subscriptionOnline, 0, ',', '.'), 'icon' => 'heroicon-o-user-group', 'color' => '#0284c7', 'soft' => '#eff6ff', 'hint' => 'PPPoE aktif dari MikroTik'],
+                ['label' => 'SNMP Aktif', 'value' => number_format($routerSnmpActive, 0, ',', '.').'/'.number_format($routerCount, 0, ',', '.'), 'icon' => 'heroicon-o-signal', 'color' => '#7c3aed', 'soft' => '#f5f3ff', 'hint' => 'Router reachable via SNMP'],
+                ['label' => 'Pelanggan Terisolir', 'value' => number_format($isolatedCustomers, 0, ',', '.'), 'icon' => 'heroicon-o-no-symbol', 'color' => '#64748b', 'soft' => '#f1f5f9', 'hint' => 'Layanan suspend/isolir'],
             ];
         @endphp
 
         @foreach ($cards as $card)
-            <div class="rounded bg-white p-5 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
-                <x-dynamic-component :component="$card['icon']" class="h-8 w-8" style="color: {{ $card['color'] }}" />
-                <div class="mt-5 flex items-end justify-between">
-                    <div>
-                        <div class="text-2xl font-semibold">{{ $card['value'] }}</div>
-                        <div class="mt-4 text-sm text-gray-600 dark:text-gray-300">{{ $card['label'] }}</div>
+            <div class="nex-metric-card" style="--metric-color: {{ $card['color'] }}; --metric-soft: {{ $card['soft'] }}">
+                <div class="nex-metric-head">
+                    <div class="nex-metric-icon">
+                        <x-dynamic-component :component="$card['icon']" class="h-6 w-6" />
                     </div>
-                    <div class="text-sm text-gray-500">Total hari ini</div>
+                    <div class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-500">Hari ini</div>
                 </div>
+                <div class="nex-metric-body">
+                    <div class="nex-metric-value">{{ $card['value'] }}</div>
+                    <div class="nex-metric-label">{{ $card['label'] }}</div>
+                </div>
+                <div class="nex-metric-foot">{{ $card['hint'] }}</div>
             </div>
         @endforeach
     </div>
 
     <div class="grid gap-4 lg:grid-cols-2">
-        <div class="rounded bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
-            <div class="border-b px-4 py-3 font-semibold dark:border-gray-800">LOG APLIKASI</div>
-            <div class="divide-y dark:divide-gray-800">
+        <div class="nex-panel-card">
+            <div class="nex-panel-header">
+                <div>
+                    <div class="nex-panel-title">Log Aplikasi</div>
+                    <div class="nex-panel-subtitle">Aktivitas sistem terakhir</div>
+                </div>
+            </div>
+            <div class="divide-y divide-slate-100">
                 @forelse ($logs as $log)
-                    <div class="flex gap-3 px-4 py-3">
-                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded bg-sky-600 text-white">
+                    <div class="flex gap-3 px-5 py-4">
+                        <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-emerald-600 text-white">
                             <x-heroicon-o-user class="h-5 w-5" />
                         </div>
                         <div>
-                            <div class="font-medium">{{ $log->user?->name ?? 'SYSTEM' }}</div>
-                            <div class="text-sm text-gray-500">{{ $log->action }} - {{ $log->created_at?->format('d/m/Y H:i:s') }}</div>
+                            <div class="font-medium text-slate-900">{{ $log->user?->name ?? 'SYSTEM' }}</div>
+                            <div class="text-sm text-slate-500">{{ $log->action }} - {{ $log->created_at?->format('d/m/Y H:i:s') }}</div>
                         </div>
                     </div>
                 @empty
-                    <div class="px-4 py-6 text-sm text-gray-500">Belum ada log aplikasi.</div>
+                    <div class="px-5 py-8 text-sm font-medium text-slate-500">Belum ada log aplikasi.</div>
                 @endforelse
             </div>
         </div>
 
-        <div class="rounded bg-white shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900">
-            <div class="border-b px-4 py-3 font-semibold dark:border-gray-800">INFORMASI LISENSI</div>
-            <div class="space-y-4 p-4">
-                <h2 class="text-2xl font-semibold">{{ $licenseName }}</h2>
+        <div class="nex-panel-card">
+            <div class="nex-panel-header">
                 <div>
-                    <div class="font-medium">Total Sesi Online {{ number_format($subscriptionOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-sky-500" style="width: {{ min(100, $subscriptionOnline / max(1, $maxSessions) * 100) }}%"></div></div>
+                    <div class="nex-panel-title">Informasi Lisensi</div>
+                    <div class="nex-panel-subtitle">{{ strtoupper($tenant?->name ?? 'NEX ISP PLATFORM') }}</div>
                 </div>
-                <div>
-                    <div class="font-medium">Total Voucher {{ number_format($voucherOnline, 0, ',', '.') }}/{{ number_format($maxVouchers, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-emerald-500" style="width: {{ min(100, $voucherOnline / max(1, $maxVouchers) * 100) }}%"></div></div>
+                <div class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{{ $licenseName }}</div>
+            </div>
+            <div class="space-y-5 p-5">
+                <div class="nex-progress-row">
+                    <div class="nex-progress-label"><span>Total Sesi Online</span><span>{{ number_format($totalOnline, 0, ',', '.') }}/{{ number_format($maxSessions, 0, ',', '.') }}</span></div>
+                    <div class="nex-progress-track"><div class="nex-progress-fill" style="--progress-color: #059669; width: {{ min(100, $totalOnline / max(1, $maxSessions) * 100) }}%"></div></div>
                 </div>
-                <div>
-                    <div class="font-medium">Total Berlangganan {{ number_format($activeSubscriptions, 0, ',', '.') }}/{{ number_format($maxSubscriptions, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-rose-500" style="width: {{ min(100, $activeSubscriptions / max(1, $maxSubscriptions) * 100) }}%"></div></div>
+                <div class="nex-progress-row">
+                    <div class="nex-progress-label"><span>Total Voucher</span><span>{{ number_format($voucherOnline, 0, ',', '.') }}/{{ number_format($maxVouchers, 0, ',', '.') }}</span></div>
+                    <div class="nex-progress-track"><div class="nex-progress-fill" style="--progress-color: #0891b2; width: {{ min(100, $voucherOnline / max(1, $maxVouchers) * 100) }}%"></div></div>
                 </div>
-                <div>
-                    <div class="font-medium">Total Router {{ number_format($routerActive, 0, ',', '.') }}/{{ number_format($maxRouters, 0, ',', '.') }}</div>
-                    <div class="mt-2 h-3 rounded bg-gray-200 dark:bg-gray-800"><div class="h-3 rounded bg-blue-500" style="width: {{ min(100, $routerActive / max(1, $maxRouters) * 100) }}%"></div></div>
+                <div class="nex-progress-row">
+                    <div class="nex-progress-label"><span>Total Berlangganan</span><span>{{ number_format($activeSubscriptions, 0, ',', '.') }}/{{ number_format($maxSubscriptions, 0, ',', '.') }}</span></div>
+                    <div class="nex-progress-track"><div class="nex-progress-fill" style="--progress-color: #0284c7; width: {{ min(100, $activeSubscriptions / max(1, $maxSubscriptions) * 100) }}%"></div></div>
                 </div>
-                <div class="rounded bg-blue-600 p-5 font-semibold text-white">
-                    {{ strtoupper($tenant?->name ?? 'NEX ISP PLATFORM') }}<br>
-                    <span class="text-sm">TimeZone : {{ $timezone }}<br>Sisa Masa Aktif : Unlimited</span>
+                <div class="nex-progress-row">
+                    <div class="nex-progress-label"><span>Total Router</span><span>{{ number_format($routerActive, 0, ',', '.') }}/{{ number_format($maxRouters, 0, ',', '.') }}</span></div>
+                    <div class="nex-progress-track"><div class="nex-progress-fill" style="--progress-color: #7c3aed; width: {{ min(100, $routerActive / max(1, $maxRouters) * 100) }}%"></div></div>
+                </div>
+                <div class="rounded-lg bg-slate-950 p-5 font-semibold text-white">
+                    <div class="text-lg">{{ strtoupper($tenant?->name ?? 'NEX ISP PLATFORM') }}</div>
+                    <div class="mt-2 text-sm text-slate-300">TimeZone: {{ $timezone }} / Sisa Masa Aktif: Unlimited</div>
                 </div>
             </div>
         </div>

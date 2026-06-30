@@ -43,7 +43,7 @@ class StoppedSubscriptionResource extends Resource
                 Tables\Columns\TextColumn::make('billing_cycle')->label('Siklus Tagihan'),
                 Tables\Columns\TextColumn::make('created_at')->label('Tgl Daftar')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('terminated_at')->label('Tgl Stop')->date('d/m/Y')->sortable(),
-                Tables\Columns\TextColumn::make('partner_name')->label('Mitra')->searchable(),
+                Tables\Columns\TextColumn::make('partner_name')->label('Partner')->searchable(),
                 Tables\Columns\TextColumn::make('notes')->label('Note')->limit(30),
             ])
             ->actions([])

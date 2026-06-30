@@ -33,11 +33,11 @@ class ServiceCategoryResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\TextInput::make('code')->required()->maxLength(255),
-                Forms\Components\TextInput::make('name')->required()->maxLength(255),
+                Forms\Components\TextInput::make('code')->required()->maxLength(40),
+                Forms\Components\TextInput::make('name')->required()->maxLength(80),
                 Forms\Components\Toggle::make('requires_router_mapping'),
                 Forms\Components\Toggle::make('requires_radius'),
                 Forms\Components\Toggle::make('requires_ip_assignment'),

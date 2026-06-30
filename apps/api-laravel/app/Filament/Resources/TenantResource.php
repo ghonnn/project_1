@@ -32,10 +32,10 @@ class TenantResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
-                Forms\Components\TextInput::make('name')->required()->maxLength(255),
-                Forms\Components\TextInput::make('slug')->required()->maxLength(255),
+                Forms\Components\TextInput::make('name')->required()->maxLength(120),
+                Forms\Components\TextInput::make('slug')->required()->maxLength(80),
                 Forms\Components\Section::make('Lisensi Platform')
                     ->columns(2)
                     ->schema([

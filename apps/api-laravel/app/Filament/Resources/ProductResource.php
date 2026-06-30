@@ -34,23 +34,32 @@ class ProductResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('service_category_id')->options(fn () => AdminOptions::serviceCategories())->searchable(),
-                Forms\Components\TextInput::make('name')->label('Nama profile')->required()->maxLength(255),
-                Forms\Components\TextInput::make('sku')->label('Kode profile')->required()->maxLength(255),
+                Forms\Components\TextInput::make('name')->label('Nama profile')->required()->maxLength(80),
+                Forms\Components\TextInput::make('sku')
+                    ->label('Kode profile')
+                    ->required()
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, mixed $state): void {
+                        if (blank($get('mikrotik_group')) || in_array($get('mikrotik_group'), ['RLRADIUS', 'NEX-PROFILE'], true)) {
+                            $set('mikrotik_group', self::radiusGroupName((string) $state));
+                        }
+                    })
+                    ->maxLength(50),
                 Forms\Components\TextInput::make('mikrotik_group')
                     ->label('Mikrotik group')
-                    ->default('RLRADIUS')
-                    ->helperText('Harus sama dengan nama profile di mikrotik')
+                    ->default('NEX-PROFILE')
+                    ->helperText('Dipakai sebagai group FreeRadius/MikroTik. Buat unik per paket agar rate limit tidak saling menimpa.')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(50),
                 Forms\Components\TextInput::make('mikrotik_rate_limit')
                     ->label('Mikrotik rate limit')
                     ->placeholder('1500k/2M 0/0 0/0 0/0 8 0/0')
                     ->helperText('Jika dikosongkan, maka akan digunakan limitasi profile mikrotik')
-                    ->maxLength(255),
+                    ->maxLength(120),
                 Forms\Components\TextInput::make('shared_users')->label('Shared')->numeric()->default(1)->required(),
                 Forms\Components\TextInput::make('active_days')->label('Masa aktif (Hari)')->numeric()->default(30)->required(),
                 self::rupiahInput('hpp', 'HPP')
@@ -202,5 +211,12 @@ class ProductResource extends Resource
         }
 
         return (float) str_replace('.', '', $value);
+    }
+
+    private static function radiusGroupName(string $value): string
+    {
+        $value = strtoupper(preg_replace('/[^A-Za-z0-9_-]+/', '-', trim($value)) ?: 'NEX-PROFILE');
+
+        return substr($value, 0, 50);
     }
 }

@@ -196,7 +196,7 @@ Scope:
 
 - Router SNMP Monitoring.
 - Capacity Dashboard.
-- PRTG/LibreNMS/SNMP integration.
+- SNMP integration.
 - FreeRadius availability monitoring.
 - NOC Dashboard.
 - Customer Impact Analysis.

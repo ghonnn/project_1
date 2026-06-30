@@ -17,10 +17,20 @@ Dokumen ini merevisi Step 8 agar UI mengikuti PRD v3.4 Router-Centric.
 
 ```text
 Dashboard
+Partner
 Customer
+Catalog
+Voucher
+  Profile voucher
+  Stok voucher
+  Voucher terjual
+  Voucher online
+  Rekap voucher
+  Template
 Service
-Billing
-Payment
+Map
+  Map Pelanggan
+  Map ODP
 Network
   Router
   Router Interface
@@ -28,17 +38,27 @@ Network
   Capacity Dashboard
   Impact Analysis
   SNMP Monitoring
+  ODP
+  OLT
+  GenieACS
 Radius
 Ticket
 Work Order
 Inventory
 GIS
-Partner
-Report
+Billing
+Payment
 Settings
+  WhatsApp
+  Tools
+  Admin
+  App Setting
 ```
 
 Tidak ada menu POP atau BTS terpisah. Gunakan filter `Router Role` pada halaman Router.
+
+Detail menu Partner, Voucher, Map, ODP/OLT/GenieACS, dan Settings (WhatsApp/Tools/Admin/App Setting) ada di
+`docs/PRD_NEX_OSS_BSS_Voucher_Partner_NetworkOps_Addendum.md`, termasuk status build per item.
 
 ## Global Desktop Shell
 

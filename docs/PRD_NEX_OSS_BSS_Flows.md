@@ -1,285 +1,259 @@
-# PRD NEX OSS/BSS - Flow Bisnis Utama v3.4 Router-Centric
+# PRD NEX OSS/BSS - Flow Bisnis Utama
 
 Peran: Senior Business Analyst OSS/BSS ISP
 
-Dokumen ini merevisi flow Step 1 agar konsisten dengan PRD v3.4. Prinsip topologi wajib:
+Dokumen ini merevisi flow bisnis agar sesuai kondisi implementasi saat ini. Prinsip topology tetap router-centric, tetapi UI disederhanakan: role router tidak menjadi field utama operator, status SNMP bukan pilihan manual, dan angka online berasal dari accounting aktif FreeRadius.
 
-`Customer -> Service -> Router -> Router Interface -> Radius NAS -> FreeRadius`
+## Prinsip Topology
 
-Router adalah node utama jaringan. POP dan BTS tidak menjadi modul/tabel utama; keduanya hanya nilai `router_role` seperti `POP Router` dan `BTS Router`.
+Flow jaringan utama:
 
-## Gap Analysis v3.4
+`Customer -> Service -> Router -> Radius NAS -> FreeRadius SQL -> MikroTik PPPoE/Hotspot`
 
-| Area | Gap Lama | Revisi v3.4 |
-|---|---|---|
-| Topologi | Flow belum menempatkan router sebagai node utama | Semua provisioning dan NOC menelusuri dampak dari Service ke Router/Interface/NAS |
-| POP/BTS | Berisiko dianggap modul utama | POP/BTS hanya role pada Router |
-| FreeRadius | Aktivasi AAA belum wajib terkait router | Radius user wajib terkait service dan router untuk layanan jaringan |
-| NOC | Incident belum menghitung dampak pelanggan dan revenue dari router down | Ditambahkan Customer Impact Analysis Flow |
-| Provisioning | Belum ada flow khusus router | Ditambahkan Router Provisioning Flow |
+Untuk monitoring:
+
+`Router -> SNMP Test/Polling -> Router Status -> Dashboard/NOC`
+
+Untuk sesi online:
+
+`MikroTik Accounting -> FreeRadius -> radacct -> Dashboard/List Router`
+
+## Kondisi Implementasi Saat Ini
+
+Sudah berjalan:
+
+- Customer, service, product/profile, invoice, payment dasar.
+- Router, interface, NAS device, Radius server/profile/user.
+- Service provisioning ke Radius user.
+- FreeRadius SQL sync untuk NAS dan user.
+- Script MikroTik untuk Radius, SNMP, PPPoE, Hotspot, pool, dan isolir.
+- Status SNMP dari test aplikasi ke router.
+- Online count dari `radacct` aktif.
+- Partner data dan field komisi dasar.
+
+Belum lengkap:
+
+- Work order lengkap.
+- Payment gateway dan notification engine produksi.
+- SNMP polling scheduler.
+- NOC incident dan customer impact otomatis.
+- GIS topology dan inventory detail.
 
 ## Aturan Umum Flow
 
-- Billing hanya berjalan untuk customer dengan contract valid dan service aktif.
-- Service Internet wajib memiliki Router Mapping.
-- Service non-network tidak wajib Router Mapping.
-- Radius user dibuat dari service yang membutuhkan AAA dan harus dapat ditelusuri ke router.
-- Router Down wajib menghasilkan daftar customer terdampak, radius user terdampak, revenue impact, dan incident/ticket.
+- Billing hanya berjalan untuk service valid.
+- Service jaringan wajib memiliki router mapping dan Radius user.
+- Radius user harus terkait customer, service, router, dan profile/group.
+- NAS device harus terkait router dan Radius server.
+- Secret Radius dibuat otomatis oleh aplikasi dan dipakai di script MikroTik.
+- Status SNMP tidak boleh diedit manual; status berasal dari test/polling.
+- Langganan Online dan Voucher Online tidak boleh diinput manual; angka berasal dari `radacct` dengan `acctstoptime IS NULL`.
 
 ## 1. Customer Lifecycle
 
 Diagram:
 
-`Prospect -> Lead -> Survey Work Order -> Feasible -> Quotation -> Contract Signed -> Installation Work Order -> Service Provisioning -> Router Mapping -> Radius User Active -> Billing Active -> Active Customer -> Suspend/Terminate`
-
-Status:
-
-- `prospect`
-- `lead`
-- `survey_requested`
-- `feasible` / `not_feasible`
-- `quoted`
-- `contract_signed`
-- `installation_scheduled`
-- `provisioning`
-- `active`
-- `suspended`
-- `terminated`
-
-Actor:
-
-- Sales
-- Customer
-- Teknisi
-- NOC
-- Billing
-- Partner jika customer berasal dari partner
+`Customer Created -> Service Created -> Router Selected -> Radius Profile Selected -> Service Provisioning -> Radius User Synced -> Billing Active -> Active Customer -> Suspend/Unsuspend/Terminate`
 
 Output:
 
-- Customer master
-- Contract
-- Service instance
-- Installation work order
-- Router/service mapping
-- Radius user jika layanan membutuhkan AAA
-- Billing account
+- Customer master.
+- Service instance.
+- Router mapping.
+- Radius user.
+- Invoice/payment.
+- Audit log.
 
-## 2. Billing Flow
+Status implementasi:
+
+- Customer dan service tersedia.
+- Provisioning service ke router/radius tersedia.
+- Contract formal dan work order instalasi belum lengkap.
+
+## 2. Service Provisioning Flow
 
 Diagram:
 
-`Service Active -> Validate Contract -> Validate Service Category -> Validate Router Mapping if Internet -> Generate Invoice -> Deliver Invoice -> Dunning -> Paid or Suspend`
+`Create Service -> Select Customer/Product/Connection Type -> Select Router -> Select Radius Server -> Validate Router/NAS -> Create Radius User -> Sync FreeRadius SQL -> Service Active`
 
-Trigger:
+Rules:
 
-- Billing cycle
-- Service activation
-- One-time installation charge
-- Contract renewal or amendment
-
-Validation:
-
-- Service harus `active`.
-- Service Internet wajib memiliki `service_router_mapping`.
-- Invoice item harus mengacu ke service yang valid.
-- Invoice overdue memicu Suspend Flow sesuai policy tenant.
+- PPPoE/Hotspot/WiFi membutuhkan Router dan Radius server.
+- NAS client dibuat dari Router melalui action provisioning.
+- Radius group mengikuti product/profile.
+- Username dan password Radius disimpan di Radius user.
 
 Output:
 
-- Invoice
-- Invoice item
-- AR aging
-- `invoice.created`
-- `invoice.overdue`
-- `invoice.paid`
+- Service active.
+- Radius user active.
+- Data `radcheck`, `radreply`, `radusergroup`.
+- NAS client di tabel `nas`.
 
-## 3. Payment Flow
+## 3. Router Provisioning Flow
 
 Diagram:
 
-`Invoice Issued -> Payment Initiated -> Payment Captured -> Reconciliation -> Invoice Paid -> Unsuspend Evaluation -> Service/Radius Reactivation`
+`Create Router -> Auto Hostname from Router Name -> Auto Generate Radius Secret -> Fill IP/SNMP/Pool Settings -> Connect Radius -> Download MikroTik Script -> Apply Script on MikroTik -> Test SNMP`
 
-Trigger:
+Rules:
 
-- Payment gateway callback
-- Manual payment
-- Partner collection
-- Customer portal payment
+- Nama router menjadi hostname.
+- Secret Radius auto-generate 12 digit.
+- Router role tidak menjadi input operator pada MVP.
+- Status SNMP tampil dari hasil test.
+- PPPoE/Hotspot interface diisi pada setting script MikroTik bila ingin script membuat server otomatis.
 
 Output:
 
-- Payment record
-- Receipt
-- Invoice status update
-- Unsuspend event jika invoice terkait service suspended
+- Router.
+- NAS device.
+- MikroTik script.
+- SNMP status.
 
-## 4. Suspend / Unsuspend Flow
+## 4. FreeRadius Sync Flow
 
 Diagram:
 
-`Invoice Overdue -> Dunning Policy -> Suspend Service -> Disable Radius User -> Notify Customer -> Payment Reconciled -> Enable Radius User -> Unsuspend Service`
+`Router Connected to Radius -> NAS Synced -> Service Provisioned -> Radius User Synced -> FreeRadius Reads SQL -> MikroTik Auth Request -> Accept/Reject`
+
+Tables:
+
+- `nas`
+- `radcheck`
+- `radreply`
+- `radusergroup`
+- `radgroupcheck`
+- `radgroupreply`
+- `radacct`
 
 Rules:
 
-- Suspend dilakukan pada service, bukan langsung pada customer global kecuali policy tenant mengatur full-account suspension.
-- Service suspend wajib mencatat alasan, invoice, dan actor/system trigger.
-- Radius user terkait service diubah menjadi `suspended`.
-- Unsuspend hanya dilakukan setelah payment cleared atau approval manual.
+- FreeRadius server harus membaca database aplikasi.
+- MikroTik harus memakai secret yang sama dengan tabel `nas`.
+- IP sumber MikroTik harus cocok dengan `nas.nasname`.
+- Untuk online count, FreeRadius accounting harus aktif dan menulis `radacct`.
 
-Output:
-
-- Service status `suspended` atau `active`
-- Radius user status `suspended` atau `active`
-- Audit log
-- Notification
-
-## 5. NOC Flow
+## 5. PPPoE/Hotspot Online Flow
 
 Diagram:
 
-`Monitoring Alert -> Identify Router/Interface -> Customer Impact Analysis -> Incident Created -> Triage -> Escalation -> Work Order if Field Needed -> Resolution -> RCA -> Closure`
-
-Trigger:
-
-- SNMP alert
-- PRTG/LibreNMS alert
-- Radius authentication anomaly
-- Customer ticket
-- Manual NOC report
-
-Output:
-
-- Incident
-- Ticket
-- Impact list
-- Work order
-- RCA
-
-## 6. Ticket Flow
-
-Diagram:
-
-`Ticket Created -> Categorize -> Link Customer/Service/Router -> Assign -> Investigate -> Resolve -> Customer Confirmation -> Close`
+`Client Connected -> MikroTik PPPoE/Hotspot Auth -> FreeRadius Auth OK -> Accounting Start -> radacct row with acctstoptime NULL -> Dashboard/List Router Online Count`
 
 Rules:
 
-- Ticket teknis harus dapat mengacu ke customer, service, router, atau incident.
-- Ticket dari Router Down dapat dibuat otomatis dari incident.
-- Ticket billing tetap mengacu ke invoice/payment, tetapi dapat mengait ke service bila berdampak suspend.
+- `Langganan Online` = PPP/PPPoE service yang punya session aktif di `radacct`.
+- `Voucher Online` = Hotspot/WiFi service yang punya session aktif di `radacct`.
+- User active yang belum connect tidak dihitung online.
+- Accounting stop harus mengisi `acctstoptime`, sehingga sesi tidak dihitung online lagi.
 
-## 7. Work Order Flow
-
-Diagram:
-
-`Work Order Created -> Scope Router/Service/Customer -> Assign Technician -> Schedule -> Execute -> Upload Evidence -> Verify -> Close`
-
-Rules:
-
-- Work order instalasi harus mengacu ke customer dan service.
-- Work order network harus dapat mengacu ke router, router interface, atau router link.
-- Completion report wajib memuat foto, GPS, checklist, dan hasil provisioning/repair.
-
-## 8. Partner Commission Flow
+## 6. Billing Flow
 
 Diagram:
 
-`Partner Sale -> Contract Signed -> Service Active -> Invoice Issued -> Payment Reconciled -> Commission Calculated -> Approval -> Payout`
+`Service Active -> Generate Invoice -> Payment Recorded -> Invoice Paid -> Unsuspend Evaluation`
 
 Rules:
 
-- Komisi tidak dihitung dari invoice unpaid, cancelled, atau written-off.
-- Komisi recurring mengacu ke payment yang sudah reconciled.
-- Partner tidak mendapat akses ke router detail kecuali data ringkas layanan milik customer partner.
+- Invoice dibuat untuk service valid.
+- Payment manual tersedia.
+- Paid invoice dapat memicu evaluasi unsuspend.
 
-## 9. Contract Flow
+Belum lengkap:
+
+- Gateway callback.
+- Rekonsiliasi otomatis.
+- Receipt dan notification lengkap.
+
+## 7. Suspend / Unsuspend Flow
 
 Diagram:
 
-`Offer Accepted -> Draft Contract -> Review -> E-Signature -> Active Terms -> Service Order -> Renewal/Amendment/Termination`
+`Invoice Overdue -> Suspend Service -> Move/Disable Radius User -> Customer Isolated -> Payment Paid -> Activate Radius User -> Service Active`
 
 Rules:
 
-- Contract signed wajib ada sebelum billing recurring aktif.
-- SLA dan service category flags disimpan sebagai term yang memengaruhi provisioning.
-- Contract dapat menentukan apakah service wajib router mapping dan radius user.
+- Suspend dilakukan di service/radius user.
+- User dapat dipindahkan ke profile isolir.
+- Unsuspend mengaktifkan kembali Radius user.
 
-## 10. FreeRadius Activation Flow
+## 8. SNMP Monitoring Flow
 
 Diagram:
 
-`Service Provisioning -> Validate Router Mapping -> Select Radius Profile -> Create Radius User -> Link Router/NAS -> Sync FreeRadius -> Test Authentication -> Activate Service`
+`Router Created -> SNMP Config in Script -> Script Applied on MikroTik -> Test SNMP from App -> Update SNMP Status -> Show in Router List/Dashboard`
 
 Rules:
 
-- FreeRadius adalah source of truth untuk authentication phase awal.
-- Radius user wajib mengacu ke customer, service, router, dan radius profile jika service membutuhkan akses jaringan.
-- Radius NAS wajib mengacu ke router.
-- Secret disimpan terenkripsi dan hanya ditampilkan saat creation/reset.
+- SNMP status bukan pilihan manual.
+- Status saat ini: Not Configured, Reachable, Unreachable.
+- Polling periodik belum tersedia; saat ini test manual.
 
-Output:
+## 9. Ticket Flow
 
-- Radius user
-- Radius profile assignment
-- NAS mapping
-- Authentication test result
-- `radius.user.created`
+Diagram target:
 
-## 11. Router Provisioning Flow
+`Ticket Created -> Link Customer/Service/Router -> Assign -> Investigate -> Resolve -> Close`
+
+Status implementasi:
+
+- Ticket resource dasar tersedia.
+
+Belum lengkap:
+
+- SLA.
+- Work order.
+- Technician assignment.
+- Evidence report.
+
+## 10. Partner Flow
 
 Diagram:
 
-`Create Router -> Assign Router Role -> Create Interface -> Assign SNMP Monitoring -> Assign Radius NAS -> Map Service -> Map Customer`
+`Partner Registered -> Customer/Service Linked to Partner -> Payment Reconciled -> Commission Calculated -> Payout`
 
-Router role:
+Status implementasi:
 
-- Core Router
-- Aggregation Router
-- Edge Router
-- PPPoE Router
-- BNG
-- Wireless Gateway
-- POP Router
-- BTS Router
+- Menu Partner dan data Partner tersedia.
+- Field partner/commission tersedia di customer/service.
 
-Rules:
+Belum lengkap:
 
-- Router wajib memiliki tenant, hostname/router name, role, status, dan management IP.
-- Interface dibuat di bawah router.
-- SNMP dapat berstatus `Reachable`, `Unreachable`, `Auth Failed`, atau `Not Configured`.
-- Radius NAS dibuat jika router berperan sebagai NAS/BNG/PPPoE/Hotspot gateway.
+- Commission calculation otomatis.
+- Partner portal.
+- Payout approval.
 
-## 12. Customer Impact Analysis Flow
+## 11. NOC Impact Flow
 
-Diagram:
+Diagram target:
 
-`Router Down -> Find Service Mapping -> Find Customer -> Find Radius User -> Calculate Revenue Impact -> Generate Incident`
+`Router Down -> Find Services -> Find Customers -> Find Radius Users -> Calculate Revenue Impact -> Create Incident/Ticket`
 
-Rules:
+Status implementasi:
 
-- Impact dihitung dari `service_router_mapping`, `customer_router_mapping`, dan radius user terkait.
-- Revenue impact menggunakan MRR/recurring amount dari service aktif terdampak.
-- Incident harus memuat severity, router, interface jika diketahui, customer count, service count, radius user count, dan revenue impact.
+- Router status dan SNMP test tersedia.
+- Online session count tersedia dari accounting.
 
-Output:
+Belum lengkap:
 
-- Router impact report
-- Incident
-- Optional ticket/work order
-- Customer notification batch
+- Incident automation.
+- Customer impact report.
+- Revenue impact.
+- NOC dashboard khusus.
 
 ## Dependency Antar Flow
 
-- Customer Lifecycle -> Contract -> Work Order -> Router Provisioning -> FreeRadius Activation -> Billing.
-- Billing -> Suspend -> Radius disable.
-- Payment -> Unsuspend -> Radius enable.
-- Router Provisioning -> NOC Monitoring.
-- Router Down -> Customer Impact Analysis -> Incident -> Ticket/Work Order.
-- Partner Commission bergantung pada Contract, Invoice, dan Payment Reconciled.
+1. Tenant/RBAC -> Customer/Product/Service.
+2. Router/Radius -> Service Provisioning.
+3. FreeRadius SQL sync -> MikroTik Auth.
+4. FreeRadius Accounting -> Online Dashboard.
+5. Billing -> Suspend/Unsuspend.
+6. Ticket/Work Order -> NOC operation.
 
 ## QC Checklist
 
-- Tidak ada flow yang menghubungkan customer langsung ke POP atau BTS.
-- Semua layanan jaringan melewati Service -> Router -> Router Interface.
-- POP Router dan BTS Router hanya role pada Router.
-- Router Down menghasilkan customer impact, radius impact, revenue impact, dan incident.
+- Status SNMP tidak diinput manual.
+- Online count tidak berasal dari user terdaftar.
+- `radacct` wajib menjadi sumber sesi online.
+- Partner menggantikan label Mitra di UI.
+- Router tetap menjadi pusat provisioning jaringan.

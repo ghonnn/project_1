@@ -79,18 +79,23 @@ class AdminOptions
     /**
      * @return array<string, string>
      */
-    public static function serviceCategories(): array
+    public static function serviceCategories(?string $tenantId = null): array
     {
-        return ServiceCategory::query()->orderBy('name')->pluck('name', 'id')->all();
+        return ServiceCategory::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
     }
 
     /**
      * @return array<string, string>
      */
-    public static function services(): array
+    public static function services(?string $tenantId = null): array
     {
         return Service::query()
             ->with(['customer', 'tenant'])
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
             ->orderBy('cid')
             ->get()
             ->mapWithKeys(function (Service $service): array {
@@ -106,9 +111,13 @@ class AdminOptions
     /**
      * @return array<string, string>
      */
-    public static function routers(): array
+    public static function routers(?string $tenantId = null): array
     {
-        return Router::query()->orderBy('router_name')->pluck('router_name', 'id')->all();
+        return Router::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->orderBy('router_name')
+            ->pluck('router_name', 'id')
+            ->all();
     }
 
     /**
@@ -129,17 +138,22 @@ class AdminOptions
     /**
      * @return array<string, string>
      */
-    public static function radiusProfiles(): array
+    public static function radiusProfiles(?string $tenantId = null): array
     {
-        return RadiusProfile::query()->orderBy('name')->pluck('name', 'id')->all();
+        return RadiusProfile::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->orderBy('name')
+            ->pluck('name', 'id')
+            ->all();
     }
 
     /**
      * @return array<string, string>
      */
-    public static function radiusServers(): array
+    public static function radiusServers(?string $tenantId = null): array
     {
         return RadiusServer::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
             ->orderBy('name')
             ->get()
             ->mapWithKeys(fn (RadiusServer $server): array => [
@@ -151,9 +165,13 @@ class AdminOptions
     /**
      * @return array<string, string>
      */
-    public static function invoices(): array
+    public static function invoices(?string $tenantId = null): array
     {
-        return Invoice::query()->orderByDesc('created_at')->pluck('invoice_number', 'id')->all();
+        return Invoice::query()
+            ->when($tenantId, fn ($query) => $query->where('tenant_id', $tenantId))
+            ->orderByDesc('created_at')
+            ->pluck('invoice_number', 'id')
+            ->all();
     }
 
     /**

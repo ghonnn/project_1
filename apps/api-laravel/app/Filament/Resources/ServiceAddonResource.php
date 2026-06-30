@@ -31,7 +31,7 @@ class ServiceAddonResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('service_id')
@@ -46,12 +46,12 @@ class ServiceAddonResource extends Resource
                             $set('tenant_id', $service->tenant_id);
                         }
                     }),
-                Forms\Components\TextInput::make('name')->label('Nama Item')->required()->maxLength(255),
+                Forms\Components\TextInput::make('name')->label('Nama Item')->required()->maxLength(80),
                 Forms\Components\TextInput::make('quantity')->label('Qty')->numeric()->default(1)->required(),
-                Forms\Components\TextInput::make('unit_price')->label('Harga Satuan')->numeric()->prefix('Rp')->default(0)->required(),
-                Forms\Components\TextInput::make('monthly_amount')->label('Total Bulanan Non Prorata')->numeric()->prefix('Rp')->disabled()->dehydrated(false),
+                Forms\Components\TextInput::make('unit_price')->label('Harga Satuan')->numeric()->prefix('Rp')->default(0)->required()->maxLength(14),
+                Forms\Components\TextInput::make('monthly_amount')->label('Total Bulanan Non Prorata')->numeric()->prefix('Rp')->disabled()->dehydrated(false)->maxLength(14),
                 Forms\Components\Select::make('status')->options(['active' => 'Active', 'inactive' => 'Inactive'])->default('active')->required(),
-                Forms\Components\Textarea::make('notes')->label('Catatan')->rows(3),
+                Forms\Components\Textarea::make('notes')->label('Catatan')->rows(3)->maxLength(500)->columnSpanFull(),
             ]);
     }
 

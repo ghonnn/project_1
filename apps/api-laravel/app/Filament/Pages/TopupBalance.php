@@ -16,7 +16,7 @@ class TopupBalance extends FinanceTablePage
 
     public function tableTitle(): string
     {
-        return 'TopUp Saldo Mitra';
+        return 'TopUp Saldo Partner';
     }
 
     public function toolbarActions(): array
@@ -31,7 +31,7 @@ class TopupBalance extends FinanceTablePage
 
     public function columns(): array
     {
-        return ['INVOICE', 'MITRA', 'PHONE', 'LEVEL', 'KATEGORI', 'TGL TOPUP', 'CARABAYAR', 'CHANNEL', 'REKENING', 'TGL BAYAR', 'ADMIN', 'TOTAL', 'NOTE'];
+        return ['INVOICE', 'PARTNER', 'PHONE', 'LEVEL', 'KATEGORI', 'TGL TOPUP', 'CARABAYAR', 'CHANNEL', 'REKENING', 'TGL BAYAR', 'ADMIN', 'TOTAL', 'NOTE'];
     }
 
     public function rows(): array

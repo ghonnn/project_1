@@ -6,9 +6,11 @@ use App\Filament\Resources\InvoiceResource\Pages;
 use App\Filament\Resources\InvoiceResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\Service;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -34,7 +36,7 @@ class InvoiceResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')
                     ->options(fn () => AdminOptions::tenants())
@@ -49,15 +51,15 @@ class InvoiceResource extends Resource
                     ->getOptionLabelUsing(fn (?string $value): ?string => AdminOptions::customerOptionLabel($value))
                     ->searchable()
                     ->required(),
-                Forms\Components\TextInput::make('invoice_number')->required()->maxLength(255),
+                Forms\Components\TextInput::make('invoice_number')->required()->maxLength(50),
                 Forms\Components\DatePicker::make('issue_date')->required(),
                 Forms\Components\DatePicker::make('due_date')->required(),
                 Forms\Components\Select::make('status')
                     ->options(['draft' => 'Draft', 'issued' => 'Issued', 'paid' => 'Paid', 'overdue' => 'Overdue', 'void' => 'Void'])
                     ->default('issued')
                     ->required(),
-                Forms\Components\TextInput::make('total_amount')->numeric()->prefix('Rp')->required(),
-                Forms\Components\TextInput::make('paid_amount')->numeric()->prefix('Rp')->required(),
+                Forms\Components\TextInput::make('total_amount')->numeric()->prefix('Rp')->required()->maxLength(14),
+                Forms\Components\TextInput::make('paid_amount')->numeric()->prefix('Rp')->required()->maxLength(14),
             ]);
     }
 
@@ -76,7 +78,7 @@ class InvoiceResource extends Resource
                 Tables\Columns\TextColumn::make('items.service.cid')->label('NO. LAYANAN')->default('-')->searchable(),
                 Tables\Columns\TextColumn::make('customer.name')->label('PELANGGAN')->searchable(),
                 Tables\Columns\TextColumn::make('items.service.billing_profile_name')->label('PROFILE')->default('-'),
-                Tables\Columns\TextColumn::make('items.service.partner_name')->label('MITRA')->default('-'),
+                Tables\Columns\TextColumn::make('items.service.partner_name')->label('PARTNER')->default('-'),
                 Tables\Columns\TextColumn::make('items.description')->label('KATEGORI')->default('RECURRING')->limit(18),
                 Tables\Columns\TextColumn::make('issue_date')->label('TGL TERBIT')->date('d/m/Y')->sortable(),
                 Tables\Columns\TextColumn::make('due_date')->label('JTH TEMPO')->date('d/m/Y')->sortable()->color('danger'),
@@ -98,9 +100,58 @@ class InvoiceResource extends Resource
                     ->label('Bayar')
                     ->icon('heroicon-o-banknotes')
                     ->color('success')
-                    ->action(function (Invoice $record): void {
-                        $record->update(['status' => 'paid', 'paid_amount' => $record->total_amount]);
+                    ->modalHeading('Pilih Cara Bayar')
+                    ->form([
+                        Forms\Components\Select::make('method')
+                            ->label('Cara Bayar')
+                            ->options([
+                                'cash' => 'Bayar Tunai',
+                                'bank_transfer' => 'Transfer Bank',
+                            ])
+                            ->default('cash')
+                            ->required(),
+                        Forms\Components\TextInput::make('amount')
+                            ->label('Nominal Bayar')
+                            ->numeric()
+                            ->prefix('Rp')
+                            ->required()
+                            ->maxLength(14)
+                            ->default(fn (Invoice $record): string => (string) max(0, (float) $record->total_amount - (float) $record->paid_amount)),
+                    ])
+                    ->action(function (Invoice $record, array $data): void {
+                        Payment::query()->create([
+                            'tenant_id' => $record->tenant_id,
+                            'invoice_id' => $record->id,
+                            'amount' => $data['amount'],
+                            'method' => $data['method'],
+                            'status' => 'paid',
+                            'paid_at' => now(),
+                        ]);
+
+                        $paidAmount = (float) $record->paid_amount + (float) $data['amount'];
+                        $record->update([
+                            'paid_amount' => $paidAmount,
+                            'status' => $paidAmount >= (float) $record->total_amount ? 'paid' : $record->status,
+                        ]);
+
+                        Notification::make()->title('Pembayaran invoice berhasil disimpan')->success()->send();
                     }),
+                Tables\Actions\Action::make('print')
+                    ->label('Print')
+                    ->icon('heroicon-o-printer')
+                    ->color('gray')
+                    ->modalHeading('Pilih Jenis Kertas')
+                    ->form([
+                        Forms\Components\Select::make('paper')
+                            ->label('Jenis Kertas')
+                            ->options([
+                                'roll' => 'Roll Paper',
+                                'a4' => 'A4 Template',
+                            ])
+                            ->default('roll')
+                            ->required(),
+                    ])
+                    ->action(fn (Invoice $record, array $data) => redirect()->to(route('invoice.print', ['invoice' => $record, 'paper' => $data['paper']]))),
                 Tables\Actions\EditAction::make(),
             ])
             ->bulkActions([

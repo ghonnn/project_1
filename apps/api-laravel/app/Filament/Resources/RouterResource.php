@@ -5,9 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\RouterResource\Pages;
 use App\Filament\Resources\RouterResource\RelationManagers;
 use App\Filament\Support\AdminOptions;
-use App\Models\RadiusServer;
 use App\Models\Router;
+use App\Services\RouterProvisioningService;
 use Filament\Forms;
+use Filament\Notifications\Notification;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -36,115 +37,170 @@ class RouterResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Placeholder::make('router_help')
                     ->label('')
-                    ->content('IP Public: router terpasang langsung di MikroTik. VPN Radius: router dihubungkan via jalur VPN Radius yang disediakan.'),
+                    ->content('IP Public: router terpasang langsung di MikroTik. VPN Radius: router dihubungkan via jalur VPN Radius yang disediakan.')
+                    ->columnSpanFull(),
                 Forms\Components\Select::make('tenant_id')->label('Tenant')->options(fn () => AdminOptions::tenants())->searchable()->required(),
-                Forms\Components\TextInput::make('router_name')->label('Nama Router')->required()->maxLength(255),
+                Forms\Components\TextInput::make('router_name')
+                    ->label('Nama Router / Hostname')
+                    ->required()
+                    ->maxLength(80),
+                Forms\Components\Hidden::make('hostname')
+                    ->dehydrated(true),
+                Forms\Components\Hidden::make('router_role')
+                    ->default('pppoe_router')
+                    ->dehydrated(true),
                 Forms\Components\Select::make('connection_type')
                     ->label('Tipe Koneksi')
                     ->options(['ip_public' => 'IP Public', 'vpn_radius' => 'VPN Radius'])
                     ->default('ip_public')
                     ->required(),
-                Forms\Components\TextInput::make('management_ip')->label('IP Address')->required()->maxLength(255),
-                Forms\Components\TextInput::make('radius_secret')->label('Secret')->password()->revealable()->maxLength(255),
-                Forms\Components\TextInput::make('hostname')->label('Hostname')->required()->maxLength(255),
-                Forms\Components\TextInput::make('vendor')->label('Vendor')->maxLength(255),
-                Forms\Components\TextInput::make('model')->label('Model')->maxLength(255),
-                Forms\Components\TextInput::make('serial_number')->label('Serial Number')->maxLength(255),
-                Forms\Components\Select::make('router_role')
-                    ->options([
-                        'core_router' => 'Core Router',
-                        'aggregation_router' => 'Aggregation Router',
-                        'edge_router' => 'Edge Router',
-                        'pppoe_router' => 'PPPoE Router',
-                        'bng' => 'BNG',
-                        'wireless_gateway' => 'Wireless Gateway',
-                        'pop_router' => 'POP Router',
-                        'bts_router' => 'BTS Router',
-                    ])
-                    ->required(),
-                Forms\Components\TextInput::make('site_name')->label('Nama Site')->maxLength(255),
-                Forms\Components\TextInput::make('public_ip')->label('IP Public')->maxLength(255),
-                Forms\Components\TextInput::make('online_sessions')->label('Online')->numeric()->default(0),
-                Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric(),
-                Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric(),
+                Forms\Components\TextInput::make('management_ip')->label('IP Address')->required()->maxLength(45),
+                Forms\Components\TextInput::make('radius_secret')
+                    ->label('Secret Radius')
+                    ->password()
+                    ->revealable()
+                    ->readOnly()
+                    ->default(fn (): string => self::generateRadiusSecret())
+                    ->afterStateHydrated(function (Forms\Components\TextInput $component, mixed $state): void {
+                        if (blank($state)) {
+                            $component->state(self::generateRadiusSecret());
+                        }
+                    })
+                    ->dehydrated(true)
+                    ->maxLength(12),
+                Forms\Components\TextInput::make('vendor')->label('Vendor')->maxLength(50),
+                Forms\Components\TextInput::make('model')->label('Model')->maxLength(80),
+                Forms\Components\TextInput::make('serial_number')->label('Serial Number')->maxLength(80),
+                Forms\Components\TextInput::make('site_name')->label('Nama Site')->maxLength(80),
+                Forms\Components\TextInput::make('public_ip')->label('IP Public')->maxLength(45),
+                Forms\Components\TextInput::make('latitude')->label('Latitude')->numeric()->maxLength(16),
+                Forms\Components\TextInput::make('longitude')->label('Longitude')->numeric()->maxLength(16),
                 Forms\Components\Select::make('status')
                     ->label('Status')
                     ->options(['draft' => 'Draft', 'active' => 'Aktif', 'maintenance' => 'Maintenance', 'inactive' => 'Non Aktif'])
                     ->default('draft')
                     ->required(),
-                Forms\Components\Select::make('snmp_status')
-                    ->label('Status SNMP')
-                    ->options(['not_configured' => 'Belum Dikonfigurasi', 'reachable' => 'Aktif', 'unreachable' => 'Tidak Terhubung'])
-                    ->default('not_configured')
-                    ->required(),
                 Forms\Components\Section::make('Script MikroTik')
                     ->columns(2)
                     ->schema([
-                        Forms\Components\TextInput::make('snmp_profile.snmp_community')
-                            ->label('SNMP Community')
-                            ->default('NEXRADIUS'),
-                        Forms\Components\TextInput::make('snmp_profile.snmp_allowed_address')
-                            ->label('SNMP Allowed Address')
-                            ->placeholder('103.142.202.19'),
-                        Forms\Components\TextInput::make('snmp_profile.time_zone')
-                            ->label('Time Zone')
-                            ->default('Asia/Jakarta'),
-                        Forms\Components\TextInput::make('snmp_profile.dns_servers')
-                            ->label('DNS Server')
-                            ->default('8.8.8.8,1.1.1.1'),
-                        Forms\Components\TextInput::make('snmp_profile.ntp_servers')
-                            ->label('NTP Server')
-                            ->default('162.159.200.1,162.159.200.123'),
-                        Forms\Components\TextInput::make('snmp_profile.radius_src_address')
-                            ->label('Radius Src Address')
-                            ->placeholder('103.142.203.19'),
-                        Forms\Components\TextInput::make('snmp_profile.radius_incoming_port')
-                            ->label('Radius Incoming Port')
-                            ->numeric()
-                            ->default(3799),
-                        Forms\Components\TextInput::make('snmp_profile.pool_name')
-                            ->label('Nama IP Pool')
-                            ->default('NEXPOOL'),
-                        Forms\Components\TextInput::make('snmp_profile.pool_comment')
-                            ->label('Comment IP Pool')
-                            ->default('Network : 10.200.192.0/20'),
-                        Forms\Components\TextInput::make('snmp_profile.pool_ranges')
-                            ->label('Range IP Pool')
-                            ->placeholder('10.200.192.100-10.200.207.254'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_pool_name')
-                            ->label('Nama IP Pool Isolir')
-                            ->default('NEXISOLIR'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_pool_comment')
-                            ->label('Comment IP Pool Isolir')
-                            ->default('Network 10.200.208.0/23'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_pool_ranges')
-                            ->label('Range IP Pool Isolir')
-                            ->placeholder('10.200.208.10-10.200.209.254'),
-                        Forms\Components\TextInput::make('snmp_profile.ppp_profile_name')
-                            ->label('Nama PPP Profile')
-                            ->default('NEXRADIUS'),
-                        Forms\Components\TextInput::make('snmp_profile.ppp_local_address')
-                            ->label('PPP Local Address')
-                            ->placeholder('10.200.192.1'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_profile_name')
-                            ->label('Nama PPP Profile Isolir')
-                            ->default('NEXISOLIR'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_local_address')
-                            ->label('PPP Local Address Isolir')
-                            ->placeholder('10.200.208.1'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_redirect_host')
-                            ->label('Host Redirect Isolir')
-                            ->placeholder('103.253.27.164'),
-                        Forms\Components\TextInput::make('snmp_profile.isolir_redirect_port')
-                            ->label('Port Redirect Isolir')
-                            ->numeric()
-                            ->default(3125),
+                        self::scriptProfileInput('snmp_community', 'SNMP Community', 50),
+                        self::scriptProfileInput('snmp_allowed_address', 'SNMP Allowed Address', 45),
+                        self::scriptProfileInput('time_zone', 'Time Zone', 50),
+                        self::scriptProfileInput('dns_servers', 'DNS Server', 120),
+                        self::scriptProfileInput('ntp_servers', 'NTP Server', 120),
+                        self::scriptProfileInput('radius_src_address', 'Radius Src Address', 45, false, 'Isi IP source/NAS yang muncul di log MikroTik, contoh 10.142.10.50'),
+                        self::scriptProfileInput('radius_incoming_port', 'Radius Incoming Port', 5, true),
+                        self::scriptProfileInput('radius_timeout', 'Radius Timeout', 8, false, '3s'),
+                        self::scriptProfileInput('pool_name', 'Nama IP Pool', 50),
+                        self::scriptProfileInput('pool_comment', 'Comment IP Pool', 120),
+                        self::scriptProfileInput('pool_ranges', 'Range IP Pool', 120),
+                        self::scriptProfileInput('isolir_pool_name', 'Nama IP Pool Isolir', 50),
+                        self::scriptProfileInput('isolir_pool_comment', 'Comment IP Pool Isolir', 120),
+                        self::scriptProfileInput('isolir_pool_ranges', 'Range IP Pool Isolir', 120),
+                        self::scriptProfileInput('ppp_profile_name', 'Nama PPP Profile', 50),
+                        self::scriptProfileInput('pppoe_service_name', 'PPPoE Service Name', 50),
+                        self::scriptProfileInput('pppoe_server_interface', 'PPPoE Server Interface', 80, false, 'bridge-LAN / ether2'),
+                        self::scriptProfileInput('ppp_local_address', 'PPP Local Address', 45),
+                        self::scriptProfileInput('isolir_profile_name', 'Nama PPP Profile Isolir', 50),
+                        self::scriptProfileInput('isolir_local_address', 'PPP Local Address Isolir', 45),
+                        self::scriptProfileInput('isolir_redirect_host', 'Host Redirect Isolir', 120),
+                        self::scriptProfileInput('isolir_redirect_port', 'Port Redirect Isolir', 5, true),
+                        self::scriptProfileInput('hotspot_server_name', 'Hotspot Server Name', 50),
+                        self::scriptProfileInput('hotspot_interface', 'Hotspot / WiFi Interface', 80, false, 'bridge-WIFI / wlan1'),
+                        self::scriptProfileInput('hotspot_profile_name', 'Hotspot Profile Name', 50),
                     ]),
             ]);
+    }
+
+    /**
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     */
+    public static function normalizeRouterSettings(array $data, ?Router $router = null): array
+    {
+        $data['hostname'] = trim((string) ($data['router_name'] ?? $router?->router_name ?? $router?->hostname ?? ''));
+        $data['router_role'] = $data['router_role'] ?? $router?->router_role ?? 'pppoe_router';
+
+        if (blank($data['radius_secret'] ?? null)) {
+            $data['radius_secret'] = self::generateRadiusSecret();
+        }
+
+        $profile = $data['snmp_profile'] ?? [];
+
+        $data['snmp_profile'] = RouterProvisioningService::mergeDefaultSnmpProfile(
+            is_array($profile) ? $profile : [],
+            $router,
+            $data
+        );
+
+        return $data;
+    }
+
+    private static function generateRadiusSecret(): string
+    {
+        $secret = '';
+
+        for ($i = 0; $i < 12; $i++) {
+            $secret .= (string) random_int(0, 9);
+        }
+
+        return $secret;
+    }
+
+    private static function snmpStatusLabel(?string $state): string
+    {
+        return match ($state) {
+            'reachable' => 'Aktif / Reachable',
+            'unreachable' => 'Tidak Terhubung',
+            default => 'Belum Dikonfigurasi',
+        };
+    }
+
+    private static function routerOperationalStatus(Router $record): string
+    {
+        if ($record->status === 'inactive') {
+            return 'Inactive';
+        }
+
+        if ($record->status === 'maintenance') {
+            return 'Maintenance';
+        }
+
+        return $record->primaryNasDevice !== null
+            ? 'Active / Radius Terhubung'
+            : 'Active / Radius Belum';
+    }
+
+    private static function scriptProfileInput(
+        string $key,
+        string $label,
+        int $maxLength,
+        bool $numeric = false,
+        ?string $placeholder = null
+    ): Forms\Components\TextInput {
+        $input = Forms\Components\TextInput::make('snmp_profile.'.$key)
+            ->label($label)
+            ->default(fn (?Router $record): string => RouterProvisioningService::defaultSnmpProfile($record)[$key] ?? '')
+            ->afterStateHydrated(function (Forms\Components\TextInput $component, mixed $state, ?Router $record) use ($key): void {
+                if (blank($state)) {
+                    $component->state(RouterProvisioningService::defaultSnmpProfile($record)[$key] ?? '');
+                }
+            })
+            ->maxLength($maxLength);
+
+        if ($numeric) {
+            $input->numeric();
+        }
+
+        if ($placeholder !== null) {
+            $input->placeholder($placeholder);
+        }
+
+        return $input;
     }
 
     public static function table(Table $table): Table
@@ -152,7 +208,13 @@ class RouterResource extends Resource
         return $table
             ->heading('Router dan Server')
             ->columns([
-                Tables\Columns\TextColumn::make('router_name')->label('Nama Router')->searchable()->sortable(),
+                Tables\Columns\TextColumn::make('router_name')
+                    ->label('Nama Router')
+                    ->searchable()
+                    ->sortable()
+                    ->url(fn (Router $record): string => static::getUrl('edit', ['record' => $record]))
+                    ->color('primary')
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('connection_type')
                     ->label('Tipe Koneksi')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
@@ -165,60 +227,79 @@ class RouterResource extends Resource
                 Tables\Columns\TextColumn::make('radius_secret')
                     ->label('Secret')
                     ->formatStateUsing(fn (?string $state): string => $state ? str_repeat('*', min(strlen($state), 16)) : '-'),
-                Tables\Columns\TextColumn::make('online_sessions')->label('Online')->alignCenter()->color('success')->weight('bold'),
-                Tables\Columns\TextColumn::make('script_download')->label('Script')->state('Download')->badge()->color('info'),
+                Tables\Columns\TextColumn::make('primaryNasDevice.radiusServer.name')
+                    ->label('FreeRadius')
+                    ->placeholder('Belum terhubung')
+                    ->searchable()
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('primaryNasDevice.nas_ip_address')
+                    ->label('NAS IP')
+                    ->placeholder('-')
+                    ->toggleable(),
+                Tables\Columns\TextColumn::make('pppoe_online')
+                    ->label('Langganan Online')
+                    ->state(fn (Router $record): int => $record->pppoeOnlineCount())
+                    ->alignCenter()
+                    ->color('success')
+                    ->weight('bold'),
+                Tables\Columns\TextColumn::make('hotspot_online')
+                    ->label('Voucher Online')
+                    ->state(fn (Router $record): int => $record->hotspotOnlineCount())
+                    ->alignCenter()
+                    ->color('info')
+                    ->weight('bold'),
                 Tables\Columns\TextColumn::make('snmp_status')
                     ->label('SNMP Monitoring')
-                    ->formatStateUsing(fn (?string $state): string => match ($state) {
-                        'reachable' => 'Aktif',
-                        'unreachable' => 'Tidak Terhubung',
-                        default => 'Belum Aktif',
-                    })
+                    ->formatStateUsing(fn (?string $state): string => self::snmpStatusLabel($state))
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'reachable' => 'success',
                         'unreachable' => 'danger',
                         default => 'gray',
                     }),
-                Tables\Columns\TextColumn::make('status')->label('Status')->badge()->color(fn (string $state): string => match ($state) {
-                    'active' => 'success',
-                    'maintenance' => 'warning',
-                    'inactive' => 'danger',
-                    default => 'gray',
-                }),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->state(fn (Router $record): string => self::routerOperationalStatus($record))
+                    ->badge()
+                    ->color(fn (Router $record): string => match (true) {
+                        $record->status === 'inactive' => 'danger',
+                        $record->status === 'maintenance' => 'warning',
+                        $record->primaryNasDevice !== null => 'success',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('snmp_monitoring')
                     ->label('SNMP')
                     ->icon('heroicon-o-signal')
                     ->color(fn (Router $record): string => $record->snmp_status === 'reachable' ? 'success' : 'gray')
                     ->modalHeading(fn (Router $record): string => 'SNMP Monitoring - '.$record->router_name)
+                    ->modalWidth('7xl')
                     ->modalSubmitAction(false)
                     ->modalCancelActionLabel('Tutup')
-                    ->modalContent(fn (Router $record): HtmlString => self::snmpMonitoringContent($record)),
-                Tables\Actions\Action::make('set_snmp_active')
-                    ->label('Set SNMP Aktif')
-                    ->icon('heroicon-o-check-circle')
-                    ->color('success')
-                    ->visible(fn (Router $record): bool => $record->snmp_status !== 'reachable')
-                    ->action(fn (Router $record) => $record->update(['snmp_status' => 'reachable'])),
-                Tables\Actions\Action::make('download_script')
-                    ->label('Download Script')
-                    ->icon('heroicon-o-arrow-down-tray')
-                    ->color('info')
-                    ->action(function (Router $record) {
-                        $server = RadiusServer::query()
-                            ->where('tenant_id', $record->tenant_id)
-                            ->where('status', 'active')
-                            ->first();
+                    ->modalContent(fn (Router $record) => view('filament.resources.router-resource.snmp-dashboard', [
+                        'router' => $record,
+                        'endpoint' => route('routers.snmp.live', $record, false),
+                    ])),
+                Tables\Actions\Action::make('test_snmp')
+                    ->label('Test SNMP')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->action(function (Router $record): void {
+                        $result = app(RouterProvisioningService::class)->testSnmp($record);
 
-                        $script = self::buildRouterScript($record, $server);
-
-                        return response()->streamDownload(fn () => print($script), $record->hostname.'-script.rsc');
+                        Notification::make()
+                            ->title(match ($result['status']) {
+                                'reachable' => 'SNMP reachable',
+                                'unreachable' => 'SNMP belum reachable',
+                                default => 'SNMP belum lengkap',
+                            })
+                            ->body($result['message'])
+                            ->color($result['status'] === 'reachable' ? 'success' : 'warning')
+                            ->send();
                     }),
             ])
             ->bulkActions([
@@ -246,28 +327,34 @@ class RouterResource extends Resource
 
     private static function snmpMonitoringContent(Router $record): HtmlString
     {
-        $record->loadMissing(['interfaces', 'radiusUsers.service.customer']);
+        $record->loadMissing(['interfaces', 'radiusUsers.service.customer', 'primaryNasDevice.radiusServer']);
 
         $interfaces = $record->interfaces
             ->map(fn ($interface): string => '<tr><td>'.$interface->interface_name.'</td><td>'.($interface->interface_type ?: '-').'</td><td>'.($interface->ip_address ?: '-').'</td><td>'.strtoupper($interface->status).'</td></tr>')
             ->implode('');
 
         $pppoeUsers = $record->radiusUsers
-            ->filter(fn ($user): bool => $user->status === 'active' && strtolower((string) $user->service?->connection_type) !== 'hotspot')
-            ->map(fn ($user): string => '<tr><td>'.$user->username.'</td><td>'.($user->service?->cid ?: '-').'</td><td>'.($user->service?->customer?->name ?: '-').'</td></tr>')
+            ->filter(fn ($user): bool => $user->status === 'active' && in_array(strtoupper((string) $user->service?->connection_type), ['PPP', 'PPPOE'], true))
+            ->map(fn ($user): string => '<tr><td>'.$user->username.'</td><td>'.($user->service?->cid ?: '-').'</td><td>'.($user->service?->billing_profile_name ?: '-').'</td><td>'.($user->service?->customer?->name ?: '-').'</td></tr>')
             ->implode('');
 
         $hotspotUsers = $record->radiusUsers
-            ->filter(fn ($user): bool => $user->status === 'active' && strtolower((string) $user->service?->connection_type) === 'hotspot')
-            ->map(fn ($user): string => '<tr><td>'.$user->username.'</td><td>'.($user->service?->cid ?: '-').'</td><td>'.($user->service?->customer?->name ?: '-').'</td></tr>')
+            ->filter(fn ($user): bool => $user->status === 'active' && in_array(strtoupper((string) $user->service?->connection_type), ['HOTSPOT', 'WIFI'], true))
+            ->map(fn ($user): string => '<tr><td>'.$user->username.'</td><td>'.($user->service?->cid ?: '-').'</td><td>'.($user->service?->billing_profile_name ?: '-').'</td><td>'.($user->service?->customer?->name ?: '-').'</td></tr>')
             ->implode('');
 
         return new HtmlString('
             <div style="display:grid;gap:18px">
-                <div><strong>Status SNMP:</strong> '.($record->snmp_status === 'reachable' ? 'Aktif' : 'Belum Aktif').'</div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+                    <div><strong>Status SNMP:</strong> '.e(self::snmpStatusLabel($record->snmp_status)).'</div>
+                    <div><strong>FreeRadius:</strong> '.e($record->primaryNasDevice?->radiusServer?->name ?? 'Belum terhubung').'</div>
+                    <div><strong>NAS IP:</strong> '.e($record->primaryNasDevice?->nas_ip_address ?? '-').'</div>
+                    <div><strong>Langganan Online:</strong> '.e((string) $record->pppoeOnlineCount()).'</div>
+                    <div><strong>Voucher Online:</strong> '.e((string) $record->hotspotOnlineCount()).'</div>
+                </div>
                 '.self::snmpTable('Interface Router', ['Interface', 'Tipe', 'IP Address', 'Status'], $interfaces).'
-                '.self::snmpTable('PPPoE Active', ['Username', 'CID', 'Pelanggan'], $pppoeUsers).'
-                '.self::snmpTable('Hotspot Active', ['Username', 'CID', 'Pelanggan'], $hotspotUsers).'
+                '.self::snmpTable('PPPoE Active', ['Username', 'CID', 'Profile', 'Pelanggan'], $pppoeUsers).'
+                '.self::snmpTable('Hotspot/WiFi Active', ['Username', 'CID', 'Profile', 'Pelanggan'], $hotspotUsers).'
             </div>
         ');
     }
@@ -281,93 +368,5 @@ class RouterResource extends Resource
         $body = $rows !== '' ? $rows : '<tr><td colspan="'.count($headers).'" style="padding:8px;color:#94a3b8">Belum ada data</td></tr>';
 
         return '<section><h3 style="font-weight:700;margin-bottom:8px">'.$title.'</h3><table style="width:100%;border-collapse:collapse"><thead><tr>'.$head.'</tr></thead><tbody>'.$body.'</tbody></table></section>';
-    }
-
-    private static function buildRouterScript(Router $router, ?RadiusServer $server): string
-    {
-        $config = $router->snmp_profile ?? [];
-
-        $snmpCommunity = self::config($config, 'snmp_community', 'NEXRADIUS');
-        $snmpAllowedAddress = self::config($config, 'snmp_allowed_address', $router->public_ip ?: $router->management_ip);
-        $timeZone = self::config($config, 'time_zone', 'Asia/Jakarta');
-        $dnsServers = self::config($config, 'dns_servers', '8.8.8.8,1.1.1.1');
-        $ntpServers = self::config($config, 'ntp_servers', '162.159.200.1,162.159.200.123');
-        $radiusSrcAddress = self::config($config, 'radius_src_address', $router->public_ip ?: $router->management_ip);
-        $incomingPort = self::config($config, 'radius_incoming_port', '3799');
-        $poolName = self::config($config, 'pool_name', 'NEXPOOL');
-        $poolComment = self::config($config, 'pool_comment', 'Network : 10.200.192.0/20');
-        $poolRanges = self::config($config, 'pool_ranges', '10.200.192.100-10.200.207.254');
-        $isolirPoolName = self::config($config, 'isolir_pool_name', 'NEXISOLIR');
-        $isolirPoolComment = self::config($config, 'isolir_pool_comment', 'Network 10.200.208.0/23');
-        $isolirPoolRanges = self::config($config, 'isolir_pool_ranges', '10.200.208.10-10.200.209.254');
-        $profileName = self::config($config, 'ppp_profile_name', 'NEXRADIUS');
-        $localAddress = self::config($config, 'ppp_local_address', '10.200.192.1');
-        $isolirProfileName = self::config($config, 'isolir_profile_name', 'NEXISOLIR');
-        $isolirLocalAddress = self::config($config, 'isolir_local_address', '10.200.208.1');
-        $redirectHost = self::config($config, 'isolir_redirect_host', '103.253.27.164');
-        $redirectPort = self::config($config, 'isolir_redirect_port', '3125');
-
-        $radiusLine = $server
-            ? '/radius add address='.$server->host.' comment="'.$snmpCommunity.'" authentication-port='.$server->auth_port.' accounting-port='.$server->acct_port.' secret="'.$server->shared_secret.'" service=ppp,login,hotspot src-address='.$radiusSrcAddress.' timeout=3s'
-            : '# Radius server belum tersedia';
-
-        return implode("\n", [
-            '# NEXBIL Router Script',
-            '# Router: '.$router->router_name.' / '.$router->hostname,
-            '/system identity set name="'.$router->hostname.'"',
-            '',
-            '/snmp community',
-            'set [ find default=yes ] disabled=yes write-access=no',
-            'rem [find name!=public]',
-            'add addresses='.$snmpAllowedAddress.' name='.$snmpCommunity.' write-access=yes',
-            '/snmp set enabled=yes trap-community='.$snmpCommunity.' trap-version=2',
-            '',
-            '/system clock set time-zone-autodetect=no time-zone-name='.$timeZone,
-            '/radius incoming set accept=yes port='.$incomingPort,
-            '/ip dns set allow-remote-requests=yes servers='.$dnsServers,
-            '/system ntp client servers rem [find]',
-            '/system ntp client set enabled=yes servers='.$ntpServers,
-            '',
-            '/radius',
-            'rem [find]',
-            $radiusLine,
-            '/radius set require-message-auth=no num=0',
-            '',
-            '/ip pool',
-            'add comment="'.$poolComment.'" name='.$poolName.' ranges='.$poolRanges,
-            'add comment="'.$isolirPoolComment.'" name='.$isolirPoolName.' ranges='.$isolirPoolRanges,
-            '',
-            '/ppp profile',
-            'add insert-queue-before=first local-address='.$localAddress.' name='.$profileName.' only-one=yes remote-address='.$poolName,
-            'add insert-queue-before=first local-address='.$isolirLocalAddress.' name='.$isolirProfileName.' comment="default by NEXBIL (jangan dirubah)" only-one=yes remote-address='.$isolirPoolName,
-            '',
-            '/ppp aaa set use-radius=yes accounting=yes interim-update=5m',
-            '',
-            '# NAT redirect isolir ke webproxy',
-            '/ip firewall nat rem [find src-address-list~"NEX"]',
-            '/ip firewall nat add action=redirect chain=dstnat comment="NEXISOLIR" dst-address=!'.$redirectHost.' dst-port=80,443,8080 protocol=tcp src-address-list='.$isolirPoolName.' to-ports='.$redirectPort,
-            '/ip firewall filter rem [find src-address-list~"NEX"]',
-            '/ip firewall filter add action=reject chain=forward comment=NEXISOLIR dst-address=!'.$redirectHost.' protocol=tcp reject-with=icmp-network-unreachable src-address-list='.$isolirPoolName,
-            '/ip firewall filter add action=reject chain=forward comment=NEXISOLIR dst-address=!'.$redirectHost.' dst-port=!53,5353 protocol=udp reject-with=icmp-network-unreachable src-address-list='.$isolirPoolName,
-            '',
-            '/ip hotspot profile set [find] use-radius=yes radius-accounting=yes radius-interim-update=5m',
-            '/ip hotspot user profile rem [find name='.$profileName.']',
-            '/ip hotspot user profile set [find default=yes] insert-queue-before=first parent-queue=*8',
-            '/ip hotspot user profile add insert-queue-before=first keepalive-timeout=10m mac-cookie-timeout=1w name='.$profileName.' shared-users=unlimited transparent-proxy=yes open-status-page=always status-autorefresh=10m',
-            '',
-            '/ip proxy set cache-administrator=webmaster@NEXradius.com enabled=yes max-cache-object-size=1KiB max-cache-size=none max-client-connections=50 max-fresh-time=5m max-server-connections=50 port='.$redirectPort,
-            '/ip proxy access rem [find]',
-            'add action=redirect action-data=http://'.$redirectHost.' src-address='.$isolirPoolRanges,
-        ]);
-    }
-
-    /**
-     * @param array<string, mixed> $config
-     */
-    private static function config(array $config, string $key, string $default): string
-    {
-        $value = $config[$key] ?? null;
-
-        return blank($value) ? $default : (string) $value;
     }
 }

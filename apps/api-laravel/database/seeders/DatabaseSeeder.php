@@ -10,6 +10,7 @@ use App\Models\Router;
 use App\Models\ServiceCategory;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\FreeRadiusService;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
@@ -37,12 +38,28 @@ class DatabaseSeeder extends Seeder
             $role
         ));
 
-        foreach (['tenant.manage', 'customer.manage', 'service.manage', 'router.manage', 'radius.manage', 'billing.manage', 'audit.read'] as $code) {
+        foreach (['tenant.manage', 'customer.manage', 'service.manage', 'router.manage', 'radius.manage', 'billing.manage', 'payment.manage', 'mitra.manage', 'ticket.manage', 'audit.read'] as $code) {
             [$module, $action] = explode('.', $code);
             Permission::updateOrCreate(['code' => $code], compact('module', 'action'));
         }
 
-        $roles->each(fn (Role $role) => $role->permissions()->sync(Permission::pluck('id')));
+        $allPermissionCodes = Permission::pluck('code')->all();
+        $permissionMatrix = [
+            'platform_owner' => $allPermissionCodes,
+            'tenant_owner' => $allPermissionCodes,
+            'tenant_admin' => ['customer.manage', 'service.manage', 'router.manage', 'radius.manage', 'mitra.manage', 'ticket.manage', 'audit.read'],
+            'finance' => ['billing.manage', 'payment.manage'],
+            'noc' => ['router.manage', 'radius.manage', 'ticket.manage'],
+            'sales' => ['customer.manage', 'service.manage', 'ticket.manage'],
+            'technician' => ['ticket.manage'],
+            'partner' => [],
+            'customer' => [],
+        ];
+
+        $roles->each(function (Role $role) use ($permissionMatrix): void {
+            $codes = $permissionMatrix[$role->code] ?? [];
+            $role->permissions()->sync(Permission::whereIn('code', $codes)->pluck('id'));
+        });
 
         $admin = User::updateOrCreate(
             ['email' => 'admin@nex.local'],
@@ -86,7 +103,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        NasDevice::updateOrCreate(
+        $nasDevice = NasDevice::updateOrCreate(
             ['tenant_id' => $tenant->id, 'nas_ip_address' => '103.142.202.226'],
             [
                 'radius_server_id' => $radiusServer->id,
@@ -97,5 +114,7 @@ class DatabaseSeeder extends Seeder
                 'status' => 'active',
             ]
         );
+
+        app(FreeRadiusService::class)->syncNas($nasDevice);
     }
 }

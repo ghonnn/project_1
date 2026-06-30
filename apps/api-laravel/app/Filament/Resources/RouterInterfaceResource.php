@@ -38,13 +38,13 @@ class RouterInterfaceResource extends Resource
     public static function form(Form $form): Form
     {
         return $form
-            ->columns(1)
+            ->columns(2)
             ->schema([
                 Forms\Components\Select::make('tenant_id')->options(fn () => AdminOptions::tenants())->searchable()->required(),
                 Forms\Components\Select::make('router_id')->options(fn () => AdminOptions::routers())->searchable()->required(),
-                Forms\Components\TextInput::make('interface_name')->required()->maxLength(255),
-                Forms\Components\TextInput::make('interface_type')->maxLength(255),
-                Forms\Components\TextInput::make('ip_address')->maxLength(255),
+                Forms\Components\TextInput::make('interface_name')->required()->maxLength(80),
+                Forms\Components\TextInput::make('interface_type')->maxLength(40),
+                Forms\Components\TextInput::make('ip_address')->maxLength(45),
                 Forms\Components\TextInput::make('vlan_id')->numeric(),
                 Forms\Components\TextInput::make('speed_mbps')->numeric(),
                 Forms\Components\Select::make('status')

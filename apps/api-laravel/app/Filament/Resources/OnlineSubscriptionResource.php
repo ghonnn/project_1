@@ -42,7 +42,7 @@ class OnlineSubscriptionResource extends Resource
                 Tables\Columns\TextColumn::make('service.ip_address')->label('IP Address'),
                 Tables\Columns\TextColumn::make('router.router_name')->label('Router')->searchable(),
                 Tables\Columns\TextColumn::make('service.server_name')->label('Server')->searchable(),
-                Tables\Columns\TextColumn::make('service.partner_name')->label('Mitra')->searchable(),
+                Tables\Columns\TextColumn::make('service.partner_name')->label('Partner')->searchable(),
                 Tables\Columns\TextColumn::make('updated_at')->label('Last Update')->dateTime()->sortable(),
             ])
             ->headerActions([
