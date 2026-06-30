@@ -15,6 +15,8 @@
                 gap: 6px;
                 min-height: 32px;
                 min-width: max-content;
+                width: auto !important;
+                max-width: max-content;
                 padding: 0 10px;
                 border: 1px solid transparent;
                 border-radius: 6px;
@@ -60,6 +62,41 @@
             .nex-voucher-control--indigo:hover { background: #4338ca !important; }
             .nex-voucher-control--violet { background: #7c3aed !important; }
             .nex-voucher-control--violet:hover { background: #6d28d9 !important; }
+
+            .nex-template-toolbar {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 8px;
+                align-items: end;
+                padding: 10px;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+                background: #f8fafc;
+            }
+
+            .nex-template-actions {
+                display: flex !important;
+                flex-wrap: wrap;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 6px;
+                width: auto;
+                min-width: max-content;
+            }
+
+            .nex-template-actions > .nex-voucher-control {
+                flex: 0 0 auto !important;
+                width: auto !important;
+                min-width: 86px;
+                max-width: none;
+                padding-inline: 12px;
+            }
+
+            .nex-template-select {
+                display: grid;
+                min-width: 0;
+                gap: 4px;
+            }
 
             .nex-voucher-stat-card {
                 min-height: 86px;
@@ -186,8 +223,13 @@
             @media (max-width: 640px) {
                 .nex-voucher-filterbar,
                 .nex-voucher-filterbar--simple,
-                .nex-voucher-filterbar--recap {
+                .nex-voucher-filterbar--recap,
+                .nex-template-toolbar {
                     grid-template-columns: 1fr;
+                }
+
+                .nex-template-actions {
+                    justify-content: flex-start;
                 }
             }
 
@@ -217,6 +259,10 @@
                 }
 
                 window.open(event.detail.url, '_blank', 'noopener,noreferrer');
+            });
+
+            window.addEventListener('voucher-export-ready', () => {
+                // Reserved for Livewire streamed downloads.
             });
 
             window.addEventListener('voucher-print-empty', () => {
@@ -382,8 +428,8 @@
                                 <button type="button" x-on:click="stockPanel = null" class="text-gray-400 hover:text-gray-600">&times;</button>
                             </div>
                             <x-voucher-select label="Tenant" model="voucherForm.tenant_id" :options="$this->tenantOptions()" />
-                            <x-voucher-select label="Mitra" model="voucherForm.partner_id" :options="$this->partnerOptions()" />
-                            <x-voucher-select label="Potong Saldo Mitra" model="voucherForm.potong_saldo" :options="['yes' => 'YES', 'no' => 'NO']" />
+                            <x-voucher-select label="Partner" model="voucherForm.partner_id" :options="$this->partnerOptions()" />
+                            <x-voucher-select label="Potong Saldo Partner" model="voucherForm.potong_saldo" :options="['yes' => 'YES', 'no' => 'NO']" />
                             <x-voucher-select label="Profile" model="voucherForm.profile_id" :options="$this->profileOptions()" />
                             <x-voucher-input label="Outlet/Hotel Area" model="voucherForm.outlet_name" />
                             <x-voucher-select label="Router" model="voucherForm.router_id" :options="$this->routerOptions()" />
@@ -625,8 +671,8 @@
                                 <span>
                                     <x-filament::icon icon="heroicon-m-user-group" class="h-4 w-4" />
                                 </span>
-                                <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter mitra">
-                                    <option value="">Pilih mitra</option>
+                                <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter partner">
+                                    <option value="">Pilih partner</option>
                                     @foreach ($this->partnerOptions() as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
@@ -736,8 +782,8 @@
                                 <span>
                                     <x-filament::icon icon="heroicon-m-user-group" class="h-4 w-4" />
                                 </span>
-                                <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter mitra">
-                                    <option value="">Pilih mitra</option>
+                                <select wire:model.live="stockPartnerId" class="min-w-0 flex-1 border-0 text-sm focus:ring-0" aria-label="Filter partner">
+                                    <option value="">Pilih partner</option>
                                     @foreach ($this->partnerOptions() as $id => $name)
                                         <option value="{{ $id }}">{{ $name }}</option>
                                     @endforeach
@@ -834,10 +880,10 @@
                             Table ini berisi informasi rekap voucher yang dikelompokkan berdasarkan kode dan tanggal pembuatan.
                         </div>
                         <div class="nex-voucher-filterbar nex-voucher-filterbar--recap">
-                            <button type="button" wire:click="exportCreationRecap" class="nex-voucher-control nex-voucher-control--blue">
+                            <button type="button" wire:click="openRecapExportModal" class="nex-voucher-control nex-voucher-control--blue">
                                 <x-filament::icon icon="heroicon-m-document-arrow-down" class="h-4 w-4" /> EXPORT
                             </button>
-                            <button type="button" x-on:click="window.print()" class="nex-voucher-control nex-voucher-control--slate">
+                            <button type="button" wire:click="openRecapPrintModal" class="nex-voucher-control nex-voucher-control--slate">
                                 <x-filament::icon icon="heroicon-m-printer" class="h-4 w-4" /> PRINT
                             </button>
                             <label class="nex-voucher-field">
@@ -879,26 +925,31 @@
                 @if ($pageType === 'template')
                     <form wire:submit="saveTemplate" class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
                         <div class="space-y-5">
-                            <div class="grid gap-3 lg:grid-cols-[150px_minmax(260px,1fr)_auto_auto_auto_auto] lg:items-center">
-                                <div class="text-xs font-semibold uppercase text-gray-600">Pilih</div>
-                                <select wire:model.live="editingTemplateId" class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
-                                    <option value="">Template Baru</option>
-                                    @foreach ($this->templateOptions() as $id => $name)
-                                        <option value="{{ $id }}">{{ $name }}</option>
-                                    @endforeach
-                                </select>
-                                <button type="submit" class="nex-voucher-control nex-voucher-control--blue">
-                                    <x-filament::icon icon="heroicon-m-bookmark-square" class="h-4 w-4" /> UPDATE
-                                </button>
-                                <button type="button" wire:click="downloadTemplateHtml" class="nex-voucher-control" style="background:#0891b2 !important">
-                                    <x-filament::icon icon="heroicon-m-eye" class="h-4 w-4" /> PREVIEW
-                                </button>
-                                <button type="button" wire:click="deleteTemplate" wire:confirm="Hapus template voucher ini?" class="nex-voucher-control nex-voucher-control--rose">
-                                    <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" /> HAPUS
-                                </button>
-                                <button type="button" wire:click="addTemplate" class="nex-voucher-control nex-voucher-control--emerald">
-                                    <x-filament::icon icon="heroicon-m-plus" class="h-4 w-4" /> TAMBAH
-                                </button>
+                            <div class="nex-template-toolbar">
+                                <label class="nex-template-select">
+                                    <span class="text-xs font-semibold uppercase text-gray-600">Pilih</span>
+                                    <select wire:model.live="editingTemplateId" class="h-9 rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                        <option value="">Template Baru</option>
+                                        @foreach ($this->templateOptions() as $id => $name)
+                                            <option value="{{ $id }}">{{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                </label>
+
+                                <div class="nex-template-actions w-auto">
+                                    <button type="submit" class="nex-voucher-control nex-voucher-control--blue !w-auto">
+                                        <x-filament::icon icon="heroicon-m-bookmark-square" class="h-4 w-4" /> UPDATE
+                                    </button>
+                                    <button type="button" x-on:click="window.nexVoucherPrintWindow = window.open('about:blank', '_blank')" wire:click="previewTemplate" class="nex-voucher-control !w-auto" style="background:#0891b2 !important">
+                                        <x-filament::icon icon="heroicon-m-eye" class="h-4 w-4" /> PREVIEW
+                                    </button>
+                                    <button type="button" wire:click="deleteTemplate" wire:confirm="Hapus template voucher ini?" class="nex-voucher-control nex-voucher-control--rose !w-auto">
+                                        <x-filament::icon icon="heroicon-m-trash" class="h-4 w-4" /> HAPUS
+                                    </button>
+                                    <button type="button" wire:click="addTemplate" class="nex-voucher-control nex-voucher-control--emerald !w-auto">
+                                        <x-filament::icon icon="heroicon-m-plus" class="h-4 w-4" /> TAMBAH
+                                    </button>
+                                </div>
                             </div>
 
                             <div class="border-t border-gray-200 pt-4">
@@ -948,12 +999,13 @@
                                         '#hsname# : Nama hotspot',
                                         '#printdate# : Tanggal cetak',
                                         '#printtime# : Jam cetak',
-                                        '#mitra# : Nama mitra',
+                                        '#partner# / #mitra# : Nama partner',
                                         '#outlet# : Nama outlet',
                                         '#nomor# : Nomor urut',
                                         '#logo# : Logo voucher',
                                         '#kode# : Nomor Kode pembuatan',
-                                        '#mitraphone# : Nomor HP mitra',
+                                        '#partnerphone# / #mitraphone# : Nomor HP partner',
+                                        '#loginurl# : URL login otomatis QR',
                                         '#csphone# : Nomor HP CS',
                                     ] as $parameter)
                                         <li>{{ $parameter }}</li>
@@ -998,7 +1050,7 @@
                                         'profile' => 'Profile',
                                         'router' => 'Router',
                                         'server' => 'Server',
-                                        'mitra' => 'Mitra',
+                                        'mitra' => 'Partner',
                                         'outlet' => 'Outlet',
                                         'hpp' => 'HPP',
                                         'commission' => 'Komisi',
@@ -1022,7 +1074,7 @@
                                         'profile' => 'Profile',
                                         'router' => 'Router',
                                         'server' => 'Server',
-                                        'mitra' => 'Mitra',
+                                        'mitra' => 'Partner',
                                         'outlet' => 'Outlet',
                                         'hpp' => 'HPP',
                                         'commission' => 'Komisi',
@@ -1287,5 +1339,64 @@
                 @endif
             </div>
         </x-filament::section>
+
+        @if ($pageType === 'recap' && $recapActionModal)
+            <div class="fixed inset-0 z-50 flex items-center justify-center bg-gray-950/55 px-4 py-6">
+                <div class="w-full max-w-xl overflow-hidden rounded-lg bg-white shadow-2xl ring-1 ring-gray-950/10">
+                    <div class="flex items-center justify-between border-b border-gray-200 px-6 py-4">
+                        <h3 class="inline-flex items-center gap-2 text-lg font-bold uppercase text-gray-800">
+                            <x-filament::icon :icon="$recapActionModal === 'print' ? 'heroicon-m-printer' : 'heroicon-m-document-arrow-down'" class="h-5 w-5" />
+                            {{ $recapActionModal === 'print' ? 'Print Data' : 'Export Data' }}
+                        </h3>
+                        <button type="button" wire:click="closeRecapActionModal" class="rounded-md p-1 text-gray-500 hover:bg-gray-100 hover:text-gray-800">
+                            <x-filament::icon icon="heroicon-m-x-mark" class="h-6 w-6" />
+                        </button>
+                    </div>
+
+                    <div class="space-y-4 px-6 py-5">
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-semibold text-gray-700">Partner</span>
+                            <div class="flex rounded-md border border-gray-300 bg-white shadow-sm focus-within:border-emerald-500 focus-within:ring-1 focus-within:ring-emerald-500">
+                                <select wire:model="recapActionForm.partner_id" class="min-w-0 flex-1 border-0 text-sm focus:ring-0">
+                                    <option value="">SYSTEM / Semua partner</option>
+                                    @foreach ($this->partnerOptions() as $id => $name)
+                                        <option value="{{ $id }}">{{ $name }}</option>
+                                    @endforeach
+                                </select>
+                                <span class="grid w-14 place-items-center border-l border-gray-200 bg-gray-50 text-sky-600">
+                                    <x-filament::icon icon="heroicon-m-magnifying-glass" class="h-6 w-6" />
+                                </span>
+                            </div>
+                        </label>
+
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-semibold text-gray-700">Tgl awal pembuatan</span>
+                            <input type="date" wire:model="recapActionForm.date_from" class="h-10 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        </label>
+
+                        <label class="block">
+                            <span class="mb-1 block text-sm font-semibold text-gray-700">Sampai tgl pembuatan</span>
+                            <input type="date" wire:model="recapActionForm.date_until" class="h-10 w-full rounded-md border-gray-300 text-sm shadow-sm focus:border-emerald-500 focus:ring-emerald-500">
+                        </label>
+                    </div>
+
+                    <div class="flex justify-end gap-2 border-t border-gray-200 bg-gray-50 px-6 py-4">
+                        <button type="button" wire:click="closeRecapActionModal" class="nex-voucher-control nex-voucher-control--slate">
+                            <x-filament::icon icon="heroicon-m-x-mark" class="h-4 w-4" /> Close
+                        </button>
+
+                        @if ($recapActionModal === 'print')
+                            <button type="button" x-on:click="window.nexVoucherPrintWindow = window.open('about:blank', '_blank')" wire:click="openRecapPrintTab" class="nex-voucher-control nex-voucher-control--rose">
+                                <x-filament::icon icon="heroicon-m-printer" class="h-4 w-4" /> Print
+                            </button>
+                        @else
+                            <button type="button" wire:click="exportCreationRecap" class="nex-voucher-control nex-voucher-control--blue">
+                                <x-filament::icon icon="heroicon-m-document-arrow-down" class="h-4 w-4" /> Export
+                            </button>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        @endif
     </div>
 </x-filament-panels::page>

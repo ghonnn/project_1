@@ -178,7 +178,43 @@ class HotspotVoucherService
         ]);
     }
 
+    /** @return array<int, array{name: string, hotspot_name: string, dns_name: string, support_phone: string, status: string, html_body: string}> */
+    public function defaultPrintTemplates(): array
+    {
+        return [
+            [
+                'name' => 'DEFAULT QR COMPACT',
+                'hotspot_name' => 'NEX Hotspot',
+                'dns_name' => 'loginwifi.nex.net.id',
+                'support_phone' => '082112121212',
+                'status' => 'active',
+                'html_body' => $this->compactVoucherTemplate(),
+            ],
+            [
+                'name' => 'DEFAULT QR STRIP',
+                'hotspot_name' => 'NEX Hotspot',
+                'dns_name' => 'loginwifi.nex.net.id',
+                'support_phone' => '082112121212',
+                'status' => 'active',
+                'html_body' => $this->stripVoucherTemplate(),
+            ],
+        ];
+    }
+
     public function defaultTemplate(string $hotspotName = 'NEX ISP Hotspot', string $phone = '082170000000'): string
+    {
+        return $this->compactVoucherTemplate();
+    }
+
+    public function hotspotLoginUrl(HotspotTemplate $template, HotspotVoucher $voucher): string
+    {
+        $host = trim((string) $template->dns_name) ?: 'loginwifi.nex.net.id';
+        $host = preg_replace('#^https?://#i', '', $host) ?: 'loginwifi.nex.net.id';
+
+        return 'http://'.$host.'/login?username='.rawurlencode($voucher->username).'&password='.rawurlencode($voucher->password);
+    }
+
+    private function compactVoucherTemplate(): string
     {
         return <<<'HTML'
 <!doctype html>
@@ -186,46 +222,119 @@ class HotspotVoucherService
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NEX ISP Hotspot</title>
+  <title>PRINT VOUCHER</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <style>
-    :root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#0f172a;background:#f8fafc}
-    body{margin:0;min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#ecfdf5,#f8fafc)}
-    .card{width:min(420px,92vw);background:#fff;border:1px solid #dbe3ef;border-radius:16px;box-shadow:0 24px 80px rgba(15,23,42,.12);padding:28px}
-    .brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px}.mark{display:grid;place-items:center;width:42px;height:42px;border-radius:10px;background:#059669;color:#fff}
-    h1{font-size:22px;margin:24px 0 6px}.muted{color:#64748b;font-size:14px;margin:0 0 22px}
-    label{display:block;font-size:13px;font-weight:700;margin:12px 0 6px}input{width:100%;box-sizing:border-box;border:1px solid #cbd5e1;border-radius:10px;padding:13px 14px;font-size:15px}
-    button{width:100%;border:0;border-radius:10px;background:#059669;color:white;padding:13px 16px;font-weight:800;margin-top:18px;cursor:pointer}
-    .foot{font-size:12px;color:#64748b;text-align:center;margin-top:18px}
+    *{box-sizing:border-box}body{margin:0;background:#fff;color:#000;font-family:Arial,Helvetica,sans-serif;font-size:9px}.voucher{display:inline-block;width:180px;min-height:116px;margin:2px;border:1px solid #color#;padding:3px;overflow:hidden;break-inside:avoid}.top{display:flex;align-items:flex-start;justify-content:space-between;gap:4px}.logo{height:18px;max-width:58px}.price{font-size:15px;font-weight:800;color:#color#}.body{display:grid;grid-template-columns:1fr 64px;gap:3px;margin-top:1px}.code{font-size:16px;font-weight:800;color:#color#;line-height:1.05}.label{font-size:9px;font-weight:700}.muted{font-size:8px}.qr{width:62px;height:62px}.foot{margin-top:2px;background:#color#;color:#fff;font-size:9px;font-weight:800;padding:2px 3px}
   </style>
 </head>
 <body>
-  <main class="card">
-    <div class="brand"><div class="mark">NEX</div><span>{{hotspot_name}}</span></div>
-    <h1>Masuk WiFi</h1>
-    <p class="muted">Gunakan username dan password pada voucher Anda.</p>
-    <form name="login" action="$(link-login-only)" method="post">
-      <input type="hidden" name="dst" value="$(link-orig)">
-      <input type="hidden" name="popup" value="true">
-      <label>Username</label>
-      <input name="username" autocomplete="username" required>
-      <label>Password</label>
-      <input name="password" type="password" autocomplete="current-password" required>
-      <button type="submit">Connect</button>
-    </form>
-    <div class="foot">Bantuan: {{support_phone}}</div>
-  </main>
+  <table class="voucher"><tr><td>
+    <div class="top"><img class="logo" src="#logo#" alt="NEX"><div class="price">#harga#</div></div>
+    <div class="body">
+      <div>
+        <div class="label">U : <span class="code">#username#</span></div>
+        <div class="label">P : <span class="code">#password#</span></div>
+        <div class="muted"><b>#profile#</b><br>Partner : #partner#<br>Tgl cetak #printdate#<br>No : #nomor#</div>
+      </div>
+      <canvas class="qr" id="qr-#nomor#"></canvas>
+    </div>
+    <div class="foot">#csphone#</div>
+  </td></tr></table>
+  <script>new QRious({element:document.getElementById('qr-#nomor#'),value:'#loginurl#',size:124,level:'M'});</script>
 </body>
 </html>
 HTML;
     }
 
-    public function renderTemplate(HotspotTemplate $template): string
+    private function stripVoucherTemplate(): string
     {
-        return str_replace(
+        return <<<'HTML'
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PRINT VOUCHER</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <style>
+    *{box-sizing:border-box}body{margin:0;background:#fff;color:#0f172a;font-family:Arial,Helvetica,sans-serif}.ticket{display:inline-grid;grid-template-columns:88px 1fr 58px;width:245px;min-height:92px;margin:3px;border:1px solid #color#;break-inside:avoid}.brand{background:#color#;color:#fff;padding:6px;font-size:10px;font-weight:800}.brand b{display:block;font-size:14px}.mid{padding:6px;font-size:9px}.user{font-size:16px;font-weight:900;color:#color#;line-height:1}.row{margin-top:2px}.qrwrap{display:grid;place-items:center;border-left:1px dashed #color#}.qr{width:54px;height:54px}.phone{margin-top:4px;background:#0f172a;color:white;padding:2px 4px;font-size:8px;font-weight:700}
+  </style>
+</head>
+<body>
+  <section class="ticket">
+    <div class="brand"><b>#hsname#</b>#harga#<br>#profile#</div>
+    <div class="mid">
+      <div class="user">#username#</div>
+      <div class="row"><b>Pass:</b> #password#</div>
+      <div class="row"><b>Durasi:</b> #durasi# | <b>Kuota:</b> #kuota#</div>
+      <div class="row"><b>Partner:</b> #partner#</div>
+      <div class="phone">CS #csphone#</div>
+    </div>
+    <div class="qrwrap"><canvas class="qr" id="qr-#nomor#"></canvas></div>
+  </section>
+  <script>new QRious({element:document.getElementById('qr-#nomor#'),value:'#loginurl#',size:110,level:'M'});</script>
+</body>
+</html>
+HTML;
+    }
+
+    public function renderTemplate(HotspotTemplate $template, ?HotspotVoucher $voucher = null, int $number = 1): string
+    {
+        $html = str_replace(
             ['{{hotspot_name}}', '{{support_phone}}', '{{dns_name}}'],
             [$template->hotspot_name, $template->support_phone ?: '-', $template->dns_name ?: ''],
             $template->html_body
         );
+
+        if (! $voucher) {
+            return $this->replaceVoucherPlaceholders($html, $template, null, $number);
+        }
+
+        return $this->replaceVoucherPlaceholders($html, $template, $voucher, $number);
+    }
+
+    private function replaceVoucherPlaceholders(string $html, HotspotTemplate $template, ?HotspotVoucher $voucher, int $number): string
+    {
+        $profile = $voucher?->profile;
+        $partnerName = $voucher ? ($voucher->partner_name ?: ($voucher->mitra?->name ?? 'SYSTEM')) : 'SYSTEM';
+        $outletName = $voucher ? ($voucher->outlet_name ?: ($voucher->outlet?->name ?? '-')) : '-';
+        $price = $voucher ? number_format((float) $voucher->price, 0, ',', '.') : '0';
+        $color = $profile?->attributes['Color'] ?? $profile?->attributes['color'] ?? '#0891b2';
+        $loginUrl = $voucher ? $this->hotspotLoginUrl($template, $voucher) : 'http://'.($template->dns_name ?: 'loginwifi.nex.net.id').'/login?username=demo&password=demo';
+        $logo = $template->logo_path ? asset('storage/'.$template->logo_path) : 'https://dummyimage.com/120x36/ffffff/0891b2&text=NEX';
+
+        return str_replace([
+            '#username#', '#password#', '#profile#', '#harga#', '#aktif#', '#durasi#', '#kuota#',
+            '#color#', '#dns#', '#hsname#', '#printdate#', '#printtime#', '#mitra#', '#partner#',
+            '#outlet#', '#nomor#', '#logo#', '#kode#', '#mitraphone#', '#partnerphone#',
+            '#csphone#', '#loginurl#', '#kodevoucher#', '#usernamepassword#',
+        ], [
+            $voucher?->username ?? 'NEXDEMO',
+            $voucher?->password ?? '123456',
+            $profile?->name ?? 'Voucher Hotspot',
+            $price,
+            $profile?->attributes['Active-Days'] ?? '-',
+            $profile?->attributes['Session-Timeout'] ?? 'UNLIMITED',
+            $profile?->attributes['Quota-MB'] ?? 'UNLIMITED',
+            $color,
+            $template->dns_name ?: '',
+            $template->hotspot_name ?: 'NEX Hotspot',
+            now('Asia/Jakarta')->format('d/m/Y'),
+            now('Asia/Jakarta')->format('H:i:s'),
+            $partnerName,
+            $partnerName,
+            $outletName,
+            (string) $number,
+            $logo,
+            $voucher?->batch_code ?? '-',
+            $voucher?->mitra?->phone ?? '',
+            $voucher?->mitra?->phone ?? '',
+            $template->support_phone ?: '-',
+            $loginUrl,
+            ($voucher?->batch_code ?? '-').' '.$number,
+            ($voucher?->username ?? 'NEXDEMO').'/'.($voucher?->password ?? '123456'),
+        ], $html);
     }
 
     private function radiusTablesReady(): bool

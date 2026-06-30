@@ -84,6 +84,10 @@ abstract class VoucherPage extends Page
 
     public int|string $recapYear;
 
+    public ?string $recapActionModal = null;
+
+    public array $recapActionForm = [];
+
     public ?string $editingTemplateId = null;
 
     public function mount(): void
@@ -91,6 +95,7 @@ abstract class VoucherPage extends Page
         $tenantId = $this->defaultTenantId();
         $this->recapMonth = (int) now('Asia/Jakarta')->format('n');
         $this->recapYear = (int) now('Asia/Jakarta')->format('Y');
+        $this->ensureDefaultVoucherTemplates($tenantId);
 
         $this->profileForm = [
             'tenant_id' => $tenantId,
@@ -186,6 +191,12 @@ abstract class VoucherPage extends Page
             'outlet_id' => null,
             'profile_id' => null,
         ];
+
+        $this->recapActionForm = [
+            'partner_id' => null,
+            'date_from' => now('Asia/Jakarta')->startOfMonth()->format('Y-m-d'),
+            'date_until' => now('Asia/Jakarta')->format('Y-m-d'),
+        ];
     }
 
     public function updated(string $property, mixed $value = null): void
@@ -240,7 +251,7 @@ abstract class VoucherPage extends Page
             'stock' => [
                 ['label' => 'Total Stok', 'value' => (string) $stock->count(), 'description' => 'Jumlah voucher aktif', 'icon' => 'heroicon-o-wifi', 'color' => '#0d82ff'],
                 ['label' => 'Total HPP', 'value' => $this->rupiah((float) $stock->sum('hpp')), 'description' => 'Harga pokok penjualan', 'icon' => 'heroicon-o-banknotes', 'color' => '#16a34a'],
-                ['label' => 'Total Komisi', 'value' => $this->rupiah((float) $stock->sum('commission')), 'description' => 'Komisi mitra / outlet', 'icon' => 'heroicon-o-currency-dollar', 'color' => '#f59e0b'],
+                ['label' => 'Total Komisi', 'value' => $this->rupiah((float) $stock->sum('commission')), 'description' => 'Komisi partner / outlet', 'icon' => 'heroicon-o-currency-dollar', 'color' => '#f59e0b'],
                 ['label' => 'Total Harga', 'value' => $this->rupiah((float) $stock->sum('price')), 'description' => 'Nominal jual voucher', 'icon' => 'heroicon-o-circle-stack', 'color' => '#0891b2'],
             ],
             'sold' => [
@@ -463,7 +474,7 @@ abstract class VoucherPage extends Page
 
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan']);
+            fputcsv($handle, ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
@@ -505,6 +516,7 @@ abstract class VoucherPage extends Page
         Cache::put('voucher-print:'.$token, [
             'tenant_id' => $this->selectedTenantId(),
             'voucher_ids' => $rows->pluck('id')->all(),
+            'template_id' => $this->editingTemplateId ?: HotspotTemplate::where('tenant_id', $this->selectedTenantId())->where('status', 'active')->orderBy('name')->value('id'),
         ], now()->addMinutes(10));
 
         $this->dispatch('voucher-print-ready', url: route('voucher.print', ['token' => $token]));
@@ -521,6 +533,19 @@ abstract class VoucherPage extends Page
         $html = app(HotspotVoucherService::class)->renderTemplate($template);
 
         return response()->streamDownload(fn () => print($html), 'login.html');
+    }
+
+    public function previewTemplate(): void
+    {
+        $template = new HotspotTemplate($this->templateForm);
+        $html = app(HotspotVoucherService::class)->renderTemplate($template);
+        $token = Str::random(40);
+
+        Cache::put('voucher-template-preview:'.$token, [
+            'html' => $html,
+        ], now()->addMinutes(10));
+
+        $this->dispatch('voucher-print-ready', url: route('voucher.template.preview', ['token' => $token]));
     }
 
     /** @return array<string, string> */
@@ -678,7 +703,7 @@ abstract class VoucherPage extends Page
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, ['Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC Address']);
+            fputcsv($handle, ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC Address']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
@@ -715,7 +740,7 @@ abstract class VoucherPage extends Page
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, ['Tanggal', 'Mitra', 'Outlet', 'Profile', 'Qty', 'HPP', 'Komisi', 'Penjualan']);
+            fputcsv($handle, ['Tanggal', 'Partner', 'Outlet', 'Profile', 'Qty', 'HPP', 'Komisi', 'Penjualan']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
@@ -875,10 +900,26 @@ abstract class VoucherPage extends Page
 
     public function templateOptions(): array
     {
+        $this->ensureDefaultVoucherTemplates($this->selectedTenantId());
+
         return HotspotTemplate::where('tenant_id', $this->selectedTenantId())
             ->orderBy('name')
             ->pluck('name', 'id')
             ->all();
+    }
+
+    protected function ensureDefaultVoucherTemplates(?string $tenantId): void
+    {
+        if (! $tenantId) {
+            return;
+        }
+
+        foreach (app(HotspotVoucherService::class)->defaultPrintTemplates() as $template) {
+            HotspotTemplate::firstOrCreate(
+                ['tenant_id' => $tenantId, 'name' => $template['name']],
+                $template + ['tenant_id' => $tenantId],
+            );
+        }
     }
 
     public function monthOptions(): array
@@ -994,9 +1035,7 @@ abstract class VoucherPage extends Page
 
     public function recapRows(): array
     {
-        return HotspotVoucher::query()
-            ->with('profile')
-            ->where('tenant_id', $this->selectedTenantId())
+        return $this->creationRecapQuery()
             ->whereMonth('created_at', (int) $this->recapMonth)
             ->whereYear('created_at', (int) $this->recapYear)
             ->when(trim($this->stockSearch) !== '', function (Builder $query): void {
@@ -1017,15 +1056,52 @@ abstract class VoucherPage extends Page
             ->all();
     }
 
+    public function openRecapExportModal(): void
+    {
+        $this->openRecapActionModal('export');
+    }
+
+    public function openRecapPrintModal(): void
+    {
+        $this->openRecapActionModal('print');
+    }
+
+    public function closeRecapActionModal(): void
+    {
+        $this->recapActionModal = null;
+    }
+
+    public function openRecapPrintTab(): void
+    {
+        $rows = collect($this->recapRowsForAction());
+
+        if ($rows->isEmpty()) {
+            Notification::make()->title('Tidak ada data rekap untuk dicetak')->warning()->send();
+
+            return;
+        }
+
+        $token = Str::random(40);
+        Cache::put('voucher-recap-print:'.$token, [
+            'tenant_id' => $this->selectedTenantId(),
+            'partner_id' => $this->recapActionForm['partner_id'] ?? null,
+            'date_from' => $this->recapActionForm['date_from'] ?? now('Asia/Jakarta')->startOfMonth()->format('Y-m-d'),
+            'date_until' => $this->recapActionForm['date_until'] ?? now('Asia/Jakarta')->format('Y-m-d'),
+        ], now()->addMinutes(10));
+
+        $this->recapActionModal = null;
+        $this->dispatch('voucher-print-ready', url: route('voucher.recap.print', ['token' => $token]));
+    }
+
     public function exportCreationRecap(): StreamedResponse
     {
-        $rows = collect($this->recapRows());
+        $rows = collect($this->recapRowsForAction());
         $filename = 'nex-rekap-pembuatan-voucher-'.now('Asia/Jakarta')->format('Ymd-His').'.csv';
 
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, ['Kode', 'Tgl Pembuatan', 'Mitra', 'Outlet', 'Profile', 'Qty', 'Sisa Stok', 'Terjual', 'Total HPP', 'Total Komisi', 'Total Harga']);
+            fputcsv($handle, ['Kode', 'Tgl Pembuatan', 'Partner', 'Outlet', 'Profile', 'Qty', 'Sisa Stok', 'Terjual', 'Total HPP', 'Total Komisi', 'Total Harga']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
@@ -1047,15 +1123,56 @@ abstract class VoucherPage extends Page
         }, $filename);
     }
 
+    /** @return array<int, object> */
+    protected function recapRowsForAction(): array
+    {
+        $dateFrom = $this->recapActionForm['date_from'] ?? now('Asia/Jakarta')->startOfMonth()->format('Y-m-d');
+        $dateUntil = $this->recapActionForm['date_until'] ?? now('Asia/Jakarta')->format('Y-m-d');
+        $partnerId = $this->recapActionForm['partner_id'] ?? null;
+        $partner = $partnerId ? Mitra::query()->find($partnerId) : null;
+
+        return $this->creationRecapQuery()
+            ->whereDate('created_at', '>=', $dateFrom)
+            ->whereDate('created_at', '<=', $dateUntil)
+            ->when($partner, function (Builder $query) use ($partner): void {
+                $query->where(function (Builder $query) use ($partner): void {
+                    $query->where('mitra_id', $partner->id)->orWhere('partner_name', $partner->name);
+                });
+            })
+            ->latest('created_date')
+            ->limit(1000)
+            ->get()
+            ->all();
+    }
+
+    protected function creationRecapQuery(): Builder
+    {
+        return HotspotVoucher::query()
+            ->with('profile')
+            ->where('tenant_id', $this->selectedTenantId())
+            ->selectRaw('batch_code, date(created_at) as created_date, partner_name, outlet_name, profile_id, count(*) as qty, sum(case when status = \'stock\' then 1 else 0 end) as stock_qty, sum(case when status in (\'sold\', \'expired\') then 1 else 0 end) as sold_qty, sum(hpp) as hpp, sum(commission) as commission, sum(price) as price')
+            ->groupByRaw('batch_code, date(created_at), partner_name, outlet_name, profile_id');
+    }
+
+    protected function openRecapActionModal(string $action): void
+    {
+        $this->recapActionModal = $action;
+        $this->recapActionForm = array_merge([
+            'partner_id' => null,
+            'date_from' => now('Asia/Jakarta')->startOfMonth()->format('Y-m-d'),
+            'date_until' => now('Asia/Jakarta')->format('Y-m-d'),
+        ], $this->recapActionForm);
+    }
+
     public function columns(): array
     {
         return match ($this->pageType) {
             'profile' => ['Nama Profile', 'Group', 'Rate Limit', 'Shared', 'Kuota', 'Durasi', 'Harga DPP', 'PPN 11%', 'Harga Jual', 'Status'],
-            'stock' => ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan'],
-            'sold' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC AC'],
-            'online' => ['Username', 'Profile', 'Uptime', 'Upload', 'Download', 'Router', 'Interface', 'Server', 'IP Address', 'MAC Addr', 'Mitra', 'Outlet', 'Last Connected', 'Last Update'],
+            'stock' => ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan'],
+            'sold' => ['Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Kode', 'Durasi', 'Kuota', 'Tgl Aktif', 'Tgl Expired', 'MAC AC'],
+            'online' => ['Username', 'Profile', 'Uptime', 'Upload', 'Download', 'Router', 'Interface', 'Server', 'IP Address', 'MAC Addr', 'Partner', 'Outlet', 'Last Connected', 'Last Update'],
             'offline' => ['Username', 'Router', 'Interface', 'Server', 'IP Address', 'Download', 'Upload', 'Last Connected', 'Last Offline', 'Reason'],
-            'recap' => ['#', 'Kode', 'Tgl Pembuatan', 'Mitra', 'Outlet', 'Profile', 'Qty', 'Sisa Stok', 'Terjual', 'Total HPP', 'Total Komisi', 'Total Harga'],
+            'recap' => ['#', 'Kode', 'Tgl Pembuatan', 'Partner', 'Outlet', 'Profile', 'Qty', 'Sisa Stok', 'Terjual', 'Total HPP', 'Total Komisi', 'Total Harga'],
             default => ['Nama Template', 'Hotspot', 'DNS', 'Phone', 'Status'],
         };
     }
@@ -1684,7 +1801,7 @@ abstract class VoucherPage extends Page
         return response()->streamDownload(function () use ($rows): void {
             $handle = fopen('php://output', 'w');
             fprintf($handle, chr(0xEF).chr(0xBB).chr(0xBF));
-            fputcsv($handle, ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Mitra', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan', 'MAC Address']);
+            fputcsv($handle, ['Kode', 'Username', 'Password', 'Profile', 'Router', 'Server', 'Partner', 'Outlet', 'HPP', 'Komisi', 'Harga', 'Saldo', 'Admin', 'Tgl Pembuatan', 'MAC Address']);
 
             foreach ($rows as $row) {
                 fputcsv($handle, [
